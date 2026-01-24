@@ -1,0 +1,19 @@
+# PlatformIO build directory
+L_plate_server/.pio/
+
+# VS Code settings
+.vscode/
+
+# Compiled binaries and temporary files
+L_plate_server/*.elf
+L_plate_server/*.bin
+L_plate_server/*.hex
+L_plate_server/*.map
+
+# Operating system files
+L_plate_server/.DS_Store
+L_plate_server/Thumbs.db
+
+# Release artifacts
+L_plate_server/releases/
+
