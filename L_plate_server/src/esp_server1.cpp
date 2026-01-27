@@ -6,6 +6,7 @@
 
 // littls fs files
 // passwords.json (this is a file that has the ssid and passwords of home wifis)
+// odo.txt int odo
 
 unsigned long  time_of_last_gps_log = millis();
 unsigned long  time_of_last_acell_log = millis();
@@ -19,15 +20,10 @@ int waiting_state = 0;
 
 int need_sd = 0;
 
-double long time_logging_stoped = 0;
+unsigned long time_logging_stoped = 0;
 
 WiFiServer server(80);
 
-bool start_ap();
-std::vector<String> get_ssid_scan();
-void add_wifi_network(const char* ssid, const char* pwd);
-void print_file(const char * path);
-void start_loging(long start_time, String SD_name);
 String get_pram_from_url(String url, String key);
 
 bool start_ap(){
@@ -39,11 +35,18 @@ bool start_ap(){
   Serial.println();
   Serial.println("Configuring access point...");
 
-  if (!WiFi.softAP(ssid, password)) {
-    log_e("Soft AP creation failed.");
-    while (1);
-    Serial.println("ap failed");
+  int start_time = millis();
+  while (start_time + 10000 > millis())
+  {
+    if (!WiFi.softAP(ssid, password)) {
+      log_e("Soft AP creation failed.");
+    }
+    else {
+      break;
+    }
+    delay(1000);
   }
+  
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
@@ -163,6 +166,7 @@ bool connect_to_wifi() {
   
 void setup() {
   Serial.begin(115200);
+  
     if (!LittleFS.begin()) {
     Serial.println("LittleFS mount failed");
     return;
@@ -177,6 +181,7 @@ void setup() {
   //   start_ap();
   // }
   start_ap();
+  delay(1000);
 }
 
 void start_loging(long start_time, String SD_name) {
@@ -207,8 +212,10 @@ void stop_logging(long end_time) {
   // db_write_end_time(time_loging_stoped)
   Serial.println("logging stoped just wrote end time");
 }
+
 void loop() {
   do_loging();
+  
   // put your main code here, to run repeatedly:
   WiFiClient client = server.available();
   if (client) {
@@ -222,11 +229,13 @@ void loop() {
 
       String name = str.substring(0,str.indexOf('?'));
       // possabile requests 
-      // start start?start_time=1234567&SD_ID=max_smith 
-      // stop
-      // synk 
-      // odo_update
-      // add_wifi_network
+      // start /start?start_time=1234567&SD_ID=max_smith 
+      // stop  /stop?end_time=2887
+      // sync  /sync 
+      // odo_update /odo_update?odo=23412
+      // add_wifi_network /add_wifi_network?ssid=top_seacreat_ssid&pwd=you_will_never_guess_this
+
+      Serial.println("about to start the if statments");
       if (name == "start") { 
         logging_state = 1;
         String start_time = get_pram_from_url(str,"start_time");
