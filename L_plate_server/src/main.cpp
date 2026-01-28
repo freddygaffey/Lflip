@@ -3,28 +3,18 @@
 #include <vector>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include <Preferences.h>
 
 #include "wifi_manager.h"
+#include "logging.h"
+#include "odo.h"
+
+float odo_update_rate = 1000; // ms
+int odo_last_updated = 0;
 
 // littls fs files
 // passwords.json (this is a file that has the ssid and passwords of home wifis)
 // odo.txt int odo
-
-unsigned long  time_of_last_gps_log = millis();
-unsigned long  time_of_last_acell_log = millis();
-
-int gps_log_rate = 1000; // ms
-int acell_log_rate = 100; // ms
-// the states
-int syncing_state = 0;
-int logging_state = 0;
-int waiting_state = 0;
-
-int need_sd = 0;
-
-unsigned long time_logging_stoped = 0;
-
-
 String get_pram_from_url(String url, String key);
 
 void print_file(const char * path){
@@ -53,35 +43,6 @@ String get_pram_from_url(String url, String key) {
   return url.substring(start, end);
 }
 
-void start_loging(long start_time, String SD_name) {
-  Serial.println("logging function called");
-  // write_start time 
-  // write sd 
-  logging_state = 1;
-}
-
-void do_loging() {
-  if (logging_state && time_logging_stoped == 0)
-  {
-    if (millis() - gps_log_rate < time_of_last_gps_log) {
-      time_of_last_gps_log = millis();
-      // write_gps_db(get_gps_poss()) 
-      Serial.println("loged gps");
-    }
-    if (millis() - acell_log_rate < time_of_last_acell_log) {
-      time_of_last_acell_log = millis();
-      Serial.println("loged acell");
-      // write_acell_db(get_current_acell()) 
-    }
-  }
-}
-
-void stop_logging(long end_time) {
-  logging_state = 0; 
-  // db_write_end_time(time_loging_stoped)
-  Serial.println("logging stoped just wrote end time");
-}
-
 void setup() {
   Serial.begin(115200);
   
@@ -89,6 +50,7 @@ void setup() {
     Serial.println("LittleFS mount failed");
     return;
   }
+  
 
   // get_ssid_scan();
   // add_wifi_network("home","u_will_never_guess_this");
@@ -102,9 +64,8 @@ void setup() {
   delay(1000);
 }
 void loop() {
-  do_loging();
+  callback();
   
-  // put your main code here, to run repeatedly:
   WiFiClient client = server.available();
   if (client) {
     while (client.connected() && !client.available()) { delay(1); }
@@ -125,7 +86,6 @@ void loop() {
 
       Serial.println("about to start the if statments");
       if (name == "start") { 
-        logging_state = 1;
         String start_time = get_pram_from_url(str,"start_time");
         Serial.println(start_time);
         String SD_ID = get_pram_from_url(str,"SD_ID");
@@ -135,8 +95,10 @@ void loop() {
       else if (name == "stop")
       {
         String end_time = get_pram_from_url(str,"end_time");
-        Serial.println(end_time);
         stop_logging(end_time.toDouble());
+        Serial.print("stoped at");
+        Serial.print(end_time);
+        Serial.println(" ran the stop_logging function");
       }
       else if (name == "sync")
       {
@@ -144,7 +106,14 @@ void loop() {
       }
       else if (name == "odo_update")
       {
-        /* code */
+        String s_odo = get_pram_from_url(str,"odo");
+        odo = strtoul(s_odo.c_str() ,NULL,10);
+        odo *= 1000;// to m from km
+        set_odo(odo);
+        Serial.print("the new odo is ");
+        Serial.println(get_odo());
+
+
       }
       else if (name == "add_wifi_network")
       {

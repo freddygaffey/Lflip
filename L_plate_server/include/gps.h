@@ -1,19 +1,27 @@
-#include <cmath>
 #pragma once
+#include <cmath>
 
 struct gpsCords 
 {
-    double lon = 0.0; // longitude in degrees
     double lat = 0.0; // latitude in degrees
+    double lon = 0.0; // longitude in degrees
+
+    gpsCords() {}
+
+    gpsCords(double la, double lo) {
+        lat = la;
+        lon = lo;
+    }
 
     // this function was written by chatGPT it is a simple utill
     // that finds the great circle distance between 2 points
-    float distanceFromGPStoGPS(const gpsCords& gps1, const gpsCords& gps2) {
+
+    float distanceto(const gpsCords& gps2) {
         const double EARTH_RADIUS_KM = 6371.0;
 
         // convert degrees to radians
-        double lat1 = gps1.lat * M_PI / 180.0;
-        double lon1 = gps1.lon * M_PI / 180.0;
+        double lat1 = lat * M_PI / 180.0;
+        double lon1 = lon * M_PI / 180.0;
         double lat2 = gps2.lat * M_PI / 180.0;
         double lon2 = gps2.lon * M_PI / 180.0;
 
@@ -33,6 +41,5 @@ struct gpsCords
     }
 };
 
-gpsCords getGps() {
-    
-}
+float get_speed_mps();
+gpsCords get_poss();
