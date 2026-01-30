@@ -64,7 +64,7 @@ void end_trip(long end_odo,String weather){
                 String(end_odo)+","+
                 weather;
     get_log_file().print(str_to_w);
-    log_file_name = ""
+    log_file_name = "";
 }
 
 File get_log_file(){
@@ -123,7 +123,7 @@ void log_gps(gpsCords gps_cord, float gps_speed_ms) {
 
 void check_buff_and_write_to_file(){
     File trip_file = get_log_file();
-    if (buffer.length() >= buffer_length){
+    if (buffer.length() <= buffer_length){
         return;
     }
     else{
