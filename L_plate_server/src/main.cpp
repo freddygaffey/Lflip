@@ -4,6 +4,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <Preferences.h>
+#include <time.h>
 
 #include "wifi_manager.h"
 #include "logging.h"
@@ -78,15 +79,19 @@ void loop() {
 
       String name = str.substring(0,str.indexOf('?'));
       // possabile requests 
-      // start /start?start_time=1234567&SD_ID=max_smith 
+      // start /start?start_time=12345timeSinceEpoc&SD_ID=max_smith 
       // stop  /stop?end_time=2887
       // sync  /sync 
       // odo_update /odo_update?odo=23412
       // add_wifi_network /add_wifi_network?ssid=top_seacreat_ssid&pwd=you_will_never_guess_this
 
-      Serial.println("about to start the if statments");
       if (name == "start") { 
         String start_time = get_pram_from_url(str,"start_time");
+
+        // set the for the esp32 
+        timeval tv = {start_time.toDouble(), 0};  // seconds, microseconds
+        settimeofday(&tv, nullptr);
+
         Serial.println(start_time);
         String SD_ID = get_pram_from_url(str,"SD_ID");
         Serial.println(SD_ID);
@@ -121,8 +126,12 @@ void loop() {
       }
       else {
         Serial.println("missed the if statments");
+        client.println("HTTP/1.1 302 Found");
+        client.println("Location: https://disharmoniously-unatoned-gabrielle.ngrok-free.dev");
+        client.println();
+        client.stop(); 
+        Serial.println("ran the redirect");
       }
-      
     }
       
 
