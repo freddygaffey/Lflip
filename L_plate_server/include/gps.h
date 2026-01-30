@@ -1,14 +1,14 @@
 #pragma once
 #include <cmath>
 
-struct gpsCords 
+struct GpsCords 
 {
     double lat = 0.0; // latitude in degrees
     double lon = 0.0; // longitude in degrees
 
-    gpsCords() {}
+    GpsCords() {}
 
-    gpsCords(double la, double lo) {
+    GpsCords(double la, double lo) {
         lat = la;
         lon = lo;
     }
@@ -16,7 +16,7 @@ struct gpsCords
     // this function was written by chatGPT it is a simple utill
     // that finds the great circle distance between 2 points
 
-    float distanceto(const gpsCords& gps2) {
+    float distanceto(const GpsCords& gps2) {
         const double EARTH_RADIUS_KM = 6371.0;
 
         // convert degrees to radians
@@ -42,4 +42,5 @@ struct gpsCords
 };
 
 float get_speed_mps();
-gpsCords get_poss();
+GpsCords get_poss();
+
