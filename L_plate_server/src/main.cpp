@@ -9,6 +9,7 @@
 #include "wifi_manager.h"
 #include "logging.h"
 #include "odo.h"
+#include "sd_card.h"
 
 float odo_update_rate = 1000; // ms
 int odo_last_updated = 0;
@@ -46,23 +47,21 @@ String get_pram_from_url(String url, String key) {
 
 void setup() {
   Serial.begin(115200);
-  
+  delay(3000);
+
     if (!LittleFS.begin()) {
     Serial.println("LittleFS mount failed");
     return;
   }
-  
 
-  // get_ssid_scan();
-  // add_wifi_network("home","u_will_never_guess_this");
-  // for (String str : get_ssid_scan()){
-  //   Serial.println(str);
-  // }
-  // if (!connect_to_wifi()) {
-  //   start_ap();
-  // }
-  start_ap();
-  delay(1000);
+  init_odo();
+  init_sd_card();
+
+  if (!connect_to_wifi()) {
+    Serial.println("cant connect to wifi starting a ap called SSID");
+    start_ap();
+  }
+
 }
 void loop() {
   callback();
@@ -107,6 +106,7 @@ void loop() {
       }
       else if (name == "sync")
       {
+        Serial.println("hit sync");
         /* code */
       }
       else if (name == "odo_update")
@@ -120,17 +120,28 @@ void loop() {
 
 
       }
-      else if (name == "add_wifi_network")
+      else if (name == "add_wifi")
       {
-        /* code */
+      // add_wifi_network /add_wifi?ssid=top_seacreat_ssid&pwd=you_will_never_guess_this
+        String ssid = get_pram_from_url(str,"ssid");
+        String pwd = get_pram_from_url(str,"pwd");
+        add_wifi_network(ssid, pwd);
+        Serial.println("printing pwd");
+        for (String i: get_all_pwd()) {
+          Serial.println(i);
+        }
+        Serial.println("printing ssid");
+        for (String i: get_all_ssid()) {
+          Serial.println(i);
+        }
       }
       else {
         Serial.println("missed the if statments");
-        client.println("HTTP/1.1 302 Found");
-        client.println("Location: https://disharmoniously-unatoned-gabrielle.ngrok-free.dev");
+        // client.println("HTTP/1.1 302 Found");
+        // client.println("Location: https://disharmoniously-unatoned-gabrielle.ngrok-free.dev");
         client.println();
         client.stop(); 
-        Serial.println("ran the redirect");
+        // Serial.println("ran the redirect");
       }
     }
       

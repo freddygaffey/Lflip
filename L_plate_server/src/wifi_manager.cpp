@@ -55,7 +55,7 @@ std::vector<String> get_ssid_scan() {
   
 }
 
-void add_wifi_network(const char* ssid, const char* pwd) {
+void add_wifi_network(String ssid, String pwd) {
   JsonDocument doc; //make doc static size
   File file = LittleFS.open("/passwords.json", "r");
   if (file) {
@@ -127,7 +127,9 @@ bool connect_to_wifi() {
         }
       WiFi.begin(final_ssid.c_str(), pwd.c_str());
       for (int attempt = 0; attempt < 30; attempt++){
-        if (WiFi.status() == WL_CONNECTED) {return 1;}
+        if (WiFi.status() == WL_CONNECTED) {
+          Serial.println("connected to "+ final_ssid);
+          return 1;}
         else{ delay(500);} }
       }
   }

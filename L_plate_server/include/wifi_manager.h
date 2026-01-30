@@ -10,7 +10,7 @@ extern WiFiServer server;
 
 bool start_ap();
 std::vector<String> get_ssid_scan();
-void add_wifi_network(const char* ssid, const char* pwd);
+void add_wifi_network(String ssid, String pwd);
 std::vector<String> get_all_pwd();
 std::vector<String> get_all_ssid();
 bool connect_to_wifi();
