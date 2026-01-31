@@ -1,3 +1,5 @@
+#pragma once
+
 struct Acell
 {
     float x;
@@ -11,3 +13,5 @@ struct Acell
         z=Z; 
     }
 };
+
+Acell get_acell();

@@ -22,16 +22,23 @@ void set_odo(unsigned long odo_new) {
     odo = odo_new;
     if (time_last_saved_write + write_rate <= millis()) {
         prefs.putULong("odo", odo);
+        prefs.end();
     }
 }
 
 unsigned long update_ODO_with_speed(float speed_mps) {
     // s = d / t
     // d = s * t
+    if (time_last_saved_speed == 0)
+    {
+        time_last_saved_speed = millis();
+        return odo;
+    }
     float t = millis() - time_last_saved_speed;
     t /= 1000; // to convert to sec
     float d = t * speed_mps;
     unsigned long _odo = d + get_odo();
     set_odo(_odo);
+    time_last_saved_speed = millis();
     return _odo;
 }

@@ -3,6 +3,7 @@
 #include <vector>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include <SD.h>
 
 // littls fs files
 // passwords.json (this is a file that has the ssid and passwords of home wifis)
@@ -10,6 +11,8 @@
 
 
 WiFiServer server(80);
+
+String get_host_name();
 
 bool start_ap(){
   WiFi.disconnect();
@@ -95,6 +98,12 @@ std::vector<String> get_all_pwd() {
 std::vector<String> get_all_ssid() {
   JsonDocument doc;
   File file = LittleFS.open("/passwords.json", "r");
+  if (!file) {
+    Serial.println("little fs passwords is blank making a new one");
+    file = LittleFS.open("/passwords.json", "w");
+    file.close();
+    File file = LittleFS.open("/passwords.json", "r");
+  }
   deserializeJson(doc,file);
   
   JsonArray arr = doc["networks"];
@@ -110,6 +119,9 @@ std::vector<String> get_all_ssid() {
 
 bool connect_to_wifi() {
   WiFi.mode(WIFI_STA);
+  String hostname = get_host_name();
+  WiFi.setHostname(hostname.c_str());
+
   std::vector<String> scan_ssid = get_ssid_scan();
   std::vector<String> saved_ssid = get_all_ssid();
   String final_ssid;
@@ -129,6 +141,11 @@ bool connect_to_wifi() {
       for (int attempt = 0; attempt < 30; attempt++){
         if (WiFi.status() == WL_CONNECTED) {
           Serial.println("connected to "+ final_ssid);
+          Serial.println("your localIP is");
+          Serial.println(WiFi.localIP());
+
+          server.begin();
+          Serial.println("the server has started");
           return 1;}
         else{ delay(500);} }
       }
@@ -136,3 +153,27 @@ bool connect_to_wifi() {
   return 0;
 }
   
+
+bool set_host_name(String hostname){
+  File file = SD.open("/hostname.txt",FILE_WRITE);
+  if (!file) return false;
+  file.println(hostname);
+  file.close();
+  Serial.println("Hostname saved: " + hostname);
+  return true;
+}
+String get_host_name(){
+  if (!SD.exists("/hostname.txt")) {
+    // Generate unique hostname from ESP32 chip ID
+    Serial.println("made a new hostname");
+    uint64_t chipid = ESP.getEfuseMac();
+    String hostname = "LPlate-" + String((uint32_t)chipid, HEX);
+    set_host_name(hostname);  // Save it
+    Serial.println(hostname);
+    return hostname;
+  }
+  File file = SD.open("/hostname.txt",FILE_READ);
+  String name = file.readStringUntil('\n');
+  name.trim();
+  return name;
+}

@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 #include <Preferences.h>
 #include <time.h>
+#include <ESPmDNS.h>
 
 #include "wifi_manager.h"
 #include "logging.h"
@@ -17,36 +18,14 @@ int odo_last_updated = 0;
 // littls fs files
 // passwords.json (this is a file that has the ssid and passwords of home wifis)
 // odo.txt int odo
+
+void print_file(const char * path);
 String get_pram_from_url(String url, String key);
-
-void print_file(const char * path){
-    Serial.printf("Reading file: %s\r\n", path);
-
-    File file = LittleFS.open(path);
-    if(!file || file.isDirectory()){
-        Serial.println("- failed to open file");
-        return;
-    }
-
-    while(file.available()){
-        Serial.write(file.read());
-    }
-    file.close();
-}
-
-String get_pram_from_url(String url, String key) {
-  int start = url.indexOf(key + "=");
-  if (start == -1) return "";
-  
-  start += key.length() + 1;
-  int end = url.indexOf("&", start);
-  
-  if (end == -1) return url.substring(start);
-  return url.substring(start, end);
-}
+bool is_pram_bad(String pram, WiFiClient& client);
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("serial works");
   delay(3000);
 
     if (!LittleFS.begin()) {
@@ -62,7 +41,12 @@ void setup() {
     start_ap();
   }
 
+  String hostname = get_host_name();
+  MDNS.begin(hostname.c_str());
+  Serial.println("Access at: http://" + hostname + ".local");
+  MDNS.addService("http", "tcp", 80);
 }
+
 void loop() {
   callback();
   
@@ -79,52 +63,67 @@ void loop() {
       String name = str.substring(0,str.indexOf('?'));
       // possabile requests 
       // start /start?start_time=12345timeSinceEpoc&SD_ID=max_smith 
-      // stop  /stop?end_time=2887
+      // stop  /stop?end_time=2887&weather=sunny
       // sync  /sync 
       // odo_update /odo_update?odo=23412
       // add_wifi_network /add_wifi_network?ssid=top_seacreat_ssid&pwd=you_will_never_guess_this
 
-      if (name == "start") { 
+      if (name == "start") {
         String start_time = get_pram_from_url(str,"start_time");
-
+        if (is_pram_bad(start_time,client)) return;
         // set the for the esp32 
         timeval tv = {start_time.toDouble(), 0};  // seconds, microseconds
         settimeofday(&tv, nullptr);
 
+        Serial.println("start time");
         Serial.println(start_time);
+        
         String SD_ID = get_pram_from_url(str,"SD_ID");
+        if (is_pram_bad(SD_ID,client)) return;
+        Serial.println("start time");
         Serial.println(SD_ID);
+
         start_loging(start_time.toDouble(),SD_ID);
+        client.println("HTTP/1.1 200 OK");
+        client.println("Content-Type: text/plain");
+        client.println();
+        client.println("Logging started");
+        client.stop();
       }
       else if (name == "stop")
       {
-        String end_time = get_pram_from_url(str,"end_time");
-        stop_logging(end_time.toDouble());
-        Serial.print("stoped at");
-        Serial.print(end_time);
-        Serial.println(" ran the stop_logging function");
+        String weather = get_pram_from_url(str,"weather");
+        if (is_pram_bad(weather,client)) return;
+        stop_logging(weather);
+        Serial.println("ran the stop_logging function");
+        client.println("HTTP/1.1 200 OK");
+        client.println("Content-Type: text/plain");
+        client.println();
+        client.println("Logging stoped");
+        client.stop();
       }
       else if (name == "sync")
       {
-        Serial.println("hit sync");
-        /* code */
+        Serial.println("hit sync shold make some actual code to do syncing");
       }
       else if (name == "odo_update")
       {
         String s_odo = get_pram_from_url(str,"odo");
+        if (is_pram_bad(s_odo,client)) return;
         odo = strtoul(s_odo.c_str() ,NULL,10);
         odo *= 1000;// to m from km
         set_odo(odo);
         Serial.print("the new odo is ");
         Serial.println(get_odo());
-
-
       }
       else if (name == "add_wifi")
       {
       // add_wifi_network /add_wifi?ssid=top_seacreat_ssid&pwd=you_will_never_guess_this
         String ssid = get_pram_from_url(str,"ssid");
+        if (is_pram_bad(ssid,client)) return;
         String pwd = get_pram_from_url(str,"pwd");
+        if (is_pram_bad(pwd,client)) return;
+        
         add_wifi_network(ssid, pwd);
         Serial.println("printing pwd");
         for (String i: get_all_pwd()) {
@@ -139,17 +138,54 @@ void loop() {
         Serial.println("missed the if statments");
         // client.println("HTTP/1.1 302 Found");
         // client.println("Location: https://disharmoniously-unatoned-gabrielle.ngrok-free.dev");
+
+        client.println("HTTP/1.1 200 OK");
+        client.println("OK");
         client.println();
         client.stop(); 
         // Serial.println("ran the redirect");
       }
     }
-      
-
-  client.println("HTTP/1.1 200 OK");
-  client.println();
-  client.println("OK");
-  client.stop();
   }
+}
 
+String get_pram_from_url(String url, String key) {
+  int start = url.indexOf(key + "=");
+  if (start == -1) return "";
+  
+  start += key.length() + 1;
+  int end = url.indexOf("&", start);
+  String pram;
+  if (end == -1) pram = url.substring(start);
+  else pram = url.substring(start, end);
+  return pram;
+}
+
+bool is_pram_bad(String pram, WiFiClient& client){
+  if (pram.isEmpty()){
+    Serial.println("some pramater is wrong in the url that was sent");
+    client.println("HTTP/1.1 400 Bad Request");
+    client.println("Content-Type: text/plain");
+    client.println();
+    client.println("Malformed request: missing parameters");
+    client.println("some pramater is wrong in the url that was sent");
+    client.stop();
+    return true;
+  }
+  return false;
+}
+
+void print_file(const char * path){
+    Serial.printf("Reading file: %s\r\n", path);
+
+    File file = LittleFS.open(path);
+    if(!file || file.isDirectory()){
+        Serial.println("- failed to open file");
+        return;
+    }
+
+    while(file.available()){
+        Serial.write(file.read());
+    }
+    file.close();
 }

@@ -16,15 +16,11 @@
 #define SD_SCK  4    // Serial Clock
 
 String buffer;
-const int buffer_length = 500;
+const int buffer_length = 5000;
 String log_file_name;
 
-// SD.open(path, FILE_WRITE) — opens/creates file for writing (appends by default)
-// SD.open(path, FILE_APPEND) — explicitly append mode
-// file.print() / file.println() — write data
-// file.close() — always close to flush data
-
 // log file struture 
+// in the /trips/
 // name is {start_time_ms_since_epoc}_{start_odo_km}_{sd_driver_name}.csv
 // for example _213948712_1231_john smith.csv
 // the dash    ^ means that it is incompleate compleat it without the
@@ -40,7 +36,7 @@ void _check_buff_and_write_to_file();
 bool init_sd_card() {
   SPI.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
   SD.begin(SD_CS);
-  SD.mkdir("trips");
+  if (!SD.exists("/trips")) SD.mkdir("/trips");
   return SD.begin(SD_CS);
 }
 
@@ -69,7 +65,10 @@ void end_trip(long end_odo,String weather){
                 weather;
     File f = _get_log_file();
     f.print(str_to_w);
+    String name_of_file = f.name();
     f.close();
+    String new_name_of_file = name_of_file.substring(0,7) + name_of_file.substring(8);
+    SD.rename(name_of_file, new_name_of_file);
     log_file_name = "";
 }
 
@@ -85,8 +84,9 @@ File _get_log_file(){
 }
 
 void log_acell(Acell acell) {
-// "acell", {mcs scince start},{x},{y},{z},{mcs scince start}
+// "acell",{mcs scince start},{x},{y},{z}
     String name = log_file_name;
+    char line[128];
 
     if (!(name.indexOf('_') == 0)) {
         Serial.println("the file passed to write a acell point dose not start with _ to mean active");
@@ -99,17 +99,15 @@ void log_acell(Acell acell) {
     timeval time_rn;
     gettimeofday(&time_rn, nullptr);
     long current_time_mcs = ((time_rn.tv_sec - start_time) * 1000000) + time_rn.tv_usec;
-    String add_to_buffer = "acell,"+
-        String(current_time_mcs)+","+
-        String(acell.x)+","+
-        String(acell.y)+","+
-        String(acell.z)+"\n";
-    buffer += add_to_buffer; 
+    snprintf(line, sizeof(line), "acell,%ld,%f,%f,%f\n",
+         current_time_mcs, acell.x, acell.y, acell.z);
+    buffer += line; 
     _check_buff_and_write_to_file();
 }
 
 void log_gps(GpsCords gps_cord, float gps_speed_ms) {
     String name = log_file_name;
+    char line[75];
 
     long start_time = name.substring(1,name.indexOf('_',1)).toDouble(); 
     // long start_odo = name.substring(name.indexOf("_",2), name.indexOf("_",name.indexOf("_",2))).toDouble();
@@ -118,21 +116,19 @@ void log_gps(GpsCords gps_cord, float gps_speed_ms) {
     timeval time_rn;
     gettimeofday(&time_rn, nullptr);
     long current_time_mcs = ((time_rn.tv_sec - start_time) * 1000000) + time_rn.tv_usec;
-    String add_to_buffer = "gps,"+
-        String(current_time_mcs)+","+
-        String(gps_speed_ms)+","+
-        String(gps_cord.lon)+","+
-        String(gps_cord.lat)+"\n";
-    buffer += add_to_buffer; 
+    snprintf(line,sizeof(line),"gps,%ld,%.2f,%.8f,%.8f\n",
+        current_time_mcs,gps_speed_ms,gps_cord.lon,gps_cord.lat);
+        
+    buffer += line; 
     _check_buff_and_write_to_file();
 }
 
 void _check_buff_and_write_to_file(){
-    File trip_file = _get_log_file();
-    if (buffer.length() <= buffer_length){
+    if (buffer.length() < buffer_length){
         return;
     }
     else{
+        File trip_file = _get_log_file();
         trip_file.print(buffer);
         trip_file.close();
         buffer = "";
