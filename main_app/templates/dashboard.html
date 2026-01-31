@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}ToDo Task List{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>ToDo Tasks</h1>
+    <div class="button-group">
+        <a href="{{ url_for('create_task') }}" class="add-task-button">Add Task</a>
+        <a href="{{ url_for('update_task') }}" class="update-task-button">Update Task</a>
+        <a href="{{ url_for('delete_task') }}" class="delete-task-button">Delete Task</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Priority</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.id }}</td>
+                <td>{{ task.title }}</td>
+                <td>{{ task.description }}</td>
+                <td class="{{ 'complete' if task.is_complete else 'incomplete' }}">
+                    {{ 'Complete' if task.is_complete else 'Incomplete' }}
+                </td>
+                <td>{{ task.priority }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
