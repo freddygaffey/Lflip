@@ -16,7 +16,7 @@
 #define SD_SCK  4    // Serial Clock
 
 String buffer;
-const int buffer_length = 5000;
+const int buffer_length = 50;
 String log_file_name;
 
 // log file struture 
@@ -67,14 +67,15 @@ void end_trip(long end_odo,String weather){
     f.print(str_to_w);
     String name_of_file = f.name();
     f.close();
-    String new_name_of_file = name_of_file.substring(0,7) + name_of_file.substring(8);
+    String new_name_of_file = "/trips/" + name_of_file.substring(1);
+    name_of_file = "/trips/" + name_of_file;
     SD.rename(name_of_file, new_name_of_file);
     log_file_name = "";
 }
 
 File _get_log_file(){
     String palth = "/trips/" + log_file_name;
-    File file = SD.open(palth.c_str());
+    File file = SD.open(palth.c_str(),FILE_APPEND);
     if (file) return file;
     if (!file) {
         Serial.println("you shold make this function search if this is a problem");
@@ -108,7 +109,6 @@ void log_acell(Acell acell) {
 void log_gps(GpsCords gps_cord, float gps_speed_ms) {
     String name = log_file_name;
     char line[75];
-
     long start_time = name.substring(1,name.indexOf('_',1)).toDouble(); 
     // long start_odo = name.substring(name.indexOf("_",2), name.indexOf("_",name.indexOf("_",2))).toDouble();
     // String sd_name = name.substring(name.lastIndexOf('_',name[-1]));
@@ -124,10 +124,7 @@ void log_gps(GpsCords gps_cord, float gps_speed_ms) {
 }
 
 void _check_buff_and_write_to_file(){
-    if (buffer.length() < buffer_length){
-        return;
-    }
-    else{
+    if (buffer.length() > buffer_length){
         File trip_file = _get_log_file();
         trip_file.print(buffer);
         trip_file.close();
