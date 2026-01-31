@@ -4,11 +4,14 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <SD.h>
+#include <ESPmDNS.h>
+#include <ESP32Ping.h>
 
 // littls fs files
 // passwords.json (this is a file that has the ssid and passwords of home wifis)
 // odo.txt int odo
 
+bool connected_to_internet = false;
 
 WiFiServer server(80);
 
@@ -168,12 +171,32 @@ String get_host_name(){
     Serial.println("made a new hostname");
     uint64_t chipid = ESP.getEfuseMac();
     String hostname = "LPlate-" + String((uint32_t)chipid, HEX);
-    set_host_name(hostname);  // Save it
+    if(!set_host_name(hostname)) Serial.println("setting the host name is wrong");  // Save it
     Serial.println(hostname);
     return hostname;
   }
   File file = SD.open("/hostname.txt",FILE_READ);
   String name = file.readStringUntil('\n');
   name.trim();
+  file.close();
   return name;
+}
+bool is_connected_to_internet(){
+  if (Ping.ping("www.google.com") || Ping.ping("www.bing.com")){
+      Serial.println("just pinged google or bing you are connected to wifi");
+      return true;
+    }
+  return false;
+}
+bool try_and_connect_to_wifi_or_make_ap() {
+  if (!connect_to_wifi()) {
+    Serial.println("cant connect to wifi starting a ap called SSID");
+    start_ap();
+  }
+  
+  String hostname = get_host_name();
+  MDNS.begin(hostname.c_str());
+  Serial.println("Access at: http://" + hostname + ".local");
+  MDNS.addService("http", "tcp", 80);
+  return is_connected_to_internet();
 }

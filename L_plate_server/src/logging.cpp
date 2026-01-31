@@ -4,6 +4,7 @@
 #include "gps.h"
 #include "sd_card.h"
 #include "acell.h" 
+#include "wifi_manager.h"
 
 struct Logging_rates
 {
@@ -66,4 +67,7 @@ void stop_logging(String weather) {
   current_state = SYNCING; 
   end_trip(get_odo(),weather);
   Serial.println("logging stoped just wrote end time");
+  if (try_and_connect_to_wifi_or_make_ap()) sync_data();
+  
 }
+

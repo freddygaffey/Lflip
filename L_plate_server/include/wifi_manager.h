@@ -16,3 +16,6 @@ std::vector<String> get_all_ssid();
 bool connect_to_wifi();
 bool set_host_name(String hostname);
 String get_host_name();
+bool is_connected_to_internet();
+bool try_and_connect_to_wifi_or_make_ap();
+

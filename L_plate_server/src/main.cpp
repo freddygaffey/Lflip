@@ -5,7 +5,6 @@
 #include <ArduinoJson.h>
 #include <Preferences.h>
 #include <time.h>
-#include <ESPmDNS.h>
 
 #include "wifi_manager.h"
 #include "logging.h"
@@ -36,15 +35,7 @@ void setup() {
   init_odo();
   init_sd_card();
 
-  if (!connect_to_wifi()) {
-    Serial.println("cant connect to wifi starting a ap called SSID");
-    start_ap();
-  }
-
-  String hostname = get_host_name();
-  MDNS.begin(hostname.c_str());
-  Serial.println("Access at: http://" + hostname + ".local");
-  MDNS.addService("http", "tcp", 80);
+  try_and_connect_to_wifi_or_make_ap();
 }
 
 void loop() {
