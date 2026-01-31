@@ -9,6 +9,7 @@ class Learner(db.Model):
     name = db.Column(db.String(50), nullable=False)
     nohc = db.Column(db.Float,default=0)
     
+    
 class Trip(db.Model):
     __tablename__ = 'trips'
 
@@ -18,12 +19,13 @@ class Trip(db.Model):
     car_id = db.Column(db.Integer, db.ForeignKey('cars.id'),nullable=False)
     
     sd_name = db.Column(db.String(50),nullable=False)
-    sd_number = db.Column(db.Integer(),nullable=False)
-    start_time = db.Column(db.Time(),nullable=False)
-    end_time = db.Column(db.Time(),nullable=False)
+    sd_number = db.Column(db.Integer(),nullable=True)
+    start_time = db.Column(db.DateTime(),nullable=False)
+    end_time = db.Column(db.DateTime(),nullable=False)
     weather = db.Column(db.String(20),default="clear")
     start_odo = db.Column(db.Float,nullable=False)
     end_odo = db.Column(db.Float,nullable=False)
+    duration = db.column(db.Float,nullable=False)
 
     learner = db.relationship("Learner", backref='trips')
     car = db.relationship("Car",backref="trips")
@@ -34,7 +36,7 @@ class GpsReading(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     
     trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'),nullable=False)
-
+    time = db.Column(db.DateTime(), nullable= False)
     lon = db.Column(db.Float)
     lat = db.Column(db.Float)
     speed = db.Column(db.Float)
@@ -48,6 +50,7 @@ class AcellReading(db.Model):
 
     trip_id = db.Column(db.Integer, db.ForeignKey('trips.id'),nullable=False)
 
+    time = db.Column(db.DateTime(), nullable= False)
     x = db.Column(db.Float)
     y = db.Column(db.Float)
     z = db.Column(db.Float)
@@ -60,5 +63,5 @@ class Car(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30),nullable=False)
     odo = db.Column(db.Float,nullable=False)
-    unique_chip_id = db.Column(db.String(10))
+    unique_chip_id = db.Column(db.String(10),unique=True)
     
