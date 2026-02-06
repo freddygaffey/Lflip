@@ -1,0 +1,299 @@
+================================================================================
+RAG DOCUMENT GENERATION PROMPT TEMPLATE
+================================================================================
+
+INSTRUCTIONS: Copy the prompt below and replace [STATE/TERRITORY] with the 
+Australian state or territory name (e.g., "New South Wales", "Victoria", 
+"Queensland", etc.)
+
+================================================================================
+
+Create a comprehensive RAG (Retrieval Augmented Generation) context document 
+about [STATE/TERRITORY] learner driver laws and regulations.
+
+REQUIREMENTS:
+
+1. FILE SIZE: The document must be between 100-150 KB (focused and efficient)
+
+2. FILE FORMAT: Plain text (.txt file)
+
+3. CONTENT STRUCTURE:
+   
+   Include the following sections with essential detail:
+   
+   PART 1: LICENSING PROCEDURES
+   - Minimum age requirements
+   - Steps to obtain learner licence
+   - Proof of identity requirements
+   - Knowledge test overview
+   - Pre-learner training (if applicable)
+   - Fees (approximate amounts)
+   
+   PART 2: LEARNER DRIVER RESTRICTIONS
+   - L-plate display requirements
+   - Supervision requirements (supervisor qualifications)
+   - Alcohol restrictions (BAC limits)
+   - Speed limit restrictions
+   - Towing restrictions
+   - Vehicle type restrictions
+   - Passenger/time/location restrictions (if any)
+   
+   PART 3: DEMERIT POINTS AND PENALTIES
+   - Demerit point system for learners
+   - Point threshold before suspension
+   - Common offences and point values (top 10-15)
+   - Sample fine amounts (note subject to change)
+   - Suspension procedures
+   
+   PART 4: ROAD RULES FUNDAMENTALS
+   - Traffic lights and signals (essential rules)
+   - Key road signs (regulatory, warning, information)
+   - Road markings and lane lines
+   - Speed limits (default and school zones)
+   
+   PART 5: INTERSECTIONS AND GIVING WAY
+   - T-intersections
+   - Uncontrolled intersections
+   - Roundabouts (single and multi-lane basics)
+   - Give way rules summary
+   - Traffic light intersections
+   
+   PART 6: TURNING AND MANEUVERING
+   - Left turns (including slip lanes)
+   - Right turns
+   - U-turns (permitted/prohibited)
+   - Three-point turns
+   - Hook turns (if applicable to state)
+   
+   PART 7: SPEED MANAGEMENT
+   - Default speed limits
+   - School zone operation times and limits
+   - Safe speed principles
+   - Key stopping distances
+   
+   PART 8: PARKING REGULATIONS
+   - Prohibited parking locations
+   - No Stopping vs No Parking
+   - Parking methods (parallel, angle, reverse)
+   - Time-limited parking
+   - Common parking sign types
+   
+   PART 9: VULNERABLE ROAD USERS
+   - Pedestrian crossing rules
+   - Cyclist minimum passing distances
+   - Sharing road with motorcyclists
+   - School crossings
+   - Emergency vehicles
+   
+   PART 10: SAFETY REQUIREMENTS
+   - Seatbelt laws
+   - Child restraint requirements by age
+   - Mobile phone usage restrictions
+   - Essential vehicle safety requirements
+   
+   PART 11: IMPAIRMENT AND DISTRACTION
+   - Alcohol laws and zero BAC for learners
+   - Drug restrictions
+   - Random testing procedures
+   - Fatigue management basics
+   
+   PART 12: LOGBOOK AND PROGRESSION
+   - Logbook requirements (if applicable)
+   - Minimum hours required (day/night breakdown)
+   - Professional lesson bonuses (if applicable)
+   - Safer Drivers Course or equivalent (if applicable)
+   - Minimum learner period duration
+   - Requirements to progress to provisional licence
+   - Practical driving test overview
+
+4. INFORMATION SOURCES:
+   
+   Base the document on official sources from [STATE/TERRITORY]:
+   - Official government transport/roads website
+   - Driver handbook/road user handbook
+   - Road rules legislation
+   - Driver licensing regulations
+   
+   Search for and fetch key information from official sources. Include:
+   - Specific regulation references where critical
+   - Approximate penalty amounts (note they're subject to change)
+   - Precise distances, times, ages, and measurements
+   - Current legislation names where relevant
+
+5. WRITING STYLE:
+   
+   - Clear, concise language suitable for learner drivers
+   - Essential detail with 2-3 practical examples per section
+   - Step-by-step procedures for key tasks
+   - Focus on most common scenarios
+   - Brief mention of common mistakes
+   - Safety-focused throughout
+   - Structured with clear headings and subheadings
+   - Use bullet points and numbered lists for clarity
+   - Include specific numbers (ages, distances, times, penalties)
+   - Brief explanation of WHY key rules exist
+
+6. FORMATTING:
+   
+   - Use clear section dividers (===)
+   - Hierarchical heading structure
+   - Consistent formatting throughout
+   - Easy to parse for RAG systems
+   - No special characters that might cause parsing issues
+   - Plain text format (not markdown, not HTML)
+
+7. QUALITY CHECKS:
+   
+   Before finalizing, ensure:
+   ✓ File size is between 100-150 KB
+   ✓ All 12 main parts are covered
+   ✓ Information is accurate and sourced from official sites
+   ✓ Specific to [STATE/TERRITORY]
+   ✓ Includes state-specific unique rules
+   ✓ Penalties and demerit points are state-specific
+   ✓ Contact information for state authority included
+   ✓ Key websites for official resources included
+
+8. FILE NAMING:
+   
+   Save as: [state_abbreviation]_learner_driver_rag_context.txt
+   Example: nsw_learner_driver_rag_context.txt
+
+9. DOCUMENT HEADER:
+   
+   Start the document with:
+   
+   ================================================================================
+   [STATE/TERRITORY] LEARNER DRIVER LAWS AND REGULATIONS
+   COMPREHENSIVE RAG CONTEXT DOCUMENT
+   ================================================================================
+   
+   Version: 1.0 | Generated: [DATE]
+   Primary Sources: [State] Road Rules, Driver Licensing Regulations
+   
+   This document provides comprehensive context for AI agents answering questions
+   about [STATE/TERRITORY] learner driver laws, regulations, and road rules.
+   
+   Document Size: ~100-150KB (optimized for efficiency)
+   
+   ================================================================================
+
+10. DOCUMENT FOOTER:
+    
+    End the document with:
+    
+    ================================================================================
+    END OF DOCUMENT
+    ================================================================================
+    
+    For most current information, always refer to official [STATE/TERRITORY] sources:
+    - [State transport/roads website]
+    - [State legislation website]
+    - [State learner driver resources]
+    
+    Phone: [State transport authority phone number]
+    Emergency: 000
+    
+    This document contains comprehensive information for use in RAG systems.
+    Last updated: [DATE]
+    ================================================================================
+
+11. STATE-SPECIFIC CONSIDERATIONS:
+    
+    Ensure you capture unique aspects of [STATE/TERRITORY] such as:
+    - Unique speed restrictions for learners (e.g., NSW 90 km/h max)
+    - State-specific logbook requirements (e.g., VIC 120 hours)
+    - Unique tests (e.g., NSW Hazard Perception Test)
+    - State-specific courses (e.g., VIC Safer Drivers Course)
+    - Location restrictions (if any)
+    - Unique give way rules or road rules variations
+    - State-specific licensing pathways
+    - Provisional licence types and names (P1/P2, Red P/Green P, etc.)
+
+12. COMPREHENSIVENESS TARGET:
+    
+    Aim for efficient coverage including:
+    - 20-30 common Q&A items with concise answers
+    - 5-8 real-world scenario examples
+    - Step-by-step procedures for essential maneuvers
+    - Brief explanations of complex rules
+    - Top 10 common mistakes
+    - Essential practical tips
+    - Key test preparation points
+    - Critical safety principles
+
+13. VERIFICATION:
+    
+    After generating the document:
+    - Verify file size is between 100-150 KB
+    - Cross-check critical facts against official sources
+    - Ensure state-specific details are accurate
+    - Confirm contact information is current
+    - Check all 12 section headers are present
+    - Validate formatting is consistent
+
+================================================================================
+EXAMPLE USAGE:
+================================================================================
+
+To generate NSW learner driver RAG document:
+1. Copy prompt above
+2. Replace all instances of "[STATE/TERRITORY]" with "New South Wales"
+3. Submit to AI
+4. Receive comprehensive 100-150 KB document
+
+To generate Victoria learner driver RAG document:
+1. Copy prompt above
+2. Replace all instances of "[STATE/TERRITORY]" with "Victoria"
+3. Submit to AI
+4. Receive comprehensive 100-150 KB document
+
+And so on for: Queensland, South Australia, Western Australia,
+Tasmania, Northern Territory
+
+================================================================================
+STATES AND TERRITORIES LIST:
+================================================================================
+
+Use this prompt to generate documents for:
+
+1. New South Wales (NSW) → nsw_learner_driver_rag_context.txt
+2. Victoria (VIC) → vic_learner_driver_rag_context.txt
+3. Queensland (QLD) → qld_learner_driver_rag_context.txt
+4. South Australia (SA) → sa_learner_driver_rag_context.txt
+5. Western Australia (WA) → wa_learner_driver_rag_context.txt
+6. Tasmania (TAS) → tas_learner_driver_rag_context.txt
+7. Northern Territory (NT) → nt_learner_driver_rag_context.txt
+
+================================================================================
+TIPS FOR BEST RESULTS:
+================================================================================
+
+1. The AI will need to search official government websites
+2. The AI will need to fetch and read official handbooks
+3. The AI will compile information from multiple official sources
+4. If the document is over 150 KB, ask the AI to condense it
+5. If the document is under 100 KB, ask the AI to expand key sections
+6. Request the AI verify critical facts against official sources
+7. Ask the AI to include the specific state's unique rules prominently
+
+================================================================================
+QUALITY INDICATORS:
+================================================================================
+
+A good RAG document will:
+✓ Be between 100-150 KB in size
+✓ Cover all 12 main parts comprehensively
+✓ Include state-specific unique rules prominently
+✓ Provide essential practical examples
+✓ Include specific numbers, distances, ages, times
+✓ Reference official sources
+✓ Be written in clear, accessible language
+✓ Include concise Q&A section
+✓ Provide step-by-step procedures for key tasks
+✓ Emphasize safety throughout
+✓ Be properly formatted for RAG parsing
+✓ Include official contact information
+✓ Focus on most important and commonly needed information
+
+================================================================================

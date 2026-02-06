@@ -1,0 +1,2454 @@
+================================================================================
+Queensland LEARNER DRIVER LAWS AND REGULATIONS
+COMPREHENSIVE RAG CONTEXT DOCUMENT
+================================================================================
+
+Version: 1.0 | Generated: February 2, 2026
+Primary Sources: Queensland Road Rules, Driver Licensing Regulations, Your Keys
+to Driving in Queensland, Transport and Main Roads Queensland
+
+This document provides comprehensive context for AI agents answering questions
+about Queensland learner driver laws, regulations, and road rules. Designed for
+efficient RAG (Retrieval Augmented Generation) systems.
+
+Document Size: ~125KB (optimized for efficiency)
+
+================================================================================
+PART 1: LICENSING PROCEDURES
+================================================================================
+
+MINIMUM AGE REQUIREMENTS
+- Minimum age to apply for learner licence: 16 years old
+- Learner licence valid for: 3 years from issue date
+- Can apply for provisional (P1) licence from: 17 years old
+
+STEPS TO OBTAIN LEARNER LICENCE (Class C - Standard Cars)
+
+Step 1: Complete pre-learner training requirement
+- Option A: Complete PrepL online interactive program (can start at 15 years 11 months)
+- Option B: Pass written road rules knowledge test at TMR (Transport and Main Roads) customer service centre
+- PrepL recommended as it focuses on safe driving behaviours and attitudes
+
+Step 2: Gather required proof of identity
+- Must provide documentary proof of identity
+- Acceptable documents: birth certificate, passport, citizenship certificate, visa
+- Must prove Queensland residency (recent utility bill, rental agreement, etc.)
+
+Step 3: Apply for licence
+- Apply at TMR customer service centre or online (if available)
+- Pay application fee: Approximately $40-50 (subject to change)
+- Will receive Learner Driver Licence Receipt initially
+- Physical licence card arrives in mail within 10-15 business days
+- Can start driving immediately with receipt
+
+Step 4: Receive logbook
+- Automatic receipt of Queensland learner logbook with physical licence
+- Records supervised driving hours
+- Digital logbook alternative available through RACQ Learn2Go online
+
+KNOWLEDGE TEST OVERVIEW
+- Test based on "Your Keys to Driving in Queensland" handbook
+- Written test or PrepL online program completion
+- Tests knowledge of: road signs, road rules, safe driving practices
+- Pass mark: Typically 80-90% (specific threshold set by TMR)
+- Can attempt multiple times if unsuccessful
+- PrepL program includes interactive learning modules and assessment
+
+FEE STRUCTURE (As of July 2024 - subject to indexation)
+- Learner licence application: ~$40-50
+- Licence fees frozen for 12 months from July 2024
+- Replacement licence card: ~$10-15
+- Replacement logbook: ~$5
+- Driver Knowledge Test (if doing written test instead of PrepL): ~$30-40
+
+PRACTICAL TIPS FOR LEARNER APPLICATION
+- Complete PrepL program for better understanding before driving (takes 2-4 hours)
+- Prepare documentation beforehand to avoid delays
+- Take receipt with you when first driving - counts as valid licence
+- Get logbook started immediately - hours only count from licence issue date
+- Join RACQ or similar motor club for logbook support and driver training advice
+
+
+================================================================================
+PART 2: LEARNER DRIVER RESTRICTIONS
+================================================================================
+
+L-PLATE DISPLAY REQUIREMENTS
+
+Physical L-Plate Specifications:
+- Colour: Yellow background with black uppercase letter "L"
+- Minimum size: 14.6cm x 14.6cm (approximately A6 size)
+- Lettering: Bold, clear, capital "L"
+- Visibility: Must be clearly visible from 20 metres away
+- Placement: One L-plate at front of vehicle, one at rear
+- Motorcycles: L-plate at rear only
+- Can purchase pre-made plates or print approved template
+
+Penalties for Non-Display:
+- Learner driver: 2 demerit points + $230 fine
+- Supervising driver: 2 demerit points + $230 fine
+- Both driver and supervisor can be fined
+- Not displaying affects insurance validity
+
+SUPERVISION REQUIREMENTS
+
+Mandatory Supervising Driver:
+- Must have valid open (unrestricted) licence for vehicle class being driven
+- Must hold that licence for minimum 1 year continuously
+- Must be seated in front passenger seat at all times
+- Cannot be provisional (P) licence holder or learner driver
+- Can be accredited driving instructor (bonus hours apply)
+
+Penalty for Driving Without Supervisor:
+- 4 demerit points + $230 fine
+
+BLOOD ALCOHOL CONTENT (BAC) RESTRICTIONS
+
+Learner Driver BAC Limit:
+- 0.00% BAC - Absolutely zero tolerance
+- Cannot have ANY alcohol in system
+- Random breath testing applies
+- Applies anywhere in Australia
+
+Supervisor BAC Requirement:
+- Must be under legal limit (0.05% BAC)
+- Supervisors subject to random breath testing
+- Same rules apply as general driving public
+
+Penalties for Driving Over Limit:
+- BAC 0.01-0.04%: From $297 fine + 4 demerit points
+- BAC 0.05-0.07%: From $406 fine + 4 demerit points
+- BAC 0.08%+: Court appearance, significant fines, licence suspension
+- Higher penalties for repeat offences
+
+SPEED LIMIT RESTRICTIONS
+
+Learner Driver Speed Limit:
+- Maximum 100 km/h for all conditions
+- Must follow posted speed limits if lower than 100 km/h
+- Applies even if vehicle capable of higher speeds
+- No exceptions for motorways or dual carriageways
+
+Speed Limit Compliance:
+- Speeding 1-10 km/h over limit: 1 demerit point + fine
+- Speeding 11-20 km/h over limit: 3 demerit points + fine
+- Speeding 21-30 km/h over limit: 5 demerit points + fine
+- Speeding 30+ km/h over limit: 8 demerit points + fine
+
+School Zone Restrictions:
+- School zones: 40 km/h during school hours
+- Operating times: 8:00-9:30am, 2:30-4:00pm school days
+- Must comply regardless of learner 100 km/h limit
+
+TOWING RESTRICTIONS
+
+What Learner Drivers Can Tow:
+- Can tow trailer, caravan, or other vehicle (with restrictions)
+- L-plates must be displayed on rear of towed item
+- Limited to vehicles under specific weight limits
+- Not recommended for new learners
+
+Towing Recommendations:
+- Most learners should avoid towing until experienced
+- Check vehicle manual for towing specifications
+- Supervisor should have towing experience
+- Insurance must cover towing operation
+
+VEHICLE TYPE RESTRICTIONS
+
+High-Powered Vehicle (HPV) Restrictions:
+Learner drivers CANNOT drive HPVs. Restricted vehicles include:
+- Vehicles built after 1 Jan 2010 with power-to-weight ratio exceeding 130kW/tonne
+- V8 engines
+- Turbocharged or supercharged vehicles
+- Modified high-performance vehicles
+- Most common sports cars and performance sedans
+
+Permitted Vehicle Types:
+- Standard family vehicles (sedans, hatchbacks)
+- SUVs/4WDs below HPV threshold
+- Vans (within size restrictions)
+- Utes below HPV threshold
+
+PASSENGER RESTRICTIONS
+
+Number of Passengers:
+- NO specific limit on number of passengers
+- Must ensure all passengers wear seatbelts
+- Supervisor must be in front passenger seat
+- Practical limit: Too many passengers can be distracting
+
+Important Note on Under-25 Age Group:
+- Passengers and supervisor cannot use mobile phone on loudspeaker
+- Passengers cannot use video call function
+- This applies if learner driver is under 25
+
+Mobile Phone Use by Passengers:
+- Supervisor/passengers using phone on loudspeaker: $1,251 fine (if learner under 25)
+- Drivers caught can also be fined if permitting it
+
+TIME RESTRICTIONS
+- NO specific time restrictions for learner drivers
+- Can drive anytime day or night
+- School zones affect times (see school zone section)
+- Night driving experience important for competency
+
+LOCATION RESTRICTIONS
+- NO geographic restrictions on where learner can drive
+- Can drive on all public roads (including motorways)
+- Can drive interstate (subject to that state's learner rules)
+- Cannot drive on closed roads or private roads in certain circumstances
+
+COMMON LEARNER DRIVER MISTAKES TO AVOID
+1. Not displaying L-plates or displaying incorrectly (costs 2 demerit points)
+2. Driving without supervisor present
+3. Exceeding 100 km/h limit
+4. Inadequate supervision - supervisor looking at phone/distracted
+5. Not recording logbook hours accurately
+6. Assuming passenger restrictions same as other states
+7. Driving high-powered vehicles
+8. Using mobile phone in any way
+9. Not adjusting driving for learner 100 km/h limit on expressways
+10. Not building sufficient night driving experience before test
+
+
+================================================================================
+PART 3: DEMERIT POINTS AND PENALTIES
+================================================================================
+
+DEMERIT POINT SYSTEM OVERVIEW
+
+How the System Works:
+- Learner drivers start with ZERO demerit points
+- Points ACCUMULATE (not deducted) with each traffic offence
+- Different offences attract different point values
+- Points stay on traffic record for 3 years from date of offence
+
+Accumulation Period:
+- 12-month continuous period for assessment
+- Points from offences committed outside Queensland still count
+- Applies to driving anywhere in Australia
+
+DEMERIT POINT THRESHOLD AND SUSPENSION
+
+Learner Licence Threshold:
+- 4 or more demerit points in any 12-month continuous period
+- Automatic 3-month licence suspension
+- No option for good driving behaviour period
+- Mandatory suspension - no choices available
+
+Suspension Procedures:
+- Receive "Accumulation of Demerit Points Notice" in mail
+- Suspension starts on date specified in notice
+- Can request earlier start date if desired
+- Do NOT need to surrender licence card
+- Automatic reinstatement after 3 months
+- Suspension time does NOT count toward minimum holding period
+
+What Happens During Suspension:
+- Cannot legally drive during suspension period
+- Driving while suspended is criminal offence (not just traffic offence)
+- Can face up to $4,400 fine and/or 1 year jail
+- Licence automatically reinstated after 3 months (unless expired)
+
+TOP 15 COMMON OFFENCES AND DEMERIT POINTS
+
+Point Value 1:
+- Speeding 1-10 km/h over limit
+- Failing to carry licence
+- Incorrect distance from vehicle ahead
+
+Point Value 2:
+- Not displaying L-plates correctly
+- Failing to dim high-beam lights
+- Improper use of parking lights
+
+Point Value 3:
+- Speeding 11-20 km/h over limit
+- Failing to give way at intersection
+- Not obeying traffic lights
+- Failing to stop at stop sign
+- Improper indicating/signalling
+- Unsafe lane change
+- Failure to wear seatbelt
+
+Point Value 4:
+- Using mobile phone held in hand
+- Supervisor not wearing seatbelt
+- Driving without required supervision
+- Failing to remove L-plates (if licensed driver)
+- Passenger not wearing seatbelt
+
+Point Value 5:
+- Speeding 21-30 km/h over limit
+- Dangerous driving behavior
+- Failing to give way to pedestrian
+- Improper turning procedures
+
+Point Value 6:
+- Speeding 30+ km/h under limit
+
+Point Value 8:
+- Speeding 30+ km/h over limit
+- Reckless driving
+
+SAMPLE FINE AMOUNTS (As of July 2024 - subject to change)
+
+Note: All figures are approximate and subject to annual indexation (4.2% in July 2024)
+
+Mobile Phone Offence:
+- Standard offence: $1,251 fine + 4 demerit points
+- Repeat offence within 12 months: $1,251 + 8 demerit points (double)
+- Caught on camera: $1,251 + 4 demerit points
+
+Not Displaying L-Plates:
+- Fine: $230 + 2 demerit points (each party)
+
+Driving Without Supervision:
+- Fine: $230 + 4 demerit points
+
+Speeding Offences (approximate):
+- 1-10 km/h over: $75-150 + 1 demerit
+- 11-20 km/h over: $150-250 + 3 demerit
+- 21-30 km/h over: $250-400 + 5 demerit
+- 30+ km/h over: $400-600 + 8 demerit
+
+Seatbelt Violation:
+- Driver: $1,251 + 4 demerit points
+- Passenger: $1,251 + 4 demerit points
+- Repeat: Double demerit points in 12 months
+
+School Zone Violation:
+- Variable depending on speed infraction
+- Typically $150-300 fine + 3 demerit points
+
+Traffic Light/Stop Sign Violation:
+- Fine: $200-300 + 3 demerit points
+
+Not Giving Way:
+- Fine: $200-300 + 3 demerit points
+
+Drink Driving (0.01-0.04% BAC):
+- Fine: $297 + 4 demerit points
+
+SUSPENSION PROCEDURES
+
+Initial Notice:
+- Written notice sent by mail: "Accumulation of Demerit Points Notice"
+- Clearly states suspension start date
+- 28 days to object if wished (for extenuating circumstances)
+
+Choosing Suspension Date:
+- Suspension can start early if requested
+- Must contact TMR to request early start
+- Once started, cannot be delayed
+
+During Suspension:
+- Absolutely cannot drive
+- License remains valid (don't need to surrender it)
+- No driving for any purpose - fully illegal
+- Insurance void if driving while suspended
+
+After Suspension:
+- Licence automatically reinstated
+- Clean slate - points don't carry forward in same way
+- Can continue driving with same restrictions
+- Accumulation clock resets
+
+DEMERIT POINTS RETENTION
+
+How Long Points Stay on Record:
+- Most demerit points: 3 years from date of offence
+- High-speed offences: 5 years
+- Serious offences (drink driving, etc.): Longer periods possible
+- Points from driving outside QLD still apply
+
+Checking Your Points:
+- Online service: Check My Demerit Points (QLD Government website)
+- Phone: 13 23 80 (TMR Customer Service)
+- Points visible in Traffic History Report
+
+DOUBLE DEMERIT POINTS
+
+When Double Points Apply:
+- Repeat offence in same category within 12 months
+- Mobile phone offence repeat: 8 demerit points (instead of 4)
+- Seatbelt offence repeat: 8 demerit points (instead of 4)
+- Serious offences: Can accumulate up to 16 demerit points
+
+Example: Double Points in Action
+- First mobile phone offence: 4 demerit points
+- Second mobile phone offence within 12 months: 8 demerit points (DOUBLE)
+- Total accumulated: 12 demerit points (would trigger suspension)
+
+SPECIAL CONSIDERATIONS FOR LEARNERS
+
+No Good Driving Behaviour Period:
+- Learners cannot choose 1-year behaviour period (available to P-plate drivers)
+- Must accept 3-month suspension
+- Suspension is mandatory, not optional
+
+Suspension Doesn't Count Toward Holding Period:
+- If suspended during learner phase, suspension time doesn't count
+- Still must complete minimum holding periods AFTER suspension ends
+- Example: Suspended after 10 months as learner, then 3-month suspension
+  = must still hold full remaining period after suspension
+
+Impact on Progression to P-Plates:
+- Suspension doesn't prevent progression to P-plates
+- Just delays timeline
+- Must still complete other requirements (hours, logbook, testing)
+
+
+================================================================================
+PART 4: ROAD RULES FUNDAMENTALS
+================================================================================
+
+TRAFFIC LIGHTS AND SIGNALS
+
+Red Traffic Light:
+- Must stop completely before the stop line
+- Do not proceed until light turns green
+- Can turn left if safe (unless "No Left Turn on Red" sign)
+- Turning left still means giving way to oncoming traffic/pedestrians
+
+Yellow/Amber Traffic Light:
+- Means stop - do NOT accelerate to run the light
+- Only proceed through if unable to stop safely
+- If already in intersection when light turns yellow, complete movement
+- Accelerating toward yellow light is dangerous and unsafe
+
+Green Traffic Light:
+- Only proceed if intersection clear
+- If already in intersection, complete turn on yellow/red if safe
+- Must still give way to pedestrians and cross-traffic
+- Green arrow: Can proceed in direction of arrow
+
+Pedestrian Signals (Red/Green Figures):
+- Red figure (stand): Do not cross - stop at kerb
+- Green figure (walk): Safe to cross if no vehicles approaching
+- Flashing green: Indicates pedestrian time running out
+- Always confirm intersection clear before entering
+
+ESSENTIAL TRAFFIC SIGNS
+
+Regulatory Signs (Must Obey):
+- STOP sign (octagon, red border): Complete stop, give way to all traffic/pedestrians
+- GIVE WAY sign (triangle, red border): Slow down, stop if necessary, give way
+- NO ENTRY sign (circle, red background): Do not enter - wrong way
+- DO NOT PASS/NO OVERTAKE: Cannot overtake on this stretch
+- Directional arrows: Indicating mandatory direction (red = prohibited direction)
+
+Warning Signs (Alert Drivers):
+- School zone signs: Warns of school - 40 km/h in designated hours
+- Pedestrian crossing ahead: Pedestrians may be present
+- Curve ahead: Road curves sharply - reduce speed
+- Steep hill: Upcoming incline - prepare for hills
+- Slippery road: Reduced grip - decrease speed, increase following distance
+- Double lines ahead: No overtaking zone approaching
+
+Information Signs (Provide Information):
+- Speed limit signs (white circle with black number): Maximum legal speed
+- Parking signs: Indicating parking restrictions/allowances
+- Direction signs: Indicating direction to destinations
+- One-way signs: Traffic flow direction on this road
+
+ROAD MARKINGS AND LANE LINES
+
+White Lines (Lane Dividers):
+- Broken white line: Can cross to overtake or change lanes (if safe)
+- Solid white line: Should not cross except in emergency
+- Double solid white lines: Absolutely cannot cross (applies both directions)
+- Edge white lines: Define road boundaries
+
+Yellow Lines (Parking Restrictions):
+- Single yellow line: No parking during restricted times (signs show times)
+- Double yellow lines: No parking at any time
+- Line on kerb: Parking restriction applies along that length
+
+Lane Markings:
+- Solid lane marking: Stay in lane, do not change
+- Broken lane marking: Can change lanes if safe
+- Arrows on road: Indicate mandatory direction for that lane
+- Bike lane markings: Separate lane for cyclists
+
+SPEED LIMITS - GENERAL
+
+Default Speed Limits (Unless Otherwise Signed):
+- Built-up areas (residential/business): 50 km/h
+- Open roads/country areas: 100 km/h
+- Motorways/expressways: 100-110 km/h depending on conditions
+
+Speed Limit Signs:
+- Black number in white circle: Legal maximum
+- Electronic variable signs: Adjust to conditions (congestion, weather)
+- Temporary signs: School zones, roadworks, events
+
+SCHOOL ZONES
+
+Operating Times:
+- School days: 8:00am-9:30am (morning)
+- School days: 2:30pm-4:00pm (afternoon)
+- Speed limit: 40 km/h
+- Non-school days: Standard speed limit applies
+- Holidays: Standard speed limit applies
+
+Penalties for School Zone Violations:
+- Fine: $150-300 (varies by speed)
+- Demerit points: 3 points typical
+- Monitoring: School zone cameras active during operating times
+- Common infraction - enforce strictly
+
+Examples:
+- Driving 50 km/h in 40 km/h school zone = 1-10 km/h over = 1 point + fine
+- Driving 60 km/h in 40 km/h school zone = 11-20 km/h over = 3 points + fine
+
+SAFE SPEED PRINCIPLES
+
+What is a Safe Speed?
+- Speed appropriate for current conditions
+- Allows stopping within visible distance
+- Accounts for road surface, weather, visibility
+- Reduced for heavy traffic, pedestrian areas, wet roads
+- Even if below speed limit, may still be unsafe to drive faster
+
+Factors Affecting Safe Speed:
+- Wet or slippery roads: Reduce speed 10-20%
+- Fog or poor visibility: Reduce speed significantly
+- Heavy traffic: Match flow, maintain safe distance
+- Night driving: Headlight range determines safe speed
+- Residential areas: Lower speeds protect pedestrians
+
+STOPPING DISTANCES (CRITICAL KNOWLEDGE)
+
+Stopping Distance = Reaction Distance + Braking Distance
+
+At 60 km/h:
+- Reaction distance (1 second): ~17 metres
+- Braking distance: ~37 metres
+- Total stopping distance: ~54 metres
+- This assumes good conditions and alert driver
+
+At 100 km/h:
+- Reaction distance: ~28 metres
+- Braking distance: ~63 metres
+- Total stopping distance: ~91 metres
+- Poor conditions can double this distance
+
+Key Point for Learners:
+- Double speed ≠ double stopping distance (actually increases significantly)
+- 100 km/h requires approximately 4x the stopping distance of 25 km/h
+- Always maintain adequate space between vehicles
+- Night driving increases stopping distance (headlights only illuminate ~150m)
+
+Practical Application:
+- At 60 km/h: Keep minimum 2-second gap from vehicle ahead (roughly one car length per 5 km/h speed)
+- At 100 km/h: Keep minimum 3-second gap from vehicle ahead
+- Wet roads: Increase to 4-second gap minimum
+
+
+================================================================================
+PART 5: INTERSECTIONS AND GIVING WAY
+================================================================================
+
+UNCONTROLLED INTERSECTIONS (No Traffic Lights, Stop Signs, or Give Way Signs)
+
+Basic Give Way Rule:
+- Vehicle approaching from RIGHT has right of way
+- If going straight: Give way to vehicle approaching from right
+- If turning left: Give way to vehicle approaching from right AND oncoming traffic going straight or turning left
+- If turning right: Give way to vehicle approaching from right AND oncoming traffic turning left
+- If arriving simultaneously: Vehicle on RIGHT has right of way
+
+Example Scenario - Straight Crossing Intersection:
+- Your vehicle going west, vehicle approaching from east
+- Vehicle from east has right of way
+- You must give way even if you reached intersection first
+- Safe procedure: Slow down, check clearly, proceed when safe
+
+Example Scenario - Turning Left:
+- You turning left into road, vehicle approaching from right going straight
+- Must give way to that vehicle
+- Also must give way to any oncoming traffic
+- Wait until completely clear before commencing turn
+
+T-INTERSECTIONS
+
+Understanding T-Intersections:
+- Main road continues straight (continuing road)
+- Side road ends at main road (terminating road)
+- Traffic on terminating road must yield to continuing road
+
+From Terminating Road (Side Road):
+- If turning left OR right onto continuing road: Give way to all traffic on continuing road
+- Also give way to pedestrians crossing the main road
+- Exception: Slip lane - can turn left using slip lane with different rules
+
+From Continuing Road (Main Road):
+- Generally have right of way
+- Still must give way to pedestrians crossing
+- Vehicles turning into side road still have priority
+
+Penalties for Failing to Give Way at T-Intersection:
+- Fine: $200-300
+- Demerit points: 3 points
+- Increased penalties if causing accident
+
+UNCONTROLLED INTERSECTIONS (Cross-Road - Four-Way)
+
+Right-Turn Rule:
+- Vehicle on RIGHT has priority
+- Approaching from right? You have right of way
+- Approaching from left? Give way to vehicle from right
+- Approaching head-on from opposite direction? Different rules apply
+
+Turning at Uncontrolled Intersection:
+- Turning left: Give way to all oncoming traffic AND vehicles from right
+- Turning right: Give way to vehicle from right only
+- Going straight: Give way to vehicle from right only
+- If arriving simultaneously: Right-approaching vehicle goes first
+
+Multiple Vehicles Arriving Simultaneously:
+- Vehicle from right goes first
+- If two vehicles from perpendicular roads arrive simultaneously = right rule applies
+- Always err on side of caution - let other vehicle proceed
+
+ROUNDABOUTS (Single Lane and Multi-Lane Basics)
+
+Entering a Roundabout - Fundamental Rule:
+- MUST give way to all traffic ALREADY on the roundabout
+- All traffic on roundabout has priority
+- Slow down as approaching, be prepared to stop
+- Only proceed when completely clear
+- Look to the right for traffic already circulating
+
+Single-Lane Roundabout Navigation:
+1. Indicate left (except going straight ahead)
+2. Approach slowly
+3. Give way to traffic on roundabout (coming from right)
+4. Drive clockwise around roundabout
+5. Indicate left when ready to exit
+6. Exit at your required road
+
+Multi-Lane Roundabout Navigation:
+- Enter from correct lane based on intended exit
+- Right turn: Outer/right lane on entry
+- Straight: Middle lanes depending on layout
+- Left turn: Left/inner lane on entry
+- Give way to vehicles exiting adjacent lanes
+- Maintain lane discipline throughout
+
+Direction Indicating at Roundabouts:
+- Entering going straight: NO indicator required
+- Entering turning right: Indicate RIGHT
+- Entering turning left: Indicate LEFT
+- Exiting: ALWAYS indicate LEFT (even if went straight)
+- Signal left just before exiting (not on entry if going straight)
+
+Common Roundabout Mistakes:
+- Not giving way to traffic on roundabout (most common cause of roundabout crashes)
+- Wrong lane selection causing late lane changes
+- Not indicating when exiting (hitting car exiting nearby)
+- Stopping suddenly if vehicle exits in front
+- Not maintaining speed through roundabout
+- Assuming other drivers will follow rules
+
+Penalties for Roundabout Violations:
+- Not giving way: 3 demerit points + $200-300 fine
+- Improper indicating: 3 demerit points + $200-300 fine
+- Traveling wrong direction: 3 demerit points + $200-300 fine
+
+GIVE WAY RULES AT DIFFERENT INTERSECTION TYPES
+
+Traffic Light Intersection:
+- Follow traffic light colours (red, yellow, green)
+- Green light: Safe to proceed but check for turning traffic
+- Yellow light: Do not enter unless cannot stop safely
+- Red light: Complete stop - except can turn left if safe (check locally)
+
+Stop Sign Intersection:
+- Come to complete stop at stop line or intersection
+- Give way to all traffic and pedestrians
+- Only proceed when completely clear
+- Apply 3-5 second count before proceeding
+
+Give Way Sign Intersection:
+- Slow down and prepare to stop
+- Give way to all oncoming and cross traffic
+- Do not stop if safe to proceed at reduced speed
+- Yield to pedestrians and cyclists
+
+PEDESTRIANS AT INTERSECTIONS (Critical Rule)
+
+Key Rule - Always Apply:
+- When turning at ANY intersection (traffic lights or not)
+- Must give way to ALL pedestrians crossing the road you are entering
+- Pedestrians have absolute priority
+- Includes: People on foot, wheelchair users, mobility device users
+
+Pedestrian Crossing Situations:
+- Pedestrian on pedestrian crossing: Always give way
+- Pedestrian crossing outside crossing: Still must give way
+- Pedestrian about to enter crossing: Must give way
+- Pedestrian finished crossing but still on road: Must give way
+
+Examples - Turning at Intersection:
+- Turning left, pedestrian crossing from right: Give way
+- Turning right, pedestrian crossing from left: Give way
+- Going straight, pedestrian crossing ahead: Give way
+- These apply regardless of traffic light status
+
+Penalties for Not Giving Way to Pedestrians:
+- Fine: $200-300
+- Demerit points: 3 points
+- Increased to 5 points if causing injury
+- Insurance may not cover if your fault
+
+
+================================================================================
+PART 6: TURNING AND MANEUVERING
+================================================================================
+
+LEFT TURNS
+
+Standard Left Turn Procedure:
+1. Check mirrors and blind spots (look over left shoulder)
+2. Indicate left at least 50 metres before turn
+3. Approach from left side of road (unless lane markers indicate differently)
+4. Reduce speed appropriately
+5. Proceed if safe - watch for oncoming traffic
+6. Complete turn into appropriate lane of destination road
+7. Stop indicating once turn is completed
+
+Giving Way When Turning Left:
+- Give way to oncoming traffic going straight
+- Give way to oncoming traffic turning right
+- Give way to any pedestrians crossing
+- Give way to cyclists on crossing path
+- Do NOT proceed until gap appears in traffic
+
+Left Turn from Multi-Lane Road:
+- Approach from the left lane
+- Indicate left well in advance
+- Ensure turn is possible without obstructing traffic
+- Maintain lane position until exiting intersection
+
+Left Turn Using Slip Lane:
+- Slip lanes are left-turn lanes designed for continuous turning
+- Different give way rules apply at slip lanes
+- Still give way to pedestrians on or entering slip lane
+- Can turn without waiting for major traffic gap (slip lanes designed for this)
+- Maintain safe speed through slip lane
+
+Turning Left at Traffic Lights:
+- Green light: Can turn left if oncoming traffic clear
+- Red arrow: Absolutely cannot turn left
+- Yellow light: Complete turn if safe and started during green phase
+- Give way to any pedestrians or cross-traffic
+
+STRAIGHT-AHEAD AT INTERSECTIONS
+
+Proceeding Straight - General Rules:
+- At traffic lights: Proceed on green if intersection clear
+- At uncontrolled intersection: Give way to traffic from right
+- At give way sign: Slow down, ensure clear before proceeding
+- Maintain lane discipline - don't drift across lanes
+
+Confirming Intersection is Clear:
+- Quick left-right-left check of intersection
+- Ensure no vehicles turning across your path
+- Check for pedestrians or cyclists
+- Look in all directions for potential hazards
+
+Speed Through Intersection:
+- Maintain steady, controlled speed
+- Don't accelerate in intersection
+- Reduced speed if any doubt about safety
+- Speed appropriate to road conditions
+
+RIGHT TURNS
+
+Standard Right Turn Procedure:
+1. Check mirrors and blind spots (look over right shoulder)
+2. Indicate right at least 50 metres before turn
+3. Approach from right side of road (if safe and possible)
+4. Reduce speed appropriately
+5. Give way to oncoming traffic
+6. Proceed when safe - watch for pedestrians
+7. Complete turn into appropriate lane
+8. Stop indicating once turn completed
+
+Giving Way When Turning Right:
+- Give way to oncoming traffic (very important)
+- Oncoming traffic going straight has priority
+- Oncoming traffic turning left has priority
+- Must give way to pedestrians crossing destination road
+- Do NOT proceed until gap appears in oncoming traffic
+
+Right Turn from Multi-Lane Road:
+- Position in right lane (or rightmost lane)
+- Indicate well in advance (50+ metres)
+- Check side mirrors for vehicles in right lane
+- Wait for oncoming traffic to clear completely
+- Turn into appropriate lane of destination road
+
+Right Turn at Traffic Lights:
+- Green light: Can turn right if oncoming traffic and pedestrians clear
+- Red arrow: Cannot turn right
+- Can turn right on red if no oncoming traffic (not at all intersections)
+- Pedestrians have absolute priority
+
+Protected vs. Unprotected Right Turns:
+- Protected right turn (green right arrow): Oncoming traffic stopped, can proceed
+- Unprotected right turn (green light): Must wait for oncoming gap - wait for other traffic to clear
+- Green arrow is very common in Queensland cities
+
+U-TURNS
+
+Where U-Turns Permitted:
+- Only where no "No U-Turn" sign present
+- At traffic lights: Only if "U-Turn Permitted" sign displayed
+- NOT at intersections with traffic lights unless specifically signed
+- At uncontrolled intersections: Usually permitted (if clear view)
+
+U-Turn Safety Requirements:
+- Must have clear view of all approaching traffic
+- Must not obstruct traffic flow
+- Must be able to complete turn safely without stopping
+- Give way to all vehicles and pedestrians
+- Impossible in many busy locations due to traffic volume
+
+Prohibited U-Turn Locations:
+- Across single continuous line: Cannot cross
+- Across double continuous lines: Cannot cross
+- At intersections with "No U-Turn" signs: Prohibited
+- In school zones (unless specifically permitted)
+- At pedestrian crossings
+- Where visibility restricted
+
+U-Turn Penalties:
+- Illegal U-turn: $200-300 fine + 3 demerit points
+- Most common in city areas with heavy traffic
+
+THREE-POINT TURNS (Three-Point Turn)
+
+When Three-Point Turn Used:
+- Reversing maneuver to change direction on narrow road
+- Safer than attempting full U-turn on busy road
+- Common in residential streets and narrow roads
+- Takes more space and time than direct U-turn
+
+Three-Point Turn Procedure:
+1. Check mirrors and blind spots completely
+2. Indicate right, ensure road is clear
+3. Turn right to near side of road (45-degree angle approximately)
+4. Stop and put in reverse
+5. Turn wheels left full lock (or appropriate angle)
+6. Reverse while turning to opposite side of road
+7. Stop in reverse
+8. Move forward (put in drive) turning right full lock
+9. Proceed in opposite direction
+
+Safety Considerations:
+- Indicate clearly throughout maneuver
+- Check mirrors constantly - especially when reversing
+- Be aware of pedestrians and cyclists who may approach during turn
+- Move slowly and deliberately
+- Stop if any vehicle or pedestrian approaches
+- Only attempt on quiet roads with good visibility
+- Never perform on main roads or busy intersections
+
+HOOK TURNS (Queensland Specific)
+
+Hook Turn Definition:
+- Left turn made by proceeding straight through intersection, moving to right side of road, stopping, then turning left
+- Unusual maneuver - not common except at specific intersections
+- Creates safety benefits for cyclists
+
+Where Hook Turns Used:
+- Specific intersections in Queensland (usually CBD areas)
+- Always signed with "Hook Turn" sign on road
+- Not permitted unless specifically signed
+
+Hook Turn Procedure:
+1. Approach intersection in right lane (or rightmost available lane)
+2. Go straight through intersection (even though turning left)
+3. Position vehicle on right side of destination road
+4. Stop and wait for signals to change
+5. Turn left when appropriate traffic lights show
+6. Complete turn and proceed
+
+Important Notes:
+- Hook turns have specific traffic light sequences
+- Only perform where signed/permitted
+- Not available on most roads in Queensland
+- Most learners will never encounter these
+- If unsure - do NOT attempt, find alternative route
+
+
+================================================================================
+PART 7: SPEED MANAGEMENT
+================================================================================
+
+DEFAULT SPEED LIMITS IN QUEENSLAND
+
+Open Road/Country Areas:
+- Speed limit: 100 km/h (unless signed differently)
+- Applies on rural highways and country roads
+- Can be lower (80, 70, 60 km/h) if signed
+- Learner maximum: Cannot exceed 100 km/h anyway
+
+Suburban/Residential Areas:
+- Speed limit: 50 km/h (standard for built-up areas)
+- Applies in residential streets, shopping areas, business districts
+- Very common in urban Queensland areas
+- Many residential streets have 50 km/h limit
+
+Motorways/Major Highways:
+- Speed limit: 100-110 km/h (varies by road)
+- Most motorways around Brisbane: 100-110 km/h
+- Some sections reduced to 80 km/h
+- Variable speed signs adjust for conditions
+- Learner maximum: 100 km/h (so cannot drive at 110 km/h sections)
+
+Electronic Variable Speed Signs:
+- Adjust speed limit in real time
+- Reduce during congestion (e.g., 80 km/h in heavy traffic)
+- Adjust for weather (rain, fog)
+- Must obey displayed speed - overrides posted sign
+
+Speed Limit Signs:
+- Black number on white circle: Maximum legal speed
+- Must not exceed (except in emergency)
+- In good conditions - speed may still be unsafe
+- Always respect sign, but may need to reduce further
+
+Learner Driver Speed Limit:
+- Absolute maximum: 100 km/h
+- Must also respect posted limit if lower
+- Cannot exceed 100 km/h even on clear motorway with high limit
+- Applies everywhere - no exceptions
+
+SCHOOL ZONES
+
+School Zone Definition:
+- Designated area near school (typically 200-300 metres)
+- Clearly marked with yellow "School Zone" signs
+- Speed limit: 40 km/h during operating hours
+
+Operating Hours:
+- School days (Monday-Friday during school term)
+- Morning: 8:00am to 9:30am
+- Afternoon: 2:30pm to 4:00pm
+- Not weekends or school holidays (standard speed limit applies)
+
+School Zone Examples:
+- Weekday 8:15am (term time): 40 km/h zone - Driving 50 km/h = 1-10 km/h over
+- Saturday 8:15am: Standard speed limit applies (50 km/h in residential area)
+- School holidays Tuesday 8:15am: Standard speed limit applies
+- Weekday 4:15pm (term time): 40 km/h zone applies
+
+Penalties for School Zone Violations:
+- 1-10 km/h over 40 km/h limit: $150 fine + 1 demerit point
+- 11-20 km/h over (50-60 km/h): $250 fine + 3 demerit points
+- 20+ km/h over: $400-600 fine + 5+ demerit points
+- School zone cameras active during operating hours
+- Fines often higher due to enforcement priority
+
+SAFE SPEED PRINCIPLES
+
+What is a Safe Speed?
+- Speed at which you can stop within visible distance
+- Appropriate to road/traffic/weather conditions
+- Even below speed limit may be unsafe if conditions poor
+- Speed selected by driver - driver's responsibility
+
+Factors Affecting Safe Speed:
+
+Weather Conditions:
+- Wet roads: Increase following distance, reduce speed 10-20%
+- Rain: Visibility reduced, road grip reduced - lower speed
+- Fog: Severe visibility reduction - significantly reduce speed
+- Ice/frost: Extreme reduced grip - travel slowly or not at all
+- Strong wind: Reduces vehicle control - cautious speed
+
+Road Conditions:
+- Gravel/unsealed roads: Reduce speed - less grip
+- Pothole/damaged roads: Reduce speed - risk of damage/loss of control
+- Loose gravel: Reduce speed - may lose traction
+
+Traffic Density:
+- Heavy traffic: Match flow of traffic (usually reduced from speed limit)
+- Empty road: Still maintain speed appropriate to visibility/conditions
+- Rush hour: Typically lower effective speeds due to congestion
+
+Visibility:
+- Good visibility: Can use higher speeds (up to limit)
+- Restricted visibility (pedestrians, vehicles): Reduce speed
+- Night driving: Headlights typically illuminate ~150 metres - limit speed to stopping distance within that
+- Curves/hills: Reduce speed if cannot see around obstacle
+
+Pedestrian Areas:
+- High foot traffic areas: 30-40 km/h appropriate
+- Shopping districts: 40-50 km/h maximum
+- Parks/playgrounds adjacent: Reduced speed appropriate
+- Residential streets: 40-50 km/h typical
+
+Learner Driver Safe Speeds:
+- Learners should drive below the limit when learning
+- Practice at various speeds - don't always drive at limit
+- Build experience at lower speeds first (30-50 km/h)
+- Gradually progress to higher speeds (60-80 km/h)
+- Only approach 100 km/h when experienced and comfortable
+
+STOPPING DISTANCES (Critical Knowledge for Learners)
+
+Two Components of Stopping Distance:
+1. Reaction distance: Distance traveled while driver reacts (typically 1 second)
+2. Braking distance: Distance traveled while vehicle decelerates to stop
+
+Reaction Time Factors:
+- Normal alert driver: 1 second (average)
+- Tired driver: 1-2+ seconds (significantly impaired)
+- Distracted driver: 2-3+ seconds or longer
+- Young drivers: Often slower reaction time
+
+Reaction Distance at Different Speeds:
+- 30 km/h: Approximately 8 metres in 1 second
+- 50 km/h: Approximately 14 metres in 1 second
+- 60 km/h: Approximately 17 metres in 1 second
+- 80 km/h: Approximately 22 metres in 1 second
+- 100 km/h: Approximately 28 metres in 1 second
+
+Braking Distance - Key Distances:
+
+At 50 km/h (Good Conditions):
+- Braking distance: Approximately 22 metres
+- Total stopping distance: ~36 metres (reaction + braking)
+- Equals about 2.5 car lengths
+
+At 60 km/h (Good Conditions):
+- Braking distance: Approximately 37 metres
+- Total stopping distance: ~54 metres (reaction + braking)
+- Equals about 3.5 car lengths
+
+At 80 km/h (Good Conditions):
+- Braking distance: Approximately 63 metres
+- Total stopping distance: ~85 metres (reaction + braking)
+- Equals about 5.5 car lengths
+
+At 100 km/h (Good Conditions):
+- Braking distance: Approximately 91 metres
+- Total stopping distance: ~119 metres (reaction + braking)
+- Equals about 7.5 car lengths
+
+The 2-Second Rule (Practical Application):
+
+Basic Rule:
+- Maintain at least 2 seconds between your vehicle and vehicle ahead
+- At 60 km/h: 2 seconds = approximately one car length per 5 km/h speed
+- At 100 km/h: 2 seconds = approximately 56 metres
+
+How to Apply 2-Second Rule:
+1. Choose fixed point ahead (road mark, tree, sign)
+2. Note when vehicle ahead passes that point
+3. Count how long until your vehicle reaches that point
+4. Count: "One thousand and one, one thousand and two"
+5. Should reach approximately 2 full seconds
+6. If less than 2 seconds: Drop back - increase gap
+
+Night Driving Stopping Distance:
+- Headlight range typically ~150 metres maximum
+- Cannot stop beyond what headlights show
+- Speed must allow stopping within visible range
+- Typically means 60-70 km/h maximum safe speed at night
+- Significantly lower than daytime driving on same road
+
+Wet/Poor Conditions:
+- Double the stopping distance approximately
+- What takes 54 metres in good conditions takes ~108 metres in wet conditions
+- Increase following distance to 3-4 seconds in poor conditions
+- Adjust speed downward when conditions deteriorate
+
+SPEED LIMIT COMPLIANCE FOR LEARNERS
+
+Common Learner Speed Mistakes:
+1. Not respecting 100 km/h maximum (especially on expressways with higher posted limits)
+2. Exceeding limits in school zones (expensive penalties)
+3. Driving too fast for conditions (rain, curve, pedestrian area)
+4. Not realizing modern vehicles accelerate easily beyond learner limit
+
+Speed Management Practices:
+- Set cruise control at 90 km/h on expressways (leaves 10 km/h margin)
+- Actively monitor speedometer in school zones
+- Reduce speed in residential areas (50 km/h common, easy to exceed)
+- Consider posted speed as maximum, not target
+- Build safety margin by driving 5-10 km/h below limit when learning
+
+
+================================================================================
+PART 8: PARKING REGULATIONS
+================================================================================
+
+PROHIBITED PARKING LOCATIONS
+
+Absolutely NO Parking Allowed:
+- On footpaths/sidewalks (except where permitted sign)
+- In front of fire hydrants (no stopping OR parking)
+- In No Parking zones (marked by double yellow lines)
+- Within 10 metres of intersection (unless signed differently)
+- In disabled parking spaces (unless displaying valid permit)
+- In bus lanes during operating hours
+- On clearway (no stopping area)
+- Across driveway entrance
+- Double lines (across or on - completely prohibited)
+- On blind corners or where visibility restricted
+- On tram tracks or trolley lines
+- In no-stopping zones
+
+Do NOT Park Signs:
+- Commonly seen as red circle with white diagonal line
+- Cannot stop or park in this area at any time
+- Absolute prohibition
+
+No Parking Signs (With Times):
+- May show specific times when parking prohibited
+- Outside those times: Parking permitted
+- Example: "No Parking 8am-6pm Monday-Friday"
+- Other times: Parking is allowed
+
+Time-Limited Parking:
+- "2 Hour Parking" sign: Maximum 2 hours, then must move vehicle
+- "4 Hour Parking" sign: Maximum 4 hours, then must move vehicle
+- P-signs indicate time limit: "P4" = 4 hours maximum
+- Must display valid parking meter ticket or card
+
+Clearway Zones:
+- Marked by red X on road or "Clearway" sign
+- No parking during specified hours (usually 7-10am, 4-7pm weekdays)
+- Limited parking allowed outside these hours (if not otherwise prohibited)
+- Common on major roads in Brisbane and cities
+
+Residents Parking:
+- Marked for residents only with valid permit
+- Other drivers cannot park (will be ticketed)
+- Permits issued by local councils
+- Common in inner-city residential areas
+
+Loading Zones:
+- Marked with blue lines or "Loading Zone" sign
+- For loading/unloading goods only
+- Cannot park vehicle if not actively loading
+- Time limit typically 10-15 minutes
+- Common near shops and businesses
+
+PARKING METHODS
+
+Parallel Parking:
+- Parking alongside road or between two vehicles
+- Must indicate before maneuver
+- Check mirrors and blind spots
+- Use at least 1.5x vehicle length of space
+- Position vehicle parallel to kerb (approximately 30cm from edge)
+- Practice essential skill for driving test
+
+Angle Parking:
+- Parking at 45-degree angle to kerb
+- Common in car parks and some streets
+- Easier than parallel parking
+- Less space required
+- Clear visibility important when exiting
+
+Reverse Parking:
+- Reversing into parking space
+- Required in many car parks
+- Need at least 1.5x vehicle length
+- Indicate reverse intent - slow approach
+- Use mirrors constantly
+- Ensure pedestrians/cyclists not in path
+
+Perpendicular Parking (Head-In Parking):
+- Driving straight into perpendicular parking space
+- Common in car parks (head-in or reverse option)
+- Need sufficient width and depth
+- Monitor kerbs to avoid collision
+
+Kerb Alignment:
+- Park parallel to kerb (approximately 30-50cm away)
+- Do not mount kerb
+- Keep safe distance from kerb
+- Too far away looks like improper parking
+
+NO STOPPING vs NO PARKING
+
+Key Difference - Critical Distinction:
+
+No Stopping Zone:
+- Cannot stop, park, or wait in vehicle
+- Cannot even briefly pull over
+- Applies 24/7 (unless times specified)
+- Marked with red X or "No Stopping" sign
+- Absolute prohibition on stopping for any reason
+- Exception: Stopping required by traffic light/give way sign, emergency
+
+No Parking Zone:
+- CAN stop briefly (e.g., pick up/drop off person)
+- CANNOT leave vehicle parked unattended
+- OK for active loading/unloading
+- Can be temporary (times specified) or 24/7
+- Marked with single yellow lines or "No Parking" signs
+- Different from "No Stopping" - key distinction
+
+Example Application:
+- "No Stopping" zone: Cannot pull over to use ATM or phone - must keep moving
+- "No Parking" zone: Can pull over to drop off passenger, but must stay with vehicle and not leave it
+
+COMMON PARKING SIGN TYPES
+
+"P" Signs (Time-Limited Parking):
+- P2 = 2 hours maximum
+- P4 = 4 hours maximum
+- P120 = 120 minutes (2 hours) maximum
+- Must pay parking fee if applicable
+- Need to move vehicle after time expires
+
+"Permit" Signs:
+- Permit parking - specific permit holders only
+- Must display valid permit
+- Non-permit vehicles will be ticketed
+- Common in residential areas
+
+Disabled (Accessible) Parking:
+- Blue sign with wheelchair symbol
+- For vehicles displaying valid disability permit
+- Must be closest available to destination
+- Towing fee + fine if illegally parked
+- Significant penalty for parking without permit
+
+Reserved Parking:
+- "Reserved for..." sign
+- Specific person/business only
+- Vehicle can be towed if parked without authorization
+
+Meter Parking:
+- Parking meter visible (older style)
+- Must pay appropriate fee
+- Display receipt or token in vehicle
+- Common in older CBD areas
+
+On-Street Parking:
+- Parking directly on street (not in car park)
+- Must follow all signage and lines
+- Parallel parking typically required
+- Check for parking restrictions
+
+STREET PARKING BEST PRACTICES
+
+Checking Parking Legality:
+1. Look for No Stopping signs or double yellow lines = cannot park
+2. Check for No Parking signs or single yellow line + times
+3. Confirm parking time allowed (if timed zone)
+4. Look for resident-only or permit signs
+5. Confirm vehicle not in driveway or within 10m of corner
+
+Parking Safely:
+- Park parallel to kerb (30-50cm distance)
+- Do not block driveways
+- Do not park where visibility restricted
+- Leave adequate room for other vehicles to exit
+- Do not park on pedestrian crossings
+- Do not park in disabled spaces without permit
+
+When Parking in Car Parks:
+- Display parking ticket on dashboard
+- Note level and location (take photo if needed)
+- Lock vehicle
+- Take valuables
+- Park in well-lit, populated area if possible
+- Avoid dark/isolated corners
+
+Parking Meter Compliance:
+- Arrive early - parking fills quickly during busy times
+- Pay appropriate amount for intended stay
+- Note expiry time
+- Return before expiry to avoid fine
+- If running late - move vehicle to avoid ticket
+
+PARKING VIOLATION PENALTIES
+
+Illegal Parking Fines (Approximate):
+- Parking in No Parking zone: $75-150
+- Parking in disabled space (without permit): $400-600
+- Parking in no-stopping zone: $150-250
+- Parking in bus lane: $150-250
+- Parking on footpath: $100-200
+- Parking across driveway: $100-200
+- Expired meter parking: $75-150
+- All subject to change - check with local council
+
+Penalty Notice:
+- Fine issued immediately as penalty notice
+- Can pay or contest within specified timeframe
+- If not paid: Can escalate to court proceedings
+- Unpaid fines collected through SPER (State Penalties Enforcement Registry)
+
+Multiple Violations:
+- Repeated parking violations can accumulate
+- Multiple fines in short time shows pattern
+- Courts may impose additional penalties
+- Vehicle immobilization possible for serious violations
+
+PARKING TEST REQUIREMENTS
+
+Parking in Driving Test:
+- Practical driving test includes parking component
+- Must demonstrate safe parallel parking
+- Must show correct car park parking technique
+- Q-Safe test (Queensland practical test) includes parking
+
+Parallel Parking Test Procedure:
+- Vehicle must be within 30cm of kerb
+- Not touching kerb
+- Approximately parallel to kerb line
+- Completed without hitting other vehicles
+- Must use combination of forward and reverse
+
+Car Park Parking Test:
+- Drive into parking space without hitting obstacles
+- Position vehicle within marked lines
+- Use mirror checks and appropriate speed
+- Demonstrate awareness of other vehicles/pedestrians
+
+
+================================================================================
+PART 9: VULNERABLE ROAD USERS
+================================================================================
+
+PEDESTRIAN CROSSING RULES
+
+Pedestrian Crossing Types:
+
+Standard Pedestrian Crossing:
+- Marked with white parallel lines on road
+- Zebra crossing appearance
+- Has pedestrian signal lights (red man/green man figure)
+- Must give way to pedestrians using this crossing
+
+Traffic Light Pedestrian Crossing:
+- Pedestrian signals integrated with traffic lights
+- Red figure: Do not cross
+- Green figure: Safe to cross (check for turning traffic)
+- Pedestrians have priority when light indicates
+
+School Crossing:
+- Indicated by yellow "School Crossing" sign
+- Flagman/woman may be present to manage traffic
+- Must obey flagman's directions (overrides traffic lights)
+- Give way to all pedestrians crossing at school crossing
+- Typically near schools at peak times (8-9am, 2-4pm)
+
+Pedestrian Refuge/Median Crossing:
+- Crossing with traffic island in middle
+- Pedestrians cross in two stages
+- Vehicle must give way to pedestrians on both sides
+- Island provides refuge point for pedestrians
+
+Key Rule - Turning Vehicles at Crossings:
+- When turning at intersection: MUST give way to all pedestrians
+- Even if light is green for turning vehicle
+- Even if pedestrian crossing is not at intersection
+- Pedestrians on or entering pedestrian crossing have priority
+- Applies to all turning situations (left or right turns)
+
+Pedestrian Right-of-Way:
+- Pedestrians on pedestrian crossing: Always have right of way
+- Pedestrians crossing outside marked crossing: Still have some protection
+- On footpath/kerb: Vehicles must not mount or obstruct
+
+Penalties for Not Giving Way to Pedestrians:
+- Fine: $200-300
+- Demerit points: 3 points
+- If injury caused: 5+ demerit points possible
+- Insurance implications if at fault
+
+CYCLIST MINIMUM PASSING DISTANCES
+
+Minimum Passing Distance for Cyclists:
+- Urban areas (50 km/h or less): 1 metre minimum distance
+- Non-urban areas (above 50 km/h): 1.5 metres minimum distance
+- Must maintain clearance when passing
+- Insufficient distance = traffic violation
+
+How to Safely Pass Cyclists:
+1. Check mirrors for traffic behind
+2. Indicate to change lanes (if safe)
+3. Move completely into next lane to pass
+4. Maintain 1-1.5 metre clearance depending on area
+5. Complete pass and return to lane
+6. Indicate lane change completion
+
+Passing Cyclists - Key Points:
+- Do not pull out if oncoming traffic
+- Wait for safe gap to pass
+- Do not pass if any doubt about space
+- Slow down if cannot pass safely
+- On narrow roads: May need to wait for clear road to pass
+- Never try to squeeze through narrow gap
+
+Cyclist Crossing at Intersections:
+- Cyclists may use bicycle crossing at traffic lights
+- White bicycle symbol marks special bicycle area
+- Give way to cyclists exiting this area
+- Cyclists have priority from cycle crossing area
+
+Bicycle Storage Area (At Traffic Lights):
+- White bicycle symbols painted between two lines
+- Separate waiting area for cyclists
+- Give way to any vehicle in this area
+- If green light for cycle area: Give way to entering cycles
+
+Penalties for Unsafe Passing of Cyclists:
+- Fine: $200-300
+- Demerit points: 3 points
+- If causing injury/accident: Increased penalties
+- Driving without due care and attention possible (more serious)
+
+SHARING ROAD WITH MOTORCYCLISTS
+
+Motorcycle Characteristics:
+- Smaller vehicle, less visible in traffic
+- Can accelerate quickly
+- May filter through traffic lanes
+- Less stable in emergency situations
+- More vulnerable in collisions
+
+Safe Driving Around Motorcycles:
+- Check mirrors carefully for motorcycles (easy to miss)
+- Give motorcycles full lane space
+- Do not crowd motorcycles
+- Allow full turning radius for motorcycles
+- Be aware motorcycles may filter lanes in traffic
+
+Motorcycle Filtering (Lane Filtering):
+- Legal in Queensland between slow/stationary vehicles
+- Motorcycles move between lanes when traffic stationary/slow
+- Must share road safely with motorcyclists doing this
+- Do not block lanes to prevent filtering
+- Stay aware of motorcycles filtering near your vehicle
+
+Visibility for Motorcyclists:
+- Motorcycles less visible due to small size
+- Use headlights at all times (good practice)
+- Avoid blind spots (position vehicle where motorcycle can see)
+- Check for motorcycles when changing lanes
+- Assume motorcyclists cannot always see you
+
+SCHOOL CROSSINGS
+
+School Crossing Management:
+- Marked with yellow "School Crossing" sign
+- May have traffic control person (crossing supervisor)
+- Crossing supervisor may display stop sign
+- Traffic controller's hand signals override traffic lights
+- Crossing supervisor directs pedestrians and traffic flow
+
+Responsibilities When Approaching School Crossing:
+- Slow down when approaching (prepare to stop)
+- Watch for pedestrians and crossing supervisor
+- Obey hand signals from supervisor (mandatory)
+- Stop if supervisor holds stop sign
+- Give way to all pedestrians crossing
+- Do not proceed until crossing clear and supervisor allows
+
+Operating Times:
+- Typically 8:00-9:30am (morning)
+- Typically 2:30-4:00pm (afternoon)
+- School days only
+- Not weekends or holidays
+
+Penalties for School Crossing Violations:
+- Not stopping when required: 3 demerit points + $200-300 fine
+- Causing accident at school crossing: Serious charges possible
+
+EMERGENCY VEHICLES
+
+Emergency Vehicle Priority:
+- Ambulances, fire trucks, police vehicles: Highest priority
+- Indicated by flashing lights and/or sirens
+- Must give way and pull over if safe
+- Clear path as much as possible
+
+What to Do When Emergency Vehicle Approaches:
+- Check mirrors to identify emergency vehicle
+- Indicate and slow down
+- Move to side of road (pull over) if possible
+- Stop if vehicle needs to pass
+- Do not try to keep up with or follow emergency vehicle
+- Resume normal driving when emergency vehicle passes
+
+Emergency Vehicle in Opposite Lane:
+- If emergency vehicle approaches in opposite lane
+- You must still give way (move to side)
+- Do not block their path through traffic
+- Assume they may cross center line or boundaries
+
+Penalties for Not Giving Way to Emergency Vehicles:
+- Fine: $200-400
+- Demerit points: 3-4 points
+- If causing accident: Serious charges
+
+COMMON VULNERABLE USER SCENARIOS
+
+Scenario 1 - Pedestrian Crossing at Intersection:
+- You: Turning right at traffic light (green light)
+- Pedestrian: Crossing from left side of intersection
+- Action: MUST give way to pedestrian
+- Pedestrian has priority over turning traffic
+
+Scenario 2 - Cyclist in Bike Lane:
+- You: Turning right from bike lane area
+- Cyclist: Traveling straight in bike lane
+- Action: MUST give way to cyclist
+- Cyclist in dedicated lane has priority
+
+Scenario 3 - Motorcycle Filtering in Traffic:
+- You: In traffic congestion, stationary vehicle
+- Motorcycle: Filtering between lanes
+- Action: Do not block or obstruct
+- Allow motorcycle to safely pass through
+
+Scenario 4 - School Crossing During Operating Times:
+- You: Approaching school crossing
+- Pedestrians: Waiting or crossing with supervisor
+- Action: Prepare to stop and give way
+- Obey supervisor's signals
+
+Scenario 5 - Elderly Pedestrian at Crossing:
+- You: Approaching turning left at traffic light
+- Pedestrian: Slowly crossing in front of turn path
+- Action: Stop and wait - pedestrian priority
+- Do not assume they will clear in time
+
+
+================================================================================
+PART 10: SAFETY REQUIREMENTS
+================================================================================
+
+SEATBELT LAWS
+
+Seatbelt Mandatory:
+- ALL occupants must wear seatbelts at all times while moving
+- Driver responsible for ensuring compliance
+- Even short trips or parked with engine running
+
+Seatbelt Rules by Seating Position:
+
+Front Seat Occupants:
+- Must wear seatbelt at all times
+- Adult wearing seatbelt: Driver's responsibility OR occupant's responsibility
+- In Queensland: Both driver and passenger responsible
+- If passenger refusing: Cannot force compliance but driver may be liable
+
+Back Seat Occupants:
+- Must wear seatbelt if available
+- Driver responsible for ensuring compliance (if applicable)
+- Must not interfere with children's restraints
+- Back seat seatbelts just as important as front
+
+Seatbelt Positioning:
+- Diagonal strap across chest and shoulder
+- Lap belt across hips/lower abdomen
+- Not around neck (danger of strangulation)
+- Not under arm or behind back
+- Properly positioned for effectiveness
+
+Seatbelt Violation Penalties:
+- Not wearing seatbelt (driver): $1,251 fine + 4 demerit points
+- Not wearing seatbelt (passenger): $1,251 fine + 4 demerit points
+- Driver responsible for minor passengers not wearing seatbelts
+- Repeat violation within 12 months: Double demerit points (8 points)
+
+CHILD RESTRAINT REQUIREMENTS
+
+Child Restraint by Age/Size:
+
+Under 12 Months (or Under 9kg):
+- Rear-facing child seat required (infant capsule)
+- Must be approved/certified restraint
+- Front seat positioning: No - must be rear seat
+- Passenger airbag off if rear-facing in front seat (if applicable)
+
+12-36 Months (9-18kg):
+- Forward-facing child seat required
+- Must be approved/certified restraint
+- Typically rear seat (safest position)
+- Front seat permitted but less safe
+
+3-7 Years (18-36kg):
+- Forward-facing child seat OR booster seat
+- Depends on size and development
+- Typically up to 1.2 metres tall or 25kg
+- Must use approved restraint
+
+Over 7 Years (Over 25kg):
+- Can use adult seatbelt if tall enough (usually 140cm+)
+- Booster seat if shorter
+- Must be properly positioned seatbelt
+- Do not allow improper seatbelt positioning
+
+Child Restraint Compliance:
+- All restraints must be approved/certified
+- Incorrect installation common problem
+- Many parents install incorrectly
+- Proper installation critical for effectiveness
+- Can get installation checked at car seat clinics
+
+Penalties for Child Restraint Violations:
+- Not using required restraint: $1,251 fine + 4 demerit points per child
+- Multiple children unrestrained: Multiple fines
+- Repeat violations: Double demerit points within 12 months
+
+MOBILE PHONE USAGE RESTRICTIONS
+
+Learner Driver Mobile Phone Rules (Under 25):
+
+Complete Ban:
+- Cannot use mobile phone while driving IN ANY WAY
+- Cannot hold phone in hand
+- Cannot have phone rest on body (lap, leg, etc.)
+- Cannot use hands-free kits
+- Cannot use Bluetooth accessories
+- Cannot use wireless headsets
+- Cannot use phone loudspeaker
+- Cannot use phone at all - ZERO tolerance
+
+Even While Stationary:
+- Cannot use phone when vehicle stopped but not parked
+- Only usable when safely parked (not just stopped in traffic)
+- Can only use parked when:
+  - Paying for goods/services at drive-through
+  - Accessing or leaving road/car park
+  - Presenting digital licence to police
+
+Passenger Phone Use (If Learner Driver Under 25):
+- Supervisor/passengers cannot use phone on loudspeaker
+- Passengers cannot use video call function
+- Regular (non-loudspeaker) phone use OK for passengers
+- Violation: $1,251 fine for passenger or supervisor
+
+Learner Driver Over 25:
+- Similar restrictions for learner drivers 25+
+- Cannot use handheld phone (same as general rule)
+- CAN use hands-free in some circumstances
+- Still cannot use loudspeaker when driving
+- Better than under-25 rules but still restricted
+
+Penalties for Mobile Phone Violations:
+- First offence: $1,251 fine + 4 demerit points
+- Repeat offence within 12 months: $1,251 fine + 8 demerit points (DOUBLE)
+- Caught on camera: $1,251 fine + 4 demerit points
+- Multiple camera enforcement of this offence
+
+ESSENTIAL VEHICLE SAFETY REQUIREMENTS
+
+Roadworthiness Standards:
+
+Tyres:
+- Minimum tread depth: 1.5mm across all areas
+- Cannot have visible cords
+- Must be properly inflated
+- Check tyre pressure monthly
+- Poor tyres = reduced braking effectiveness
+
+Brakes:
+- Must be fully functional
+- Check fluid level
+- Unusual noises = get checked
+- Reduced braking = dangerous and illegal
+
+Windscreen:
+- Must be clear (no cracks in driver's vision area)
+- Wipers must function
+- Washer fluid topped up
+- Defrost function working
+- Windscreen damage can affect insurance
+
+Lights:
+- All lights must work (headlights, tail lights, brake lights)
+- Indicate lights functioning
+- Hazard lights operational
+- Check before night driving
+- Broken light = defect notice
+
+Seatbelts:
+- All seatbelts must function smoothly
+- Check for tears or damage
+- Ensure secure fastening
+- Test before trip
+
+Steering/Suspension:
+- Steering must be responsive and smooth
+- Suspension should not clunk or bang
+- Steering wheel play should be minimal
+- Get checked if abnormal noises
+
+Horn:
+- Must be functional
+- Can be used to alert other drivers
+- Not for aggression - only safety
+
+Vehicle Registration:
+- Current registration plate displayed
+- Sticker current and visible
+- Registration up to date
+- Cannot drive with expired registration
+
+Vehicle Inspection (Periodic):
+- Light vehicle inspection every 2-5 years depending on age
+- Safety and emissions checked
+- Defect notice issued if fails
+- Must rectify and re-test within timeframe
+
+PRACTICAL VEHICLE SAFETY CHECKS
+
+Pre-Drive Safety Checklist:
+- Walk around vehicle - observe obvious damage
+- Check tyres for appropriate inflation and tread
+- Test lights (headlights, brake lights, indicators)
+- Confirm mirrors adjusted
+- Check seatbelts functional
+- Confirm windscreen clear and wipers work
+- Test brakes before leaving driveway
+- Confirm all doors close securely
+
+During Driving:
+- Monitor dashboard warning lights
+- Listen for unusual noises
+- Feel for unusual vibrations
+- Watch brake responsiveness
+- Monitor steering responsiveness
+- Check brakes feel normal throughout drive
+
+Post-Drive Inspection:
+- Listen for unusual noises while stopping
+- Walk around vehicle checking for damage
+- Confirm all lights turned off
+- Ensure vehicle parked safely
+
+Common Safety Issues to Report:
+- Warning light on dashboard: Get scanned at mechanic
+- Soft brakes or spongy feel: Have brakes checked immediately
+- Steering feels loose: Suspension/steering issue - get checked
+- Unusual noises or smells: Get vehicle inspected
+- Tyre bulges or damage: Replace immediately
+
+
+================================================================================
+PART 11: IMPAIRMENT AND DISTRACTION
+================================================================================
+
+ALCOHOL LAWS FOR LEARNERS
+
+Zero Tolerance Policy:
+- Learner drivers: 0.00% BAC - absolutely no alcohol
+- No exceptions - even trace amounts
+- Applies everywhere in Australia
+- Random breath testing performed
+
+Why Zero Tolerance for Learners:
+- Young/inexperienced drivers more affected by small alcohol amounts
+- Less driving experience = more impairment with same BAC
+- Slows reaction time significantly
+- Increases risky decision-making
+- Causes overconfidence in ability
+
+Testing Procedures:
+- Random breath testing conducted by police
+- Roadside testing: Breath analyzer device
+- Positive result: Preliminary test confirmed with more precise equipment
+- Refusal to test: Serious charges
+
+Penalties for Exceeding 0.00% BAC:
+
+Very Low (0.01-0.04%):
+- Fine: ~$297
+- Demerit points: 4
+- Licence suspension not automatic at this level
+
+Low (0.05-0.07%):
+- Fine: ~$406
+- Demerit points: 4
+- Still below general limit (0.05%) but learner has zero limit
+
+0.08% or Higher:
+- Court appearance: Mandatory
+- Significant fine: $3,000-5,000+
+- Demerit points: 4-7 (depending on level and circumstances)
+- Licence suspension: 3-12 months
+- Possible jail time: Up to 3 months for first offence
+- Criminal record
+
+Recidivist Penalties (Repeat Offenders):
+- Second offence: Enhanced penalties
+- Third offence: Severe penalties including jail time
+- Mandatory alcohol education programs
+- Medical evaluation required
+- Ignition interlock device possible (12 months)
+
+DRUG RESTRICTIONS
+
+Drug Driving Laws:
+- Cannot drive under influence of any drug (prescription or illegal)
+- Includes cannabis, cocaine, amphetamine, ecstasy, heroin, etc.
+- Some prescription medications can impair (check with pharmacist)
+- Drug driving carries same penalties as alcohol
+
+Testing for Drugs:
+- Oral/saliva drug testing at roadside
+- Blood test for confirmation if positive
+- Tests for: THC, cocaine, amphetamine, ecstasy, heroin, opioids
+- Can refuse test but serious consequences
+
+Prescription Medications:
+- Check if medication impairs driving ability
+- Pharmacist can advise
+- Some medications cause drowsiness, dizziness
+- Do not drive if impaired by medication
+- Even legal prescription meds can cause impairment
+
+Penalties for Drug Driving:
+- Same as alcohol drink-driving penalties
+- Court appearance required (usually)
+- $3,000-5,000+ fine
+- Licence suspension: 6-12 months
+- Jail time possible
+- Criminal record
+- Enhanced penalties for repeat offences
+
+RANDOM TESTING PROCEDURES
+
+Random Breath Testing (RBT):
+
+Process:
+- Police conduct roadside stop
+- Request breath sample using breathalyzer device
+- Preliminary test result provided
+- If negative: Can proceed
+- If positive: Taken for second test/blood sample
+
+Driver's Rights:
+- Can request witness present (not always practical)
+- Can request copy of results
+- Can challenge result if equipment faulty
+- Refusal carries serious consequences
+
+Consequences of Refusal:
+- Fine: Up to $1,000
+- Demerit points: May apply
+- Deemed as serious offence (similar to high BAC)
+- Court appearance likely
+- Criminal record
+
+Random Drug Testing:
+- Oral/saliva tests performed
+- Similar process to breath testing
+- Confirmation by blood test if positive
+- Same refusal consequences as RBT
+
+FATIGUE MANAGEMENT BASICS
+
+Learner Driver Fatigue Considerations:
+
+Causes of Fatigue:
+- Lack of sleep (less than 7-8 hours)
+- Long drive sessions without break
+- Monotonous driving (highway vs. varied roads)
+- Driving late at night
+- Early morning driving
+- Driving after physical exertion
+- Medication side effects
+
+Effects of Fatigue on Driving:
+- Slower reaction times (similar to alcohol impairment)
+- Reduced concentration
+- Impaired judgment
+- Increased risk-taking
+- Microsleeps (brief moments of sleep while driving)
+- Inability to maintain lane position
+- Reduced vigilance for hazards
+
+Fatigue Indicators (Know These):
+- Frequent yawning
+- Heavy eyelids
+- Difficulty focusing
+- Nodding head
+- Lane drifting
+- Missing exits or getting lost
+- Unable to remember driving last few minutes
+
+Fatigue Management Strategies:
+
+Before Driving:
+- Get adequate sleep (7-8 hours minimum)
+- Avoid long driving sessions
+- Have light snack/coffee if tired
+- Discuss route with supervisor
+
+During Long Drives:
+- Stop every 2 hours minimum
+- Switch drivers if possible
+- Short walk breaks
+- Caffeine (coffee/energy drink) can help
+- Open window/turn up music (temporary fixes only)
+- Never fight fatigue - stop driving
+
+Night Driving and Fatigue:
+- Learners more fatigued at night
+- Night driving slower and more concentration-intensive
+- Build up hours gradually for night driving
+- Do shorter night drives than day drives
+- Avoid driving late at night when tired
+
+Signs to Stop Driving:
+- Cannot keep eyes open
+- Cannot focus on road
+- Multiple close calls
+- Having trouble staying in lane
+- Supervisor concerned about driving
+- More than 2 yawns in 5 minutes
+
+DISTRACTION MANAGEMENT
+
+Learner Driver Distractions:
+
+Main Distractions:
+- Mobile phone (most serious for learners)
+- Passengers (conversation, laughing, loud conversation)
+- Eating/drinking
+- Adjusting controls (radio, climate, seat)
+- Looking at scenery/distractions outside car
+- Dashboard displays/navigation screens
+- Emotional state (anger, excitement, sadness)
+
+Mobile Phone Distraction:
+- Main cause of distraction crashes for young drivers
+- Complete ban for learners removes this risk
+- Hands-free still distracting even if not handheld
+- Full attention required while driving
+
+Passenger Distraction:
+- Can be worse than solo driving
+- Reduce conversation while concentrating on difficult driving
+- Friends/family may not understand distraction risk
+- Supervisor should help manage passenger activity
+
+Eating/Drinking While Driving:
+- Not illegal but not recommended
+- Reduces attention/control
+- Spill risk (distraction)
+- Do this during breaks, not while driving
+- Stay hydrated but pre-plan
+
+Control Adjustments:
+- Adjust radio, climate, seat BEFORE driving
+- If adjustment needed: Pull over safely
+- Do not adjust while driving or at traffic lights
+- Set navigation/GPS before starting journey
+
+Learner Driver Distraction Minimization:
+- Focus entirely on driving task
+- Minimize conversation early in learning
+- Keep radio volume low
+- Avoid eating/drinking
+- Do not adjust controls while driving
+- Tell passengers: "This is learning time - minimal talking please"
+- Practice staying focused
+
+IMPAIRMENT AND DISTRACTION TESTING
+
+Testing by Police:
+
+Field Sobriety Tests:
+- Walk-the-line test
+- One-leg stand test
+- Horizontal eye movement test
+- These assess coordination/balance
+- Not definitive but indicate possible impairment
+- Can be performed before breath test
+
+Roadside Breath Testing:
+- Preliminary breath analyzer
+- Results may not be fully accurate
+- Positive result confirmed with second test/blood sample
+
+Drug Testing:
+- Oral/saliva device at roadside
+- Rapid results
+- Blood test for confirmation if positive
+
+Workplace/School Testing:
+- Not applicable to learner drivers on public roads
+- Different rules if tested at school/work
+
+Challenging Test Results:
+- Equipment must be calibrated correctly
+- Test must be administered properly
+- Can request independent testing
+- Lawyer can help challenge results
+- Many tests have been challenged successfully in court
+
+
+================================================================================
+PART 12: LOGBOOK AND PROGRESSION
+================================================================================
+
+LOGBOOK REQUIREMENTS
+
+Purpose of Logbook:
+- Records supervised driving hours
+- Documents learning progress
+- Required for progression to provisional licence
+- Ensures safe skill development
+- Helps identify weak areas needing practice
+
+Logbook Availability:
+
+Physical Logbook:
+- Automatically provided with learner licence
+- Paper-based record
+- Must be carried when driving
+- Signed by supervisor after each session
+
+Digital Logbook:
+- Online version available (RACQ Learn2Go)
+- Alternative to physical logbook
+- Same hours recorded
+- Printable for evidence of hours
+- Some prefer digital for convenience
+
+Where to Get Logbook:
+- Automatically provided with learner licence
+- If lost: Can replace at TMR customer service centre (~$5)
+- Digital version online through RACQ website
+
+MINIMUM HOURS REQUIRED
+
+Requirement Duration:
+
+Under 25 Years Old:
+- Minimum 100 hours supervised driving
+- Minimum 10 hours of these must be night driving
+- Night driving = between sunset and sunrise
+- MUST hold learner licence for 12 months minimum
+- Hours must be completed before taking practical test
+
+25 Years Old or Older:
+- NO minimum 100-hour logbook requirement
+- Still encouraged to get plenty of driving experience
+- Must hold learner licence for minimum 12 months
+- Must pass Hazard Perception Test (after 6 months holding)
+
+Hour Breakdown - Recommended Distribution:
+
+Under 25 Distribution:
+- Daytime hours: Approximately 90 hours
+- Night-time hours: 10 hours minimum
+- Should include: Various conditions, traffic types, road types
+- Spread across: Multiple weeks/months for skill development
+
+Practical Allocation (Suggested):
+- Residential/suburban driving: 30 hours
+- Urban/CBD driving: 25 hours
+- Major roads/expressways: 20 hours
+- Night driving: 10 hours
+- Various weather/conditions: 15 hours
+
+Important: Hours Only Count Under Certain Conditions:
+- Logged in official logbook
+- Supervised by approved supervisor
+- Supervisor with valid open licence for 12+ months
+- In vehicle driven by learner (not student driving in car with instructor only)
+- After learner licence issued (hours before don't count)
+
+PROFESSIONAL DRIVING LESSON BONUS HOURS
+
+Accredited Driving Trainer:
+- Professional instructor with accreditation
+- Hours with instructor count as logged hours
+- Particular benefit: Can substitute for some logbook hours
+- Recommended for learning challenging skills
+
+Professional Lesson Hour Conversion:
+- Generally: 1 hour professional lesson = 1 hour logged
+- Some states offer multiplier (not typical for QLD)
+- QLD typically: 1:1 conversion ratio
+- Instructor must sign logbook confirming hours
+
+Benefits of Professional Lessons:
+- Structured learning of specific skills
+- Feedback on technique
+- Introduction to more challenging driving situations
+- Can accelerate learning in weak areas
+- Professional perspective on capabilities
+- Cost consideration: Professional lessons expensive but effective
+
+Selecting Professional Instructor:
+- Check accreditation/qualifications
+- Get recommendations
+- Discuss specific learning goals
+- Confirm instructor knowledgeable about learner rules
+- Check instructor reviews if available
+
+SAFER DRIVERS COURSE (If Applicable)
+
+Queensland Specific Information:
+- No mandatory Safer Drivers Course requirement for learners
+- Different from some other states (e.g., VIC)
+- Not a requirement to progress to P-plates
+- Optional but recommended by some driving schools
+
+If Taking Optional Course:
+- Would typically count as driving instruction hours
+- Covers defensive driving techniques
+- Includes hazard perception training
+- Professional delivery of safe driving principles
+- May not provide hour multiplier in QLD but good training
+
+Other Safety Courses:
+- Various private driving schools offer crash avoidance courses
+- Can supplement logbook hours
+- Not mandatory but recommended for safer driving
+
+MINIMUM LEARNER PERIOD DURATION
+
+Mandatory 12-Month Holding Period:
+- Must hold learner licence for minimum 12 months
+- Applies to all learners regardless of age
+- Suspension time does NOT count toward this period
+- Cannot progress to provisional/P-plates before 12 months
+
+Time Calculation:
+- Counts from date of learner licence issue
+- Not from first day of driving
+- Suspension creates gap but doesn't extend requirement
+- If suspended at month 10 for 3 months: Must wait until month 13 minimum
+
+Purpose of 12-Month Period:
+- Allows skill development across seasons/weather
+- Provides experience in varying conditions
+- Develops safe habits
+- Ensures sufficient supervised driving time
+- Separates learner and provisional phases
+
+REQUIREMENTS TO PROGRESS TO PROVISIONAL LICENCE
+
+To Apply for P1 (Provisional) Licence - Age Under 25:
+
+Must Have:
+- Held learner licence for minimum 12 months
+- Completed 100 hours supervised driving (10 hours night minimum)
+- Recorded hours in official logbook
+- Clean traffic history (no major violations)
+- Pass Hazard Perception Test (after holding learner for 6+ months)
+- Pass Q-Safe practical driving test
+- Be at least 17 years old
+
+Hazard Perception Test (HPT):
+
+Purpose:
+- Tests ability to recognize and respond to driving hazards
+- Video-based test (not practical driving)
+- Shows various driving scenarios
+- Must identify hazards and click when seen
+- No physical driving component
+
+When Can Take:
+- After holding learner licence for 6 months minimum
+- Can take before 12-month period complete
+- Can pass test multiple times
+- Current pass lasts indefinitely (for next requirement)
+
+Test Format:
+- Online video-based test
+- Multiple scenarios shown
+- Driver identifies hazards by clicking
+- Hazards include: Other vehicles, pedestrians, cyclists, road conditions, etc.
+- Timed test (approximately 1 hour)
+
+Passing Score:
+- Specific pass mark set by TMR
+- Approximately 50% correct typically required
+- Can retake if unsuccessful
+- No pass/fail consequence - just progress blocker
+
+Q-Safe Practical Driving Test:
+
+Purpose:
+- Tests practical driving ability
+- Assesses safe driving skills
+- Checks ability to handle various driving situations
+- Evaluates control and decision-making
+
+What's Tested:
+- Start/stop procedure
+- Lane discipline
+- Intersection navigation
+- Turning procedures
+- Parking (parallel and car park)
+- Following distance
+- Speed management
+- Hazard recognition
+- Safe decision-making
+
+Test Duration:
+- Approximately 45-60 minutes
+- Mix of urban and open road driving
+- Examiner provides directions
+- Examiner assessment of safe driving
+
+Pass Criteria:
+- No major errors (immediately fails)
+- Minimal minor errors
+- Safe vehicle control throughout
+- Appropriate speed and decision-making
+- Hazard awareness demonstrated
+
+Test Cost:
+- Approximately $80-120 (subject to change)
+- Paid at time of booking
+- Can retake if unsuccessful (additional fee)
+
+Preparing for Q-Safe Test:
+- Practice parallel parking extensively
+- Drive in various conditions and traffic situations
+- Practice all intersection types
+- Ensure vehicle in good working order
+- Get supervisor feedback on driving
+- Practice under test-like conditions
+- Know route characteristics before test day
+- Adequate sleep night before test
+
+To Apply for P1 Licence - Age 25 and Over:
+
+Must Have:
+- Held learner licence for minimum 12 months
+- Pass Hazard Perception Test (can take after 6 months holding)
+- Pass Q-Safe practical driving test
+- NO 100-hour logbook requirement
+- Clean traffic history (no major violations)
+- Be at least 17 years old
+
+Note: 25+ year-olds exempt from 100-hour logbook but still
+must hold learner licence for 12 months minimum.
+
+PRACTICAL DRIVING TEST OVERVIEW
+
+Q-Safe Test Breakdown:
+
+Pre-Test Vehicle Checks:
+- Demonstrate knowledge of vehicle safety (tyres, lights, etc.)
+- Show you can adjust mirrors/seats
+- Confirm understanding of vehicle controls
+- Identify basic safety features
+
+Starting and Stopping:
+- Safe start procedure
+- Proper use of brake/accelerator
+- Smooth acceleration
+- Controlled stopping
+- Appropriate parking/stopping procedure
+
+Lane Discipline:
+- Maintaining correct lane
+- Safe lane changes (where necessary)
+- Proper indicating for lane changes
+- Not drifting between lanes
+
+Intersection Navigation:
+- Approaching intersections at appropriate speed
+- Recognizing traffic control (lights, signs, lines)
+- Safe turning from intersections
+- Appropriate giving way
+- Safe pedestrian interaction
+
+Turning Procedures:
+- Proper indicating (50+ metres before)
+- Appropriate speed for turn
+- Safe vehicle control during turn
+- Completing turn into correct lane
+- Left and right turns assessed
+
+Parking Demonstration:
+- Parallel parking (front and rear)
+- Three-point turn or bay parking
+- Safe use of mirrors
+- Appropriate use of brakes
+- Control and precision
+
+Hazard Recognition:
+- Responding to pedestrians
+- Recognizing and avoiding hazards
+- Safe following distance
+- Speed appropriate to hazards
+- Decision-making quality
+
+Examiners Assess:
+- Vehicle control
+- Mirror/head checks
+- Hazard awareness
+- Decision-making
+- Speed selection
+- Safety consciousness
+- Ability to follow instructions
+
+Major Test Failures (Automatic Fail):
+- Colliding with object/vehicle
+- Hitting pedestrian or cyclist
+- Driving on wrong side of road
+- Failing to stop at stop sign/red light
+- Unsafe lane change causing hazard
+- Examiner must take control for safety reasons
+
+Minor Errors (Acceptable - May Show):
+- Slightly imperfect parallel parking (still within lines)
+- Minor hesitation at intersection (if resolved safely)
+- Slight speed variance
+- Unnecessary gear changes
+- Minor mirror check gaps (if safe overall)
+
+Test Day Tips:
+- Arrive early - reduces stress
+- Ensure vehicle in excellent condition
+- Get good sleep night before
+- Eat proper breakfast
+- Avoid heavy meals before test
+- Follow examiner instructions precisely
+- Ask for clarification if unsure
+- Drive to best of ability - not too cautious or reckless
+- Remember examiner wants you to pass (not trying to fail you)
+
+Pass/Fail Results:
+- Given immediately after test
+- Verbal feedback provided
+- Written report if failed (explaining why)
+- Retest available if failed
+- Can book retest immediately
+- Cost for retest (same as initial test)
+- No waiting period between attempts
+
+Common Test Failures:
+- Inadequate mirror checks
+- Unsafe lane changes
+- Failure to give way at roundabout
+- Incomplete parallel parking
+- Hesitation/uncertainty at intersections
+- Speed management issues
+- Poor hazard recognition
+
+Progression After P1 Licence:
+
+P1 Licence Validity: Minimum 12 months
+- Can drive with fewer restrictions than learner
+- Still subject to young driver restrictions
+- Mobile phone: Different rules for P1 under 25
+- Night driving: Restriction for under 25 (between 11pm-5am)
+
+To Progress to P2 Licence:
+- Hold P1 licence for minimum 12 months
+- Clean traffic history during P1 period
+- Reapply for licence upgrade
+- No additional testing required
+- Straight progression if requirements met
+
+To Progress to Open Licence:
+- Hold P2 licence for minimum 24 months
+- Clean traffic history during P2 period
+- Reapply for licence upgrade
+- No additional testing required
+- Full driving privileges once granted
+
+================================================================================
+END OF DOCUMENT
+================================================================================
+
+For most current information, always refer to official Queensland sources:
+
+- Queensland Government Transport and Main Roads: www.tmr.qld.gov.au
+- Your Keys to Driving in Queensland (handbook): publications.qld.gov.au
+- Driver Licensing Information: service.transport.qld.gov.au
+- Queensland Legislation (Road Rules): legislation.qld.gov.au
+- Demerit Points Checker: service.transport.qld.gov.au/checkmydemeritpoints
+
+Contact Information:
+- Transport and Main Roads Customer Service: 13 23 80
+- Website: www.qld.gov.au/transport
+- Emergency: 000
+
+This document contains comprehensive information for use in RAG systems and
+should be used to answer learner driver questions about Queensland laws,
+regulations, and road rules.
+
+Last Updated: February 2, 2026
+Document Version: 1.0
+Size: Approximately 125 KB
+
+Note: This document is intended for informational and RAG purposes. For legal
+advice regarding specific traffic matters, consult a qualified traffic lawyer
+or the official Queensland Government sources. Penalties and fees are subject
+to change - always check official sources for current amounts.
+
+================================================================================
+APPENDIX A: QUICK REFERENCE - TOP 20 COMMON LEARNER Q&A
+================================================================================
+
+Q1: Can I drive at 110 km/h on motorway sections posted at 110?
+A: No. Learner maximum is 100 km/h regardless of posted limit. Plan extra time.
+
+Q2: What happens if I get 4 demerit points?
+A: Automatic 3-month licence suspension. Cannot drive during suspension.
+
+Q3: Can my girlfriend be my supervisor?
+A: Yes, if she holds valid open licence held 12+ months, in front passenger seat.
+
+Q4: Do I need to display L-plates inside the vehicle?
+A: No. L-plates external markers. Failure = 2 demerit points + $230 fine.
+
+Q5: Can I use GPS on my phone?
+A: If phone is secured and route set BEFORE driving. Cannot touch while driving.
+
+Q6: What if I exceed 100 km/h accidentally?
+A: Exceeding limit (even 1 km/h over) = demerit points + fines. Watch speedometer.
+
+Q7: How many hours of night driving do I need?
+A: Minimum 10 hours night driving (sunset to sunrise) out of 100-hour requirement.
+
+Q8: Can a learner supervise another learner?
+A: No. Supervisor must hold valid open licence 12+ months. Fully licensed only.
+
+Q9: What happens if supervisor has 0.06% BAC?
+A: Supervisor can be fined (not learner directly). Supervisor must be under 0.05%.
+
+Q10: Do school zone hours count outside school hours?
+A: Standard speed limit applies outside 8-9:30am and 2:30-4pm school day times.
+
+================================================================================
+APPENDIX B: LEARNER DRIVER MISTAKES TO AVOID
+================================================================================
+
+Top 10 Mistakes:
+1. Exceeding 100 km/h on expressways with higher limits
+2. Not displaying L-plates or displaying incorrectly
+3. Driving in school zones at incorrect speeds
+4. Using mobile phone any way whatsoever
+5. Driving without proper supervisor
+6. Not giving way at roundabouts
+7. Poor mirror checks before lane changes
+8. Inadequate following distances
+9. Not recording logbook hours accurately
+10. Failing to indicate 50+ metres before turning
+
+Each mistake carries consequences ranging from fines and demerit points to
+licence suspension. Learner drivers should prioritize safety over speed and
+familiarize themselves with all Queensland road rules thoroughly before driving.
+
+================================================================================
