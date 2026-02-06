@@ -27,7 +27,7 @@ String log_file_name;
 // the contense is 
     // there are diffrent types of entryes for each sencoer 
 // "gps", {mcs scince start}, {gps speed}, {lon}, {lat}
-// "acell", {mcs scince start},{x},{y},{z},{mcs scince start}
+// "acell", {mcs scince start},{x},{y},{z}
 // the end of the file is 
 // {current_time_epoc_+_1},{end_odo},{wether}
 
