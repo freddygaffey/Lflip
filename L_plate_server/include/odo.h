@@ -6,4 +6,5 @@
 void init_odo();
 unsigned long get_odo();
 void set_odo(unsigned long odo_new);
+void save_odo();
 unsigned long update_ODO_with_speed(float speed_mps);

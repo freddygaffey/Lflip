@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drive in progress</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .banner {
+            background-color: #c8e6c9;
+            padding: 12px 24px;
+            display: inline-block;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .warning {
+            color: red;
+            font-weight: bold;
+            font-size: 20px;
+            text-decoration: underline;
+            margin-bottom: 30px;
+        }
+        .info {
+            font-size: 18px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        #weather {
+            width: 80%;
+            max-width: 400px;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid black;
+            margin-top: 40px;
+        }
+        #stop_btn {
+            display: block;
+            width: 80%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            font-size: 24px;
+            background-color: #f5b7b1;
+            border: 2px solid #c0392b;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner" id="drive_state">Your drive has started</div>
+    <p class="warning">DO NOT LOOK AT YOUR PHONE WHILE YOU ARE DRIVING</p>
+
+    <p class="info">DURATION: <span id="duration">00:00:00</span></p>
+    <p class="info">DISTANCE: <span id="distance">000</span> KM</p>
+    <p class="info">CURRENT ODO: <span id="odo">0</span></p>
+
+    <input id="weather" type="text" placeholder="Please enter the current weather">
+    <button id="stop_btn">Stop</button>
+    <button id="cancel">Cancel</button>
+
+    <script>
+        let startTime = null;
+        let startOdo = null;
+
+        function updateDuration() {
+            if (!startTime) return;
+            let diff = Math.floor(last_log_time / 1000) - startTime;
+            document.getElementById("duration").textContent = new Date(diff * 1000).toISOString().substr(11, 8);
+        }
+
+        function fetchInfo() {
+            fetch("/api/state")
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("drive_state").textContent = "State: " + data.state;
+                    if (data.state === "logging") {
+                        if (data.start_time){ 
+                            let last_log_time = Date.now();
+                            startTime = data.start_time;
+                        }
+                        if (data.start_odo !== undefined) startOdo = data.start_odo;
+                    }
+                    
+                    let odoKm = (data.current_odo / 1000).toFixed(1);
+                    document.getElementById("odo").textContent = odoKm;
+                    if (startOdo !== null) {
+                        let distKm = ((data.current_odo - startOdo) / 1000).toFixed(1);
+                        document.getElementById("distance").textContent = distKm;
+                    }
+                })
+                .catch(err => console.error("fetch /api/state failed:", err));
+        }
+
+        setInterval(updateDuration, 1000);
+        setInterval(fetchInfo, 5000);
+        fetchInfo();
+
+        document.getElementById("stop_btn").addEventListener("click", () => {
+            let w = document.getElementById("weather").value;
+            let url = "/api/stop" + (w ? "?weather=" + encodeURIComponent(w) : "");
+            fetch(url, { method: "POST" })
+                .then(() => fetchInfo());
+            alert("the drive has secefully stoped");
+            window.location.href = "/";
+        });
+
+        document.getElementById("cancel").addEventListener("click", () => {
+            fetch("/api/stop/cancel",{method:"POST"})
+                .then(res => {
+                    if (res.ok) {
+                        alert("cancel a secess");
+                        window.location.href = "/"
+                    }
+                    else {
+                        alert("cancel a fail (you should give up on life)");
+                    }
+                })
+        })
+    </script>
+</body>
+</html>

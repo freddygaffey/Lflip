@@ -58,7 +58,7 @@ File make_log_file(float odo_m, String sd_name)
 
 File _get_log_file();
 
-void end_trip(long end_odo,String weather){
+void end_trip(unsigned long end_odo,String weather){
     String str_to_w;
     str_to_w += String(time(nullptr))+","+
                 String(end_odo)+","+
@@ -121,6 +121,15 @@ void log_gps(GpsCords gps_cord, float gps_speed_ms) {
         
     buffer += line; 
     _check_buff_and_write_to_file();
+}
+
+void delete_current_log() {
+    if (log_file_name.length() == 0) return;
+    String path = "/trips/" + log_file_name;
+    SD.remove(path);
+    buffer = "";
+    log_file_name = "";
+    Serial.println("Deleted incomplete log: " + path);
 }
 
 void _check_buff_and_write_to_file(){

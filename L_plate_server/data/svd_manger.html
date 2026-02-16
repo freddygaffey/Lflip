@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>svd manager</h1>
+    <select id="sdv_list">
+        <option value="">Please select a SD</option>
+    </select>
+    <h2>this will be a drop down menu</h2>  
+    <p>the full name and licence number are not saved but we make a finger print of it so that on the website a parant can aprove a drive</p>
+    <input id="full_name" placeholder="full name on licence">
+    <input id="nick_name" placeholder="nick name">
+    <input id="licence_no" placeholder="licence no">
+    <button id="add_svd">Add Driver</button>
+    <button onclick="window.location.href = '/'">back to logger</button>
+    <script>
+        async function updateSDV() {
+            fetch("/api/svd/get", {method: "POST"})
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById("sdv_list");
+                    list.length = 1;
+                    ((data && data.SVD) || []).forEach(svd => {
+                        const opt = document.createElement("option");
+                        opt.textContent = svd.nick_name;
+                        opt.value = svd.hash_id;
+                        list.append(opt);                    
+                    });
+                })
+        }
+        document.getElementById("add_svd").addEventListener("click",async function () {
+            let full_name = document.getElementById("full_name").value;
+            let nick_name = document.getElementById("nick_name").value;
+            let licence_no = document.getElementById("licence_no").value;
+            let response = await fetch("/api/svd/add?full_name="+full_name+"&nick_name="+nick_name+"&licence_no="+licence_no, {method: "POST"});
+            if (response.ok) {
+                alert("Driver added")
+                document.getElementById("full_name").value = "";
+                document.getElementById("nick_name").value = "";
+                document.getElementById("licence_no").value = "";
+            }
+            else alert("failed to add driver")
+        })
+        document.getElementById("sdv_list").addEventListener("change", function () {
+            let hash_id = this.value;
+            fetch("/api/svd/set?hash_id="+hash_id, {method: "POST"})
+        })
+        updateSDV();
+    </script>
+</body>
+</html>

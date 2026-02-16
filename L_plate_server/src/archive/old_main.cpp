@@ -1,3 +1,4 @@
+/*
 #include <Arduino.h>
 #include <WiFi.h>
 #include <vector>
@@ -74,7 +75,7 @@ void loop() {
         Serial.println("start time");
         Serial.println(SD_ID);
 
-        start_loging(start_time.toDouble(),SD_ID);
+        start_logging(start_time.toDouble(),SD_ID);
         client.println("HTTP/1.1 200 OK");
         client.println("Content-Type: text/plain");
         client.println();
@@ -180,3 +181,4 @@ void print_file(const char * path){
     }
     file.close();
 }
+*/
