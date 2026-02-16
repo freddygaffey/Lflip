@@ -133,21 +133,84 @@ void setup() {
     }
   });
   server.on("/api/odo/set",HTTP_POST, [](AsyncWebServerRequest *request){
-    if (request->hasParam("odo")) {
-      unsigned long input_m = request->getParam("odo")->value().toInt();
-      unsigned long current = get_odo();
-      unsigned long new_odo = (current / 1000000) * 1000000 + input_m;
-      if (new_odo > current + 500000 && new_odo >= 1000000) {
-        new_odo -= 1000000;
-      } else if (new_odo + 500000 < current) {
-        new_odo += 1000000;
-      }
-      set_odo(new_odo);
-      save_odo();
-      request->send(200, "application/json", "{\"success\":true}");
-    } else {
-      request->send(400, "application/json", "{\"success\":false}");
+    if (!request->hasParam("odo")) {
+      request->send(400, "application/json", "{\"success\":false,\"error\":\"missing odo parameter\"}");
+      return;
     }
+
+    String input_str = request->getParam("odo")->value();
+
+    // VALIDATION: Input must be numeric
+    bool is_numeric = true;
+    for (unsigned int i = 0; i < input_str.length(); i++) {
+      if (!isDigit(input_str.charAt(i))) {
+        is_numeric = false;
+        break;
+      }
+    }
+
+    if (!is_numeric) {
+      request->send(400, "application/json", "{\"success\":false,\"error\":\"odo must be numeric\"}");
+      return;
+    }
+
+    long input_m = input_str.toInt();
+
+    // VALIDATION: Input must be in range [0, 999000] meters (0-999 km)
+    // Frontend multiplies user's km input by 1000, so we receive meters
+    if (input_m < 0 || input_m > 999000) {
+      request->send(400, "application/json", "{\"success\":false,\"error\":\"odo must be 0-999 km\"}");
+      return;
+    }
+
+    unsigned long current = get_odo();
+
+    // OVERFLOW PROTECTION: Warn if approaching 32-bit limit
+    // Max unsigned long: 4,294,967,295 meters (4,294,967 km)
+    // Warn at 4,200,000 km (4.2 million km)
+    if (current > 4200000000UL) {
+      Serial.println("WARNING: ODO approaching 32-bit overflow limit!");
+      request->send(400, "application/json", "{\"success\":false,\"error\":\"odo overflow risk\"}");
+      return;
+    }
+
+    // ROLLOVER LOGIC:
+    // Determine which million-meter cycle the input belongs to
+    // Strategy: Start with current cycle, adjust ±1 cycle if needed
+
+    unsigned long current_cycle = current / 1000000;  // Which million we're in
+    unsigned long candidate_odo = current_cycle * 1000000 + (unsigned long)input_m;
+
+    // Check if candidate is too far from current (>500km difference suggests wrong cycle)
+    const unsigned long THRESHOLD = 500000;  // 500 km
+
+    if (candidate_odo > current + THRESHOLD) {
+      // Candidate is too far ahead - user probably hasn't reached it yet
+      // Move back one cycle (unless we're in cycle 0)
+      if (current_cycle > 0) {
+        candidate_odo -= 1000000;
+      }
+    } else if (candidate_odo + THRESHOLD < current) {
+      // Candidate is too far behind - user has probably rolled past
+      // Move forward one cycle
+      candidate_odo += 1000000;
+    }
+
+    // Final sanity check: prevent overflow
+    if (candidate_odo > 4294000000UL) {
+      request->send(400, "application/json", "{\"success\":false,\"error\":\"calculated odo too high\"}");
+      return;
+    }
+
+    set_odo(candidate_odo);
+    save_odo();
+
+    String response = "{\"success\":true,\"new_odo_m\":" + String(candidate_odo) +
+                      ",\"new_odo_km\":" + String(candidate_odo / 1000) + "}";
+    request->send(200, "application/json", response);
+
+    Serial.println("ODO updated: " + String(candidate_odo) + " meters (" +
+                   String(candidate_odo / 1000) + " km)");
   });
   server.on("/api/stop/cancel",HTTP_POST, [](AsyncWebServerRequest *request){
     if (current_state == LOGGING) {

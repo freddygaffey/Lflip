@@ -8,7 +8,7 @@ enum State {
 extern State current_state;
 extern time_t drive_start_time;
 extern unsigned long drive_start_odo;
-extern long odo;
+extern unsigned long odo;
 
 void start_logging(String SD_ID);
 void stop_logging(String weather);

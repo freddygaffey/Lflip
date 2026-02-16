@@ -24,7 +24,6 @@ Preferences prefs;
 unsigned long odo; // meters
 unsigned long time_last_saved_write = 0;
 unsigned long time_last_updated_speed = millis();
-unsigned long speed_at_time_last_updated = 0;
 unsigned long write_rate = 100000; // ms TODO: make this bigger 
 
 void init_odo() {

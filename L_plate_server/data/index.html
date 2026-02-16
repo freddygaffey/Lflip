@@ -121,7 +121,7 @@
 <body>
     <a id="back_btn" href="/">Back to dashboard</a>
     <div class="odo_section">
-        <input id="last_3d_odo" placeholder="Enter last 3 digits of the ODO">
+        <input id="last_3d_odo" placeholder="Enter last 3 digits (0-999 km)" type="number" min="0" max="999">
         <button id="odo_submit">Send</button>
     </div>
     <div class="svd_section">
@@ -175,12 +175,37 @@
 
         document.getElementById("odo_submit").addEventListener("click", () => {
             let val = document.getElementById("last_3d_odo").value;
-            if (!val) return;
-            let meters = parseInt(val) * 1000;
+            if (!val) {
+                alert("Please enter ODO value");
+                return;
+            }
+
+            // Validate: must be numeric
+            if (!/^\d+$/.test(val)) {
+                alert("ODO must be a number");
+                return;
+            }
+
+            let km = parseInt(val);
+
+            // Validate: must be 0-999
+            if (km < 0 || km > 999) {
+                alert("ODO must be between 0 and 999 km");
+                return;
+            }
+
+            let meters = km * 1000;
             fetch("/api/odo/set?odo=" + meters, {method: "POST"})
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) alert("ODO updated");
+                    if (data.success) {
+                        alert("ODO updated to " + data.new_odo_km + " km");
+                    } else {
+                        alert("Error: " + (data.error || "unknown error"));
+                    }
+                })
+                .catch(err => {
+                    alert("Network error: " + err);
                 });
         });
 
