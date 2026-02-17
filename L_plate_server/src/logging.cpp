@@ -65,8 +65,12 @@ void callback() {
 }
 
 void update_odo() {
-    update_ODO_with_speed(get_speed_mps());
-    Serial.println(String(get_odo()));
+    static unsigned long last_odo_update = 0;
+    if (millis() - last_odo_update < (unsigned long)logging_rates.gps) return;
+    last_odo_update = millis();
+
+    update_ODO_with_position(get_poss(), get_speed_mps());
+    Serial.println("ODO: " + String(get_odo()) + "m");
 }
 
 void stop_logging(String weather="NA") {

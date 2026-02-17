@@ -18,8 +18,13 @@ float get_speed_mps() {
 
 GpsCords get_poss() {
     // TODO: actually implement when get hardware
-    // Move position based on mock speed
-    mock_lat += (random(-10, 10) / 100000.0);
-    mock_lon += (random(-10, 10) / 100000.0);
-    return GpsCords(mock_lat, mock_lon);
+    // Move position proportional to mock_speed (more realistic than pure random)
+    double meters_per_degree = 111000.0;
+    double step = mock_speed / meters_per_degree / 10.0; // ~10ms loop step
+    mock_lat += step;
+    mock_lon += step;
+    GpsCords c(mock_lat, mock_lon);
+    c.hdop = 1.2;   // mock a good fix
+    c.valid = true;
+    return c;
 }

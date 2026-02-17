@@ -1,10 +1,12 @@
 #pragma once
 #include <cmath>
 
-struct GpsCords 
+struct GpsCords
 {
-    double lat = 0.0; // latitude in degrees
-    double lon = 0.0; // longitude in degrees
+    double lat = 0.0;    // latitude in degrees
+    double lon = 0.0;    // longitude in degrees
+    float hdop = 99.9;   // horizontal dilution of precision; 99.9 = no fix
+    bool valid = false;  // true only when GPS has a valid fix
 
     GpsCords() {}
 
