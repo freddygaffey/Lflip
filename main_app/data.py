@@ -2,6 +2,12 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+class SD(db.Modle):
+    __tablename__ = 'sd'
+
+    id = 
+    
+    
 class Learner(db.Model):
     __tablename__ = 'learners'
 

@@ -6,9 +6,16 @@
     <title>{% block title %}My Application{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#a29bfe">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+<script>
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/sw.js");
+    }
+</script>
     <div class="sidebar">
         <h2>Menu</h2>
         <ul>
