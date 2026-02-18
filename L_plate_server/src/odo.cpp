@@ -42,7 +42,10 @@ void set_odo(unsigned long odo_new) {
     }
 }
 
+
 unsigned long update_ODO_with_position(GpsCords current_pos, float speed_mps) {
+    // this is the most import line it will reduse noise as it has a low read rate
+
     // FILTER 1: speed threshold — discard GPS noise when stationary
     if (speed_mps < SPEED_THRESHOLD_MPS) {
         // Keep last_position current so there's no jump when we start moving

@@ -26,5 +26,6 @@ GpsCords get_poss() {
     GpsCords c(mock_lat, mock_lon);
     c.hdop = 1.2;   // mock a good fix
     c.valid = true;
+    c.speed = 1.2;
     return c;
 }

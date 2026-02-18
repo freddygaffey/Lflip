@@ -44,9 +44,29 @@ bool sync_data() {
     return false;
 }
 
+struct Hit_rate
+{
+    int last_updated = 0;
+    int delay_ms;
+    Hit_rate(int rate){
+        delay_ms = rate;
+    }
+    bool update() {
+        if (last_updated - millis() > delay_ms) {
+            last_updated = millis();
+            return true;
+        }
+        else return false;
+    }
+};
+
+Hit_rate odo_rate = Hit_rate(1000000);
+Hit_rate sync_rate = Hit_rate(10000000);
+
 void callback() { 
-    update_odo();
-    sync_data();
+    if (odo_rate.update()) return update_odo();
+    if (sync_rate.update()) sync_data();
+
     if (current_state == LOGGING) {
         if (millis() - logging_rates.gps  >= time_of_last_gps_log) {
             time_of_last_gps_log = millis();
@@ -70,7 +90,7 @@ void update_odo() {
     last_odo_update = millis();
 
     update_ODO_with_position(get_poss(), get_speed_mps());
-    Serial.println("ODO: " + String(get_odo()) + "m");
+    Serial.println("ODO: " + String(get_odo()) + " m");
 }
 
 void stop_logging(String weather="NA") {

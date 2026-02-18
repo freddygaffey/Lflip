@@ -7,6 +7,7 @@ struct GpsCords
     double lon = 0.0;    // longitude in degrees
     float hdop = 99.9;   // horizontal dilution of precision; 99.9 = no fix
     bool valid = false;  // true only when GPS has a valid fix
+    int speed = 0;
 
     GpsCords() {}
 
