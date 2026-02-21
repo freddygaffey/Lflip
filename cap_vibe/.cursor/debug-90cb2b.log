@@ -78,3 +78,5 @@
 {"sessionId":"90cb2b","location":"CarManagement.jsx:loadOdoFromEsp","message":"getCurrentOdometer returned","data":{"odo":43500,"connectedCarId":"84c7f0fd-ac3e-4cd0-8466-30bb4bf77856","willUpdate":true},"hypothesisId":"C,D","timestamp":1771644049398}
 {"sessionId":"90cb2b","location":"StopTrip.jsx:handleStop","message":"handleStop called","data":{"odoLast3":"500","fullOdo":43500,"startOdo":43500,"endOdo":43500,"willEarlyReturn":true},"hypothesisId":"B,C","timestamp":1771644979871}
 {"sessionId":"90cb2b","location":"tripManager.js:stopTrip","message":"stopTrip called","data":{"endOdometer":43500,"weather":"sunny","startOdometer":43500},"hypothesisId":"C","timestamp":1771644979872}
+{"sessionId":"90cb2b","location":"StopTrip.jsx:handleStop","message":"handleStop called","data":{"odoLast3":"500","fullOdo":43500,"startOdo":43500,"endOdo":43500,"willEarlyReturn":true},"hypothesisId":"B,C","timestamp":1771648401403}
+{"sessionId":"90cb2b","location":"tripManager.js:stopTrip","message":"stopTrip called","data":{"endOdometer":43500,"weather":"rain","startOdometer":43500},"hypothesisId":"C","timestamp":1771648401405}

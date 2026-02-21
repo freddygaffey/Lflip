@@ -28,6 +28,20 @@ export function formatDate(ts) {
   });
 }
 
+/** If within 10 days: "2 days ago". Otherwise: full date format. */
+export function formatDateOrDaysAgo(ts, withinDays = 10) {
+  const d = new Date(ts);
+  const now = new Date();
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const daysAgo = Math.floor((now - d) / msPerDay);
+  if (daysAgo >= 0 && daysAgo <= withinDays) {
+    if (daysAgo === 0) return 'Today';
+    if (daysAgo === 1) return '1 day ago';
+    return `${daysAgo} days ago`;
+  }
+  return formatDate(ts);
+}
+
 export function formatTime(ts) {
   return new Date(ts).toLocaleTimeString('en-AU', {
     hour: '2-digit',

@@ -1,15 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConnectionBadge } from '../components/ConnectionBadge.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useBle } from '../context/BleContext.jsx';
 import { useTripContext } from '../context/TripContext.jsx';
 import { useCars } from '../hooks/useCars.js';
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { status: bleStatus } = useBle();
   const { activeTrip } = useTripContext();
   const { cars, loading } = useCars();
+  const isParent = user?.role === 'parent';
 
   return (
     <div className="page-content px-4 py-6 flex flex-col min-h-0">
@@ -33,6 +36,14 @@ export function Dashboard() {
       )}
 
       <div className="flex-1 flex flex-col gap-4">
+        {isParent && (
+          <button
+            onClick={() => navigate('/approvals')}
+            className="w-full py-4 rounded-2xl text-white font-medium text-lg bg-green-600 hover:bg-green-500 active:bg-green-700 border border-green-500/50 transition-all duration-150 select-none"
+          >
+            ✓ Approve trips
+          </button>
+        )}
         {/* BRB: Big Red Button philosophy — large, bold, high-contrast */}
         {!activeTrip && (
           <>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { BleProvider } from './context/BleContext.jsx';
@@ -17,7 +17,64 @@ import { Supervisors } from './pages/Supervisors.jsx';
 import { CarManagement } from './pages/CarManagement.jsx';
 import { Settings } from './pages/Settings.jsx';
 import { ManualLogTrip } from './pages/ManualLogTrip.jsx';
+import { ParentApprovals } from './pages/ParentApprovals.jsx';
+import { Login } from './pages/Login.jsx';
 import { AutoSync } from './components/AutoSync.jsx';
+import { useAuth } from './context/AuthContext.jsx';
+
+function AppRoutes() {
+  const { user, restoring } = useAuth();
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+
+  if (restoring) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="text-slate-600 dark:text-slate-400">Loading…</div>
+      </div>
+    );
+  }
+
+  if (!user && !isLoginPage) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user && isLoginPage) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (isLoginPage) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <>
+      <AutoSync />
+      <div className="app-shell">
+        <div className="page-content">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/start" element={<StartTrip />} />
+            <Route path="/active" element={<ActiveTrip />} />
+            <Route path="/stop" element={<StopTrip />} />
+            <Route path="/history" element={<TripHistory />} />
+            <Route path="/trips/:id" element={<TripDetail />} />
+            <Route path="/supervisors" element={<Supervisors />} />
+            <Route path="/car" element={<CarManagement />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/manual-log" element={<ManualLogTrip />} />
+            <Route path="/approvals" element={<ParentApprovals />} />
+          </Routes>
+        </div>
+        <TabBar />
+      </div>
+    </>
+  );
+}
 
 export default function App() {
   return (
@@ -28,24 +85,7 @@ export default function App() {
             <CarsProvider>
             <SupervisorsProvider>
             <TripProvider>
-              <AutoSync />
-              <div className="app-shell">
-                <div className="page-content">
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/start" element={<StartTrip />} />
-                    <Route path="/active" element={<ActiveTrip />} />
-                    <Route path="/stop" element={<StopTrip />} />
-                    <Route path="/history" element={<TripHistory />} />
-                    <Route path="/trips/:id" element={<TripDetail />} />
-                    <Route path="/supervisors" element={<Supervisors />} />
-                    <Route path="/car" element={<CarManagement />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="/manual-log" element={<ManualLogTrip />} />
-                  </Routes>
-                </div>
-                <TabBar />
-              </div>
+              <AppRoutes />
             </TripProvider>
             </SupervisorsProvider>
             </CarsProvider>

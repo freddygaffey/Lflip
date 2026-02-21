@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SupervisorPicker } from '../components/SupervisorPicker.jsx';
+import { LearnerPicker } from '../components/LearnerPicker.jsx';
 import { ConnectionBadge } from '../components/ConnectionBadge.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useTripContext } from '../context/TripContext.jsx';
 import { useBle } from '../context/BleContext.jsx';
 import { useCars } from '../hooks/useCars.js';
@@ -10,9 +12,11 @@ import { bleService } from '../services/ble/index.js';
 export function StartTrip() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const { startTrip } = useTripContext();
   const { status: bleStatus } = useBle();
   const { cars, updateCar } = useCars();
+  const isParent = user?.role === 'parent';
 
   const guestCar = location.state?.guestCar === true;
   const selectedCar = location.state?.carId
@@ -24,6 +28,8 @@ export function StartTrip() {
   const [step, setStep] = useState('supervisor');
   const [supervisorId, setSupervisorId] = useState(null);
   const [supervisorName, setSupervisorName] = useState('');
+  const [learnerId, setLearnerId] = useState(null);
+  const [learnerName, setLearnerName] = useState('');
   const [odoLast3, setOdoLast3] = useState('');
   const [odoManual, setOdoManual] = useState('');
   const [odoFromEsp, setOdoFromEsp] = useState(null);
@@ -35,13 +41,16 @@ export function StartTrip() {
     ? cars.find((c) => c.id === selectedCar.id) ?? cars[0]
     : cars[0]);
 
-  // Pre-fill supervisor from car's default SD when available (not for guest car)
+  // Parent: auto-set supervisor to self. Learner: pre-fill from car's default SD
   useEffect(() => {
-    if (carForOdo?.defaultSupervisorId && !supervisorId) {
+    if (isParent && user) {
+      setSupervisorId(user.userId);
+      setSupervisorName(user.name);
+    } else if (carForOdo?.defaultSupervisorId && !supervisorId) {
       setSupervisorId(carForOdo.defaultSupervisorId);
       setSupervisorName(carForOdo.defaultSupervisorName ?? '');
     }
-  }, [carForOdo?.id, carForOdo?.defaultSupervisorId, carForOdo?.defaultSupervisorName]);
+  }, [isParent, user?.userId, user?.name, carForOdo?.id, carForOdo?.defaultSupervisorId, carForOdo?.defaultSupervisorName]);
 
   const lastOdo = odoFromEsp ?? carForOdo?.lastOdometer ?? 43200;
   const odoBase = Math.floor(lastOdo / 1000) * 1000;
@@ -70,13 +79,18 @@ export function StartTrip() {
   };
 
   const handleStart = async () => {
-    if (!supervisorId || !supervisorName || fullOdo < 1) return;
+    const sdOk = supervisorId && supervisorName;
+    const learnerOk = isParent ? (learnerId && learnerName) : true;
+    if (!sdOk || !learnerOk || fullOdo < 1) return;
     setStarting(true);
     setError(null);
     try {
       await startTrip({
         supervisorId,
         supervisorName,
+        learnerId: learnerId || undefined,
+        learnerName: learnerName || undefined,
+        autoApprove: isParent,
         weather: 'sunny',
         startOdometer: Math.round(fullOdo),
       });
@@ -88,7 +102,9 @@ export function StartTrip() {
   };
 
   const handleNextFromSupervisor = async () => {
-    if (!supervisorId || !supervisorName) return;
+    const sdOk = supervisorId && supervisorName;
+    const learnerOk = isParent ? (learnerId && learnerName) : true;
+    if (!sdOk || !learnerOk) return;
     setError(null);
     if (bleStatus === 'connected' && bleService.getCurrentOdometer) {
       setStarting(true);
@@ -104,6 +120,9 @@ export function StartTrip() {
           await startTrip({
             supervisorId,
             supervisorName,
+            learnerId: learnerId || undefined,
+            learnerName: learnerName || undefined,
+            autoApprove: isParent,
             weather: 'sunny',
             startOdometer: Math.round(odo),
           });
@@ -145,18 +164,37 @@ export function StartTrip() {
               Car: <span className="text-white font-medium">{selectedCar.name}</span>
             </div>
           )}
-          <h2 className="text-white font-semibold text-lg mb-1">Who is supervising?</h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm">Must hold a full unrestricted Australian licence.</p>
-          <SupervisorPicker
-            value={supervisorId}
-            onChange={(id, name) => {
-              setSupervisorId(id);
-              setSupervisorName(name);
-            }}
-          />
-          <button onClick={() => navigate('/supervisors')} className="btn-ghost w-full text-sm">
-            + Add new supervisor
-          </button>
+          {isParent ? (
+            <>
+              <h2 className="text-white font-semibold text-lg mb-1">Which learner?</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">Select the learner you're supervising for this trip.</p>
+              <LearnerPicker
+                value={learnerId}
+                onChange={(id, name) => {
+                  setLearnerId(id);
+                  setLearnerName(name);
+                }}
+              />
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-xl px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
+                Supervisor: <span className="font-medium text-slate-800 dark:text-slate-200">{user?.name}</span> (you)
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-white font-semibold text-lg mb-1">Who is supervising?</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">Must hold a full unrestricted Australian licence.</p>
+              <SupervisorPicker
+                value={supervisorId}
+                onChange={(id, name) => {
+                  setSupervisorId(id);
+                  setSupervisorName(name);
+                }}
+              />
+              <button onClick={() => navigate('/supervisors')} className="btn-ghost w-full text-sm">
+                + Add new supervisor
+              </button>
+            </>
+          )}
           {error && (
             <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-400 text-sm">
               {error}
@@ -164,7 +202,7 @@ export function StartTrip() {
           )}
           <button
             onClick={handleNextFromSupervisor}
-            disabled={!supervisorId || starting}
+            disabled={(isParent ? !learnerId : !supervisorId) || starting}
             className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {starting ? 'Getting ODO…' : 'Next →'}

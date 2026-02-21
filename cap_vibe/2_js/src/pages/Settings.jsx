@@ -1,10 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export function Settings() {
   const navigate = useNavigate();
   const { isDark, setIsDark } = useTheme();
+  const { user, logout } = useAuth();
 
   return (
     <div className="page-content px-4 py-6 space-y-5">
@@ -30,8 +32,16 @@ export function Settings() {
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 space-y-3 shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent">
-        <div className="text-slate-700 dark:text-slate-300 font-semibold">Profile</div>
-        <div className="text-slate-600 dark:text-slate-400 text-sm">Learner name, licence number (coming soon)</div>
+        <div className="text-slate-700 dark:text-slate-300 font-semibold">Account</div>
+        {user && (
+          <div className="text-slate-600 dark:text-slate-400 text-sm">Signed in as {user.name}</div>
+        )}
+        <button
+          onClick={async () => { await logout(); navigate('/login'); }}
+          className="w-full py-2.5 rounded-xl font-medium bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 active:bg-red-500/40 border border-red-500/50 transition-colors"
+        >
+          Log out
+        </button>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 space-y-3 shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent">

@@ -71,11 +71,11 @@ export function createSeedSupervisors() {
 
 export function createSeedTrips() {
   const seeds = [
-    { durationMs: 15 * 60 * 1000, daysAgo: 1, hourOfDay: 9, supervisorId: 'sup-001', supervisorName: 'Mum', weather: 'sunny', startOdometer: 43200 },
-    { durationMs: 30 * 60 * 1000, daysAgo: 3, hourOfDay: 14, supervisorId: 'sup-002', supervisorName: 'Dad', weather: 'overcast', startOdometer: 43250 },
-    { durationMs: 60 * 60 * 1000, daysAgo: 5, hourOfDay: 19, supervisorId: 'sup-001', supervisorName: 'Mum', weather: 'night', startOdometer: 43310 },
-    { durationMs: 45 * 60 * 1000, daysAgo: 8, hourOfDay: 10, supervisorId: 'sup-002', supervisorName: 'Dad', weather: 'rain', startOdometer: 43395 },
-    { durationMs: 20 * 60 * 1000, daysAgo: 10, hourOfDay: 20, supervisorId: 'sup-001', supervisorName: 'Mum', weather: 'night', startOdometer: 43450 },
+    { durationMs: 15 * 60 * 1000, daysAgo: 1, hourOfDay: 9, supervisorId: 'sup-001', supervisorName: 'Mum', learnerId: 'learner-001', learnerName: 'Alex', weather: 'sunny', startOdometer: 43200, carName: "Mum's car" },
+    { durationMs: 30 * 60 * 1000, daysAgo: 3, hourOfDay: 14, supervisorId: 'sup-002', supervisorName: 'Dad', learnerId: 'learner-001', learnerName: 'Alex', weather: 'overcast', startOdometer: 43250, carName: "Dad's ute" },
+    { durationMs: 60 * 60 * 1000, daysAgo: 5, hourOfDay: 19, supervisorId: 'sup-001', supervisorName: 'Mum', learnerId: 'learner-001', learnerName: 'Alex', weather: 'night', startOdometer: 43310, carName: "Mum's car" },
+    { durationMs: 45 * 60 * 1000, daysAgo: 8, hourOfDay: 10, supervisorId: 'sup-002', supervisorName: 'Dad', learnerId: 'learner-002', learnerName: 'Jordan', weather: 'rain', startOdometer: 43395, carName: "Dad's ute" },
+    { durationMs: 20 * 60 * 1000, daysAgo: 10, hourOfDay: 20, supervisorId: 'sup-001', supervisorName: 'Mum', learnerId: 'learner-002', learnerName: 'Jordan', weather: 'night', startOdometer: 43450, carName: "Mum's car" },
   ];
 
   return seeds.map((seed, idx) => {
@@ -98,6 +98,9 @@ export function createSeedTrips() {
       id: tripId,
       supervisorId: seed.supervisorId,
       supervisorName: seed.supervisorName,
+      learnerId: seed.learnerId,
+      learnerName: seed.learnerName,
+      carName: seed.carName,
       startTime,
       endTime,
       startOdometer: seed.startOdometer,

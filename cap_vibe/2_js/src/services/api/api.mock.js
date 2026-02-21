@@ -16,6 +16,8 @@ const KEYS = {
   cars: 'mock_cars',
   seeded: 'mock_seeded',
   authToken: 'mock_auth_token',
+  currentUser: 'mock_current_user',
+  userProfiles: 'mock_user_profiles',
 };
 
 async function loadJson(key) {
@@ -79,6 +81,19 @@ export class MockApiService {
       this.trips = (await loadJson(KEYS.trips)) ?? [];
       this.supervisors = (await loadJson(KEYS.supervisors)) ?? [];
       this.cars = (await loadJson(KEYS.cars)) ?? [];
+      // Migration: assign learnerId to existing trips that lack it (for parent multi-kid progress)
+      const LEARNERS = [
+        { id: 'learner-001', name: 'Alex' },
+        { id: 'learner-002', name: 'Jordan' },
+      ];
+      let needsSave = false;
+      this.trips = this.trips.map((t, idx) => {
+        if (t.learnerId) return t;
+        needsSave = true;
+        const l = LEARNERS[idx % LEARNERS.length];
+        return { ...t, learnerId: l.id, learnerName: l.name };
+      });
+      if (needsSave) await saveTrips(this.trips);
     }
     this.authToken = (await loadJson(KEYS.authToken)) ?? null;
   }
@@ -89,19 +104,51 @@ export class MockApiService {
     maybeNetworkError();
     const token = `mock-jwt-${uuidv4()}`;
     this.authToken = token;
+    let name = email.split('@')[0].replace(/[._]/g, ' ');
+    if (email.toLowerCase() === 'parent@demo.com') name = 'Mum';
+    const role = email.toLowerCase().includes('parent') ? 'parent' : 'learner';
+    const userId = 'mock-user-001';
+    const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
+    const profile = profiles[userId];
+    const user = { userId, name: profile?.name ?? name, role, licenceNumber: profile?.licenceNumber ?? null };
     await saveJson(KEYS.authToken, token);
-    const name = email.split('@')[0].replace(/[._]/g, ' ');
-    return { token, userId: 'mock-user-001', name };
+    await saveJson(KEYS.currentUser, user);
+    return { token, ...user };
   }
 
-  async register(_email, _password, name) {
+  async register(email, _password, name, licenceNumber, role) {
     await this._init();
     await randomDelay();
     maybeNetworkError();
     const token = `mock-jwt-${uuidv4()}`;
     this.authToken = token;
+    if (!name) name = email.split('@')[0].replace(/[._]/g, ' ');
+    const userRole = role === 'parent' || role === 'learner' ? role : 'learner';
+    const userId = `mock-user-${uuidv4().slice(0, 8)}`;
+    const user = { userId, name, role: userRole, licenceNumber: licenceNumber?.trim() || null };
+    const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
+    profiles[userId] = { ...profiles[userId], name, licenceNumber: user.licenceNumber };
+    await saveJson(KEYS.userProfiles, profiles);
     await saveJson(KEYS.authToken, token);
-    return { token, userId: 'mock-user-001', name };
+    await saveJson(KEYS.currentUser, user);
+    return { token, ...user };
+  }
+
+  async getCurrentUser() {
+    await this._init();
+    const token = await loadJson(KEYS.authToken);
+    if (!token) return null;
+    let user = await loadJson(KEYS.currentUser);
+    if (!user) return { userId: 'mock-user-001', name: 'User', role: 'learner', licenceNumber: null };
+    const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
+    const profile = profiles[user.userId];
+    return { ...user, licenceNumber: profile?.licenceNumber ?? user.licenceNumber ?? null };
+  }
+
+  async logout() {
+    await Preferences.remove({ key: KEYS.authToken });
+    await Preferences.remove({ key: KEYS.currentUser });
+    this.authToken = null;
   }
 
   async syncTrip(trip) {
@@ -165,6 +212,18 @@ export class MockApiService {
     };
     await saveTrips(this.trips);
     return { success: true };
+  }
+
+  async getLinkedLearners() {
+    await this._init();
+    const user = await this.getCurrentUser();
+    if (!user || user.role !== 'parent') return [];
+    await randomDelay();
+    maybeNetworkError();
+    return [
+      { id: 'learner-001', name: 'Alex' },
+      { id: 'learner-002', name: 'Jordan' },
+    ];
   }
 
   async getSupervisors() {

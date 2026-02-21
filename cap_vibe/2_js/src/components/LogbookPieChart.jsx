@@ -52,36 +52,66 @@ function ProgressRing({ value, target, color, label }) {
   );
 }
 
-export function LogbookPieChart({ summary }) {
+function computeSummaryFromTrips(trips) {
+  const completed = trips.filter((t) => t.status === 'complete');
+  const totalMinutes = completed.reduce((acc, t) => acc + (t.dayMinutes ?? 0) + (t.nightMinutes ?? 0), 0);
+  const dayMinutes = completed.reduce((acc, t) => acc + (t.dayMinutes ?? 0), 0);
+  const nightMinutes = completed.reduce((acc, t) => acc + (t.nightMinutes ?? 0), 0);
+  return {
+    totalHours: totalMinutes / 60,
+    dayHours: dayMinutes / 60,
+    nightHours: nightMinutes / 60,
+    targetHours: DEFAULT_TARGET_HOURS,
+    nightTargetHours: NIGHT_HOURS_REQUIRED,
+  };
+}
+
+export function LogbookPieChart({ summary, learners = [], trips = [] }) {
+  const targetTotal = summary?.targetHours ?? DEFAULT_TARGET_HOURS;
+  const targetNight = summary?.nightTargetHours ?? NIGHT_HOURS_REQUIRED;
+  const targetDay = targetTotal - targetNight;
+
+  // Multi-kid: one row per learner
+  if (learners.length > 0 && trips.length >= 0) {
+    return (
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-4 shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent space-y-6">
+        {learners.map((learner) => {
+          const learnerTrips = trips.filter((t) => t.learnerId === learner.id);
+          const s = computeSummaryFromTrips(learnerTrips);
+          return (
+            <div key={learner.id} className="flex flex-col gap-2">
+              <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">{learner.name}</div>
+              <div className="flex flex-wrap justify-around gap-4">
+                <div className="hidden md:flex flex-col items-center">
+                  <ProgressRing value={s.dayHours} target={targetDay} color="#f59e0b" label="day" />
+                </div>
+                <ProgressRing value={s.totalHours} target={targetTotal} color="#22c55e" label="total" />
+                <div className="hidden md:flex flex-col items-center">
+                  <ProgressRing value={s.nightHours} target={targetNight} color="#6366f1" label="night" />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   if (!summary) return null;
 
   const dayHours = summary.dayHours ?? 0;
   const nightHours = summary.nightHours ?? 0;
   const totalHours = summary.totalHours ?? 0;
-  const targetTotal = summary.targetHours ?? DEFAULT_TARGET_HOURS;
-  const targetNight = summary.nightTargetHours ?? NIGHT_HOURS_REQUIRED;
-  const targetDay = targetTotal - targetNight;
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-4 flex flex-wrap justify-around gap-4 shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent">
-      <ProgressRing
-        value={dayHours}
-        target={targetDay}
-        color="#f59e0b"
-        label="day"
-      />
-      <ProgressRing
-        value={totalHours}
-        target={targetTotal}
-        color="#22c55e"
-        label="total"
-      />
-      <ProgressRing
-        value={nightHours}
-        target={targetNight}
-        color="#6366f1"
-        label="night"
-      />
+      <div className="hidden md:flex flex-col items-center">
+        <ProgressRing value={dayHours} target={targetDay} color="#f59e0b" label="day" />
+      </div>
+      <ProgressRing value={totalHours} target={targetTotal} color="#22c55e" label="total" />
+      <div className="hidden md:flex flex-col items-center">
+        <ProgressRing value={nightHours} target={targetNight} color="#6366f1" label="night" />
+      </div>
     </div>
   );
 }

@@ -26,8 +26,16 @@ export class RealApiService {
     throw new Error('Real API not implemented yet');
   }
 
-  async register(_email, _password, _name) {
+  async register(_email, _password, _name, _licenceNumber, _role) {
     throw new Error('Real API not implemented yet');
+  }
+
+  async getCurrentUser() {
+    return null;
+  }
+
+  async logout() {
+    this.token = null;
   }
 
   async syncTrip(_trip) {
@@ -48,6 +56,10 @@ export class RealApiService {
 
   async approveTrip(_tripId, _approved) {
     throw new Error('Real API not implemented yet');
+  }
+
+  async getLinkedLearners() {
+    return [];
   }
 
   async getSupervisors() {

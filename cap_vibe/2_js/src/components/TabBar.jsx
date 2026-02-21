@@ -1,7 +1,8 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
-const TABS = [
+const BASE_TABS = [
   { path: '/', icon: '🏠', label: 'Home' },
   { path: '/history', icon: '📋', label: 'Logbook' },
   { path: '/car', icon: '🚗', label: 'Car' },
@@ -9,6 +10,11 @@ const TABS = [
 ];
 
 export function TabBar() {
+  const { user } = useAuth();
+  const approvalsTab = { path: '/approvals', icon: '✓', label: 'Approvals' };
+  const TABS = user?.role === 'parent'
+    ? [BASE_TABS[0], approvalsTab, ...BASE_TABS.slice(1)]
+    : BASE_TABS;
   const location = useLocation();
   const navigate = useNavigate();
 

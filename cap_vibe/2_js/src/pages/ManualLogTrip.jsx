@@ -2,18 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { SupervisorPicker } from '../components/SupervisorPicker.jsx';
+import { LearnerPicker } from '../components/LearnerPicker.jsx';
 import { WeatherPicker } from '../components/WeatherPicker.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useCars } from '../hooks/useCars.js';
 import { apiService } from '../services/api/index.js';
 import { mergeTrip } from '../utils/mergeTrip.js';
 
 export function ManualLogTrip() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { cars, updateCar } = useCars();
+  const isParent = user?.role === 'parent';
 
   const [carId, setCarId] = useState(null);
   const [supervisorId, setSupervisorId] = useState(null);
   const [supervisorName, setSupervisorName] = useState('');
+  const [learnerId, setLearnerId] = useState(null);
+  const [learnerName, setLearnerName] = useState('');
   const [startOdo, setStartOdo] = useState('');
   const [endOdo, setEndOdo] = useState('');
   const [durationMin, setDurationMin] = useState('');
@@ -24,7 +30,9 @@ export function ManualLogTrip() {
   const startOdoNum = parseInt(startOdo.replace(/\D/g, ''), 10) || 0;
   const endOdoNum = parseInt(endOdo.replace(/\D/g, ''), 10) || 0;
   const durationNum = parseInt(durationMin.replace(/\D/g, ''), 10) || 0;
-  const isValid = supervisorId && supervisorName && startOdoNum > 0 && endOdoNum > startOdoNum && durationNum > 0;
+  const sdOk = isParent ? true : (supervisorId && supervisorName);
+  const learnerOk = isParent ? (learnerId && learnerName) : true;
+  const isValid = sdOk && learnerOk && startOdoNum > 0 && endOdoNum > startOdoNum && durationNum > 0;
 
   const handleSave = async () => {
     if (!isValid) return;
@@ -35,11 +43,16 @@ export function ManualLogTrip() {
       const endTime = Date.now();
       const startTime = endTime - durationNum * 60 * 1000;
 
+      const sdId = isParent ? user.userId : supervisorId;
+      const sdName = isParent ? user.name : supervisorName;
       const merged = mergeTrip({
         trip: {
           id: tripId,
-          supervisorId,
-          supervisorName,
+          supervisorId: sdId,
+          supervisorName: sdName,
+          learnerId: learnerId || undefined,
+          learnerName: learnerName || undefined,
+          approvalState: isParent ? 'approved' : undefined,
           weather,
           carId: carId || undefined,
         },
@@ -104,17 +117,35 @@ export function ManualLogTrip() {
       </div>
 
       <div>
-        <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Who supervised?</label>
-        <SupervisorPicker
-          value={supervisorId}
-          onChange={(id, name) => {
-            setSupervisorId(id);
-            setSupervisorName(name);
-          }}
-        />
-        <button onClick={() => navigate('/supervisors')} className="btn-ghost w-full text-sm mt-1">
-          + Add supervisor
-        </button>
+        {isParent ? (
+          <>
+            <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Which learner?</label>
+            <LearnerPicker
+              value={learnerId}
+              onChange={(id, name) => {
+                setLearnerId(id);
+                setLearnerName(name);
+              }}
+            />
+            <div className="mt-2 text-slate-600 dark:text-slate-400 text-sm">
+              Supervisor: <span className="font-medium text-slate-800 dark:text-slate-200">{user?.name}</span> (you)
+            </div>
+          </>
+        ) : (
+          <>
+            <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Who supervised?</label>
+            <SupervisorPicker
+              value={supervisorId}
+              onChange={(id, name) => {
+                setSupervisorId(id);
+                setSupervisorName(name);
+              }}
+            />
+            <button onClick={() => navigate('/supervisors')} className="btn-ghost w-full text-sm mt-1">
+              + Add supervisor
+            </button>
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">

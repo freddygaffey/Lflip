@@ -47,6 +47,7 @@ export function TripCard({ trip, showTranscribedCheckbox, isTranscribed, onTrans
           {trip.syncStatus === 'unsynced' && <span className="text-xs text-amber-400">↑ pending</span>}
           {trip.approvalState === 'pending' && <span className="text-xs text-amber-400">Pending approval</span>}
           {trip.approvalState === 'approved' && <span className="text-xs text-green-500">✓ Approved</span>}
+          {trip.approvalState === 'rejected' && <span className="text-xs text-red-500">Rejected</span>}
         </div>
       </div>
 
@@ -61,9 +62,15 @@ export function TripCard({ trip, showTranscribedCheckbox, isTranscribed, onTrans
           </div>
           <div className="text-slate-600 dark:text-slate-400 text-xs">distance</div>
         </div>
-        <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-xl p-2 text-center">
-          <div className="text-amber-400 font-bold text-lg">{trip.supervisorName?.split(' ')[0] ?? '–'}</div>
-          <div className="text-slate-600 dark:text-slate-400 text-xs">supervisor</div>
+        <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-xl p-2 text-center min-w-0">
+          <div className="text-amber-400 font-bold text-lg truncate" title={[trip.supervisorName, trip.learnerName].filter(Boolean).join(' · ')}>
+            {trip.learnerName && trip.supervisorName
+              ? `${trip.supervisorName.split(' ')[0]} · ${trip.learnerName}`
+              : trip.learnerName ?? trip.supervisorName?.split(' ')[0] ?? '–'}
+          </div>
+          <div className="text-slate-600 dark:text-slate-400 text-xs">
+            {trip.learnerName && trip.supervisorName ? 'SD · learner' : trip.learnerName ? 'learner' : 'supervisor'}
+          </div>
         </div>
       </div>
 

@@ -2,18 +2,27 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TripCard } from '../components/TripCard.jsx';
 import { LogbookPieChart } from '../components/LogbookPieChart.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useLinkedLearners } from '../hooks/useLinkedLearners.js';
 import { useLogbook } from '../hooks/useLogbook.js';
 import { useTranscribed } from '../hooks/useTranscribed.js';
 import { formatDate, formatTime, formatHoursMinutes } from '../utils/formatTime.js';
 
 export function TripHistory() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { learners } = useLinkedLearners();
+  const isParent = user?.role === 'parent';
   const [nightOnly, setNightOnly] = useState(false);
   const [nswFormat, setNswFormat] = useState(false);
+  const [learnerFilter, setLearnerFilter] = useState(null);
   const { trips, summary, loading, error, refresh } = useLogbook(
     nightOnly ? { nightOnly: true } : {},
   );
   const { isTranscribed, toggle: toggleTranscribed } = useTranscribed();
+
+  const filteredTrips = trips
+    .filter((t) => !learnerFilter || t.learnerId === learnerFilter);
 
   return (
     <div className="page-content px-4 py-6">
@@ -22,9 +31,42 @@ export function TripHistory() {
         <button onClick={refresh} className="text-slate-600 dark:text-slate-400 text-xl p-1">↻</button>
       </div>
 
-      {summary && <LogbookPieChart summary={summary} />}
+      {summary && (
+        <LogbookPieChart
+          summary={summary}
+          learners={isParent && learners.length > 1 ? learners : []}
+          trips={isParent && learners.length > 1 ? trips : []}
+        />
+      )}
 
       <div className="flex flex-wrap gap-2 mb-4">
+        {isParent && learners.length > 1 && (
+          <>
+            <button
+              onClick={() => setLearnerFilter(null)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                learnerFilter === null
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 shadow-sm dark:shadow-none'
+              }`}
+            >
+              All
+            </button>
+            {learners.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => setLearnerFilter(l.id)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                  learnerFilter === l.id
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 shadow-sm dark:shadow-none'
+                }`}
+              >
+                {l.name}
+              </button>
+            ))}
+          </>
+        )}
         <button
           onClick={() => setNightOnly(!nightOnly)}
           className={`px-3 py-1.5 rounded-full text-sm font-medium ${
@@ -49,17 +91,19 @@ export function TripHistory() {
           {error}
         </div>
       )}
-      {!loading && trips.length === 0 && (
+      {!loading && filteredTrips.length === 0 && (
         <div className="text-center py-12 space-y-3">
           <div className="text-5xl">📋</div>
-          <p className="text-slate-600 dark:text-slate-400">No trips recorded yet.</p>
+          <p className="text-slate-600 dark:text-slate-400">
+            {learnerFilter ? 'No trips for this learner.' : 'No trips recorded yet.'}
+          </p>
           <button onClick={() => navigate('/start')} className="btn-primary">
             Start your first trip
           </button>
         </div>
       )}
 
-      {nswFormat && trips.length > 0 ? (
+      {nswFormat && filteredTrips.length > 0 ? (
         <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm dark:shadow-none mb-4">
           <table className="w-full text-sm">
             <thead>
@@ -74,11 +118,12 @@ export function TripHistory() {
                 <th className="text-left py-3 px-3 font-semibold text-slate-700 dark:text-slate-300">Day</th>
                 <th className="text-left py-3 px-3 font-semibold text-slate-700 dark:text-slate-300">Night</th>
                 <th className="text-left py-3 px-3 font-semibold text-slate-700 dark:text-slate-300">Supervisor</th>
+                <th className="text-left py-3 px-3 font-semibold text-slate-700 dark:text-slate-300">Approval</th>
                 <th className="text-left py-3 px-3 font-semibold text-slate-700 dark:text-slate-300">Location</th>
               </tr>
             </thead>
             <tbody>
-              {trips.map((trip) => {
+              {filteredTrips.map((trip) => {
                 const dayMin = trip.dayMinutes ?? 0;
                 const nightMin = trip.nightMinutes ?? 0;
                 const totalMin = dayMin + nightMin;
@@ -116,6 +161,18 @@ export function TripHistory() {
                     <td className="py-2.5 px-3 text-amber-600 dark:text-amber-400">{formatHoursMinutes(dayMin)}</td>
                     <td className="py-2.5 px-3 text-indigo-500 dark:text-indigo-400">{formatHoursMinutes(nightMin)}</td>
                     <td className="py-2.5 px-3">{trip.supervisorName ?? '—'}</td>
+                    <td className="py-2.5 px-3">
+                      {!trip.approvalState && '—'}
+                      {trip.approvalState === 'approved' && (
+                        <span className="text-green-600 dark:text-green-400">Approved</span>
+                      )}
+                      {trip.approvalState === 'pending' && (
+                        <span className="text-amber-600 dark:text-amber-400">Pending</span>
+                      )}
+                      {trip.approvalState === 'rejected' && (
+                        <span className="text-red-600 dark:text-red-400">Rejected</span>
+                      )}
+                    </td>
                     <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400">
                       {startLoc} – {endLoc}
                     </td>
@@ -130,7 +187,7 @@ export function TripHistory() {
         </div>
       ) : (
         <div className="space-y-3">
-          {trips.map((trip) => (
+          {filteredTrips.map((trip) => (
             <TripCard key={trip.id} trip={trip} />
           ))}
         </div>

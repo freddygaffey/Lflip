@@ -5,11 +5,15 @@ import { useCars } from '../hooks/useCars.js';
 import { bleService } from '../services/ble/index.js';
 import { ConnectionBadge } from '../components/ConnectionBadge.jsx';
 import { SupervisorPicker } from '../components/SupervisorPicker.jsx';
+import { LearnerPicker } from '../components/LearnerPicker.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export function CarManagement() {
   const navigate = useNavigate();
   const { status, devices, connectedDeviceId, scan, connect, disconnect, isConnected } = useBle();
+  const { user } = useAuth();
   const { cars, addCar, deleteCar, updateCar, refresh } = useCars();
+  const isParent = user?.role === 'parent';
   const [deviceInfo, setDeviceInfo] = useState(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
   const [addingCar, setAddingCar] = useState(false);
@@ -17,6 +21,8 @@ export function CarManagement() {
   const [carName, setCarName] = useState('');
   const [addDefaultSupervisorId, setAddDefaultSupervisorId] = useState(null);
   const [addDefaultSupervisorName, setAddDefaultSupervisorName] = useState('');
+  const [addDefaultLearnerId, setAddDefaultLearnerId] = useState(null);
+  const [addDefaultLearnerName, setAddDefaultLearnerName] = useState('');
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [addError, setAddError] = useState(null);
   const [submittingAdd, setSubmittingAdd] = useState(false);
@@ -29,7 +35,16 @@ export function CarManagement() {
       await updateCar(carId, { defaultSupervisorId: supervisorId || null, defaultSupervisorName: supervisorName || null });
       setEditingDefaultSdFor(null);
     } catch (err) {
-      setAddError(err?.message ?? 'Failed to set default SD');
+      setAddError(err?.message ?? 'Failed to set default');
+    }
+  };
+
+  const handleSetDefaultLearner = async (carId, learnerId, learnerName) => {
+    try {
+      await updateCar(carId, { defaultLearnerId: learnerId || null, defaultLearnerName: learnerName || null });
+      setEditingDefaultSdFor(null);
+    } catch (err) {
+      setAddError(err?.message ?? 'Failed to set default student');
     }
   };
 
@@ -73,6 +88,8 @@ export function CarManagement() {
     setCarName('');
     setAddDefaultSupervisorId(null);
     setAddDefaultSupervisorName('');
+    setAddDefaultLearnerId(null);
+    setAddDefaultLearnerName('');
     setAddError(null);
     setAddingCar(true);
   };
@@ -85,6 +102,8 @@ export function CarManagement() {
     setCarName('');
     setAddDefaultSupervisorId(null);
     setAddDefaultSupervisorName('');
+    setAddDefaultLearnerId(null);
+    setAddDefaultLearnerName('');
     setAddError(null);
   };
 
@@ -106,6 +125,8 @@ export function CarManagement() {
         esp32DeviceId: selectedDevice.id,
         defaultSupervisorId: addDefaultSupervisorId || undefined,
         defaultSupervisorName: addDefaultSupervisorName || undefined,
+        defaultLearnerId: addDefaultLearnerId || undefined,
+        defaultLearnerName: addDefaultLearnerName || undefined,
       });
       cancelAddCar();
       refresh();
@@ -157,32 +178,57 @@ export function CarManagement() {
                 <div className="mt-2 pt-2 border-t border-slate-300 dark:border-slate-600">
                   {editingDefaultSdFor === car.id ? (
                     <div className="space-y-2">
-                      <div className="text-slate-600 dark:text-slate-400 text-xs font-medium">Default supervisor</div>
-                      <SupervisorPicker
-                        value={car.defaultSupervisorId}
-                        onChange={(id, name) => handleSetDefaultSd(car.id, id, name)}
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleSetDefaultSd(car.id, null, null)}
-                          className="btn-ghost text-sm"
-                        >
-                          Clear
-                        </button>
-                        <button
-                          onClick={() => setEditingDefaultSdFor(null)}
-                          className="btn-secondary text-sm"
-                        >
-                          Done
-                        </button>
-                      </div>
+                      <div className="text-slate-600 dark:text-slate-400 text-xs font-medium">Default student</div>
+                      {isParent ? (
+                        <>
+                          <LearnerPicker
+                            value={car.defaultLearnerId}
+                            onChange={(id, name) => handleSetDefaultLearner(car.id, id, name)}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleSetDefaultLearner(car.id, null, null)}
+                              className="btn-ghost text-sm"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              onClick={() => setEditingDefaultSdFor(null)}
+                              className="btn-secondary text-sm"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <SupervisorPicker
+                            value={car.defaultSupervisorId}
+                            onChange={(id, name) => handleSetDefaultSd(car.id, id, name)}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleSetDefaultSd(car.id, null, null)}
+                              className="btn-ghost text-sm"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              onClick={() => setEditingDefaultSdFor(null)}
+                              className="btn-secondary text-sm"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <button
                       onClick={() => setEditingDefaultSdFor(car.id)}
                       className="text-slate-600 dark:text-slate-400 text-xs hover:text-primary-500"
                     >
-                      Default SD: {car.defaultSupervisorName ?? 'None'} →
+                      {isParent ? 'Default student' : 'Default SD'}: {isParent ? (car.defaultLearnerName ?? 'None') : (car.defaultSupervisorName ?? 'None')} →
                     </button>
                   )}
                 </div>
@@ -274,20 +320,42 @@ export function CarManagement() {
             />
           </div>
           <div>
-            <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Default supervisor (optional)</label>
-            <SupervisorPicker
-              value={addDefaultSupervisorId}
-              onChange={(id, name) => {
-                setAddDefaultSupervisorId(id);
-                setAddDefaultSupervisorName(name ?? '');
-              }}
-            />
-            <button
-              onClick={() => { setAddDefaultSupervisorId(null); setAddDefaultSupervisorName(''); }}
-              className="btn-ghost text-sm mt-1"
-            >
-              Clear
-            </button>
+            <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">
+              {isParent ? 'Default student (optional)' : 'Default supervisor (optional)'}
+            </label>
+            {isParent ? (
+              <>
+                <LearnerPicker
+                  value={addDefaultLearnerId}
+                  onChange={(id, name) => {
+                    setAddDefaultLearnerId(id);
+                    setAddDefaultLearnerName(name ?? '');
+                  }}
+                />
+                <button
+                  onClick={() => { setAddDefaultLearnerId(null); setAddDefaultLearnerName(''); }}
+                  className="btn-ghost text-sm mt-1"
+                >
+                  Clear
+                </button>
+              </>
+            ) : (
+              <>
+                <SupervisorPicker
+                  value={addDefaultSupervisorId}
+                  onChange={(id, name) => {
+                    setAddDefaultSupervisorId(id);
+                    setAddDefaultSupervisorName(name ?? '');
+                  }}
+                />
+                <button
+                  onClick={() => { setAddDefaultSupervisorId(null); setAddDefaultSupervisorName(''); }}
+                  className="btn-ghost text-sm mt-1"
+                >
+                  Clear
+                </button>
+              </>
+            )}
           </div>
           {addError && (
             <div className="text-red-500 dark:text-red-400 text-sm">{addError}</div>

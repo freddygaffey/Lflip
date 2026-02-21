@@ -48,6 +48,6 @@ export function mergeTrip(opts) {
     avgSpeedKmh: Math.round(avgSpeedKmh),
     status: 'complete',
     syncStatus: 'unsynced',
-    approvalState: 'pending',
+    approvalState: opts.trip?.approvalState ?? 'pending',
   };
 }
