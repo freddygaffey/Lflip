@@ -62,6 +62,14 @@ export class RealApiService {
     return [];
   }
 
+  async createPairingToken() {
+    throw new Error('Real API not implemented yet');
+  }
+
+  async completePairing(_token) {
+    throw new Error('Real API not implemented yet');
+  }
+
   async getSupervisors() {
     throw new Error('Real API not implemented yet');
   }

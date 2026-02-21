@@ -7,6 +7,7 @@ export function Settings() {
   const navigate = useNavigate();
   const { isDark, setIsDark } = useTheme();
   const { user, logout } = useAuth();
+  const isParent = user?.role === 'parent';
 
   return (
     <div className="page-content px-4 py-6 space-y-5">
@@ -47,6 +48,25 @@ export function Settings() {
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 space-y-3 shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent">
         <div className="text-slate-700 dark:text-slate-300 font-semibold">Logbook</div>
         <div className="text-slate-600 dark:text-slate-400 text-sm">Target: 120 hours (20 night)</div>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 space-y-3 shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent">
+        <div className="text-slate-700 dark:text-slate-300 font-semibold">Pairing</div>
+        {isParent ? (
+          <button
+            onClick={() => navigate('/scan-pair')}
+            className="w-full py-2.5 rounded-xl font-medium bg-primary-500/20 text-primary-600 dark:text-primary-400 hover:bg-primary-500/30 border border-primary-500/50 transition-colors"
+          >
+            Add learner
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate('/pair')}
+            className="w-full py-2.5 rounded-xl font-medium bg-primary-500/20 text-primary-600 dark:text-primary-400 hover:bg-primary-500/30 border border-primary-500/50 transition-colors"
+          >
+            Pair with parent
+          </button>
+        )}
       </div>
 
       <div className="h-4" />

@@ -147,3 +147,13 @@ body,
 .brb {
   min-height: 64px;
 }
+
+/* Barcode scanner fullscreen (native) */
+body.scanner-active {
+  background: transparent !important;
+}
+body.scanner-active .app-shell,
+body.scanner-active .tab-bar,
+body.scanner-active .page-content {
+  visibility: hidden !important;
+}

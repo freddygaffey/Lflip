@@ -18,6 +18,8 @@ import { CarManagement } from './pages/CarManagement.jsx';
 import { Settings } from './pages/Settings.jsx';
 import { ManualLogTrip } from './pages/ManualLogTrip.jsx';
 import { ParentApprovals } from './pages/ParentApprovals.jsx';
+import { PairWithParent } from './pages/PairWithParent.jsx';
+import { ScanToPair } from './pages/ScanToPair.jsx';
 import { Login } from './pages/Login.jsx';
 import { AutoSync } from './components/AutoSync.jsx';
 import { useAuth } from './context/AuthContext.jsx';
@@ -68,6 +70,8 @@ function AppRoutes() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/manual-log" element={<ManualLogTrip />} />
             <Route path="/approvals" element={<ParentApprovals />} />
+            <Route path="/pair" element={<PairWithParent />} />
+            <Route path="/scan-pair" element={<ScanToPair />} />
           </Routes>
         </div>
         <TabBar />

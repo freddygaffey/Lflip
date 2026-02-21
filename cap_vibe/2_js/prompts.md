@@ -367,3 +367,7 @@ interface Car {
 - Each trip: date, times, odometer, supervisor, weather
 - 90 km/h max speed warning
 - Pre-drive reminders: L-plates, zero BAC, supervisor present
+
+------------------------------------
+i did a lot of propts fixing and twikying the ui
+---------i next wanted to me

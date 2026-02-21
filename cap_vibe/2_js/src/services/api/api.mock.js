@@ -10,6 +10,11 @@ function maybeNetworkError() {
   if (Math.random() < 0.05) throw new Error('Network error (simulated)');
 }
 
+function randomAlphanumeric(len) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
 const KEYS = {
   trips: 'mock_trips',
   supervisors: 'mock_supervisors',
@@ -18,6 +23,8 @@ const KEYS = {
   authToken: 'mock_auth_token',
   currentUser: 'mock_current_user',
   userProfiles: 'mock_user_profiles',
+  parentLinks: 'mock_parent_links',
+  pairingTokens: 'mock_pairing_tokens',
 };
 
 async function loadJson(key) {
@@ -82,16 +89,12 @@ export class MockApiService {
       this.supervisors = (await loadJson(KEYS.supervisors)) ?? [];
       this.cars = (await loadJson(KEYS.cars)) ?? [];
       // Migration: assign learnerId to existing trips that lack it (for parent multi-kid progress)
-      const LEARNERS = [
-        { id: 'learner-001', name: 'Alex' },
-        { id: 'learner-002', name: 'Jordan' },
-      ];
+      const defaultLearner = { id: 'learner-demo-001', name: 'Alex' };
       let needsSave = false;
-      this.trips = this.trips.map((t, idx) => {
+      this.trips = this.trips.map((t) => {
         if (t.learnerId) return t;
         needsSave = true;
-        const l = LEARNERS[idx % LEARNERS.length];
-        return { ...t, learnerId: l.id, learnerName: l.name };
+        return { ...t, learnerId: defaultLearner.id, learnerName: defaultLearner.name };
       });
       if (needsSave) await saveTrips(this.trips);
     }
@@ -106,11 +109,17 @@ export class MockApiService {
     this.authToken = token;
     let name = email.split('@')[0].replace(/[._]/g, ' ');
     if (email.toLowerCase() === 'parent@demo.com') name = 'Mum';
+    if (email.toLowerCase() === 'learner@demo.com') name = 'Alex';
     const role = email.toLowerCase().includes('parent') ? 'parent' : 'learner';
-    const userId = 'mock-user-001';
+    const userId = email.toLowerCase() === 'parent@demo.com' ? 'parent-demo-001'
+      : email.toLowerCase() === 'learner@demo.com' ? 'learner-demo-001'
+      : 'mock-user-001';
     const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
     const profile = profiles[userId];
-    const user = { userId, name: profile?.name ?? name, role, licenceNumber: profile?.licenceNumber ?? null };
+    const userName = profile?.name ?? name;
+    const user = { userId, name: userName, role, licenceNumber: profile?.licenceNumber ?? null };
+    profiles[userId] = { ...profiles[userId], name: userName, licenceNumber: user.licenceNumber };
+    await saveJson(KEYS.userProfiles, profiles);
     await saveJson(KEYS.authToken, token);
     await saveJson(KEYS.currentUser, user);
     return { token, ...user };
@@ -156,8 +165,14 @@ export class MockApiService {
     await randomDelay();
     maybeNetworkError();
 
+    const user = await this.getCurrentUser();
+    let enriched = { ...trip };
+    if (user?.role === 'learner' && !enriched.learnerId) {
+      enriched.learnerId = user.userId;
+      enriched.learnerName = user.name;
+    }
     const idx = this.trips.findIndex((t) => t.id === trip.id);
-    const updated = { ...trip, syncStatus: 'synced', cloudId: `cloud-${trip.id}` };
+    const updated = { ...enriched, syncStatus: 'synced', cloudId: `cloud-${trip.id}` };
     if (idx >= 0) this.trips[idx] = updated;
     else this.trips.push(updated);
     await saveTrips(this.trips);
@@ -169,7 +184,21 @@ export class MockApiService {
     await randomDelay();
     maybeNetworkError();
 
+    const user = await this.getCurrentUser();
     let result = [...this.trips].filter((t) => t.status === 'complete');
+
+    if (user?.role === 'parent') {
+      const links = (await loadJson(KEYS.parentLinks)) ?? [];
+      const learnerIds = links.filter((l) => l.parentId === user.userId).map((l) => l.learnerId);
+      if (learnerIds.length > 0) {
+        result = result.filter((t) => t.learnerId && learnerIds.includes(t.learnerId));
+      } else {
+        result = [];
+      }
+    } else if (user?.role === 'learner') {
+      result = result.filter((t) => !t.learnerId || t.learnerId === user.userId);
+    }
+
     result.sort((a, b) => b.startTime - a.startTime);
 
     if (filters?.supervisorId) result = result.filter((t) => t.supervisorId === filters.supervisorId);
@@ -214,16 +243,59 @@ export class MockApiService {
     return { success: true };
   }
 
+  async createPairingToken() {
+    await this._init();
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+    if (user.role !== 'learner') throw new Error('Only learners can create pairing tokens');
+    await randomDelay();
+    maybeNetworkError();
+    const token = `PAIR-${randomAlphanumeric(8)}`;
+    const expiresAt = Date.now() + 15 * 60 * 1000;
+    const tokens = (await loadJson(KEYS.pairingTokens)) ?? {};
+    tokens[token] = { learnerId: user.userId, expiresAt };
+    await saveJson(KEYS.pairingTokens, tokens);
+    return { token, expiresAt };
+  }
+
+  async completePairing(token) {
+    await this._init();
+    const user = await this.getCurrentUser();
+    if (!user) throw new Error('Not logged in');
+    if (user.role !== 'parent') throw new Error('Only parents can complete pairing');
+    await randomDelay();
+    maybeNetworkError();
+    const tokens = (await loadJson(KEYS.pairingTokens)) ?? {};
+    const entry = tokens[token];
+    if (!entry || entry.expiresAt < Date.now()) {
+      throw new Error('Invalid or expired pairing code');
+    }
+    const { learnerId } = entry;
+    const links = (await loadJson(KEYS.parentLinks)) ?? [];
+    if (!links.some((l) => l.parentId === user.userId && l.learnerId === learnerId)) {
+      links.push({ parentId: user.userId, learnerId });
+      await saveJson(KEYS.parentLinks, links);
+    }
+    delete tokens[token];
+    await saveJson(KEYS.pairingTokens, tokens);
+    const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
+    const learnerName = profiles[learnerId]?.name ?? 'Learner';
+    return { success: true, learnerName };
+  }
+
   async getLinkedLearners() {
     await this._init();
     const user = await this.getCurrentUser();
     if (!user || user.role !== 'parent') return [];
     await randomDelay();
     maybeNetworkError();
-    return [
-      { id: 'learner-001', name: 'Alex' },
-      { id: 'learner-002', name: 'Jordan' },
-    ];
+    const links = (await loadJson(KEYS.parentLinks)) ?? [];
+    const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
+    const learnerIds = links.filter((l) => l.parentId === user.userId).map((l) => l.learnerId);
+    return learnerIds.map((id) => ({
+      id,
+      name: profiles[id]?.name ?? id.replace(/^.*-/, 'User '),
+    }));
   }
 
   async getSupervisors() {
@@ -330,9 +402,15 @@ export class MockApiService {
 
   async saveLocalTrip(trip) {
     await this._init();
+    const user = await this.getCurrentUser();
+    let enriched = { ...trip };
+    if (user?.role === 'learner' && !enriched.learnerId) {
+      enriched.learnerId = user.userId;
+      enriched.learnerName = user.name;
+    }
     const idx = this.trips.findIndex((t) => t.id === trip.id);
-    if (idx >= 0) this.trips[idx] = trip;
-    else this.trips.push(trip);
+    if (idx >= 0) this.trips[idx] = enriched;
+    else this.trips.push(enriched);
     await saveTrips(this.trips);
   }
 }
