@@ -678,3 +678,9 @@ can you make it look more like the image below ignore the pwa and web stuff but 
 - change optimse for starting a drive so make the home screed a optin to select car then sd use a make htem enter wether at the end beut give them the optin to skip then use a api
 
 XXX added a image of my wireframes xxx
+
+then i ansserd some questions
+
+_______________________________________________
+
+

@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  /* Light mode */
+  --bg-page: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --tab-bg: #ffffff;
+  --tab-color: #64748b;
+  --tab-active: #22c55e;
+  --scrollbar: #cbd5e1;
+}
+
+.dark {
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-hover: #334155;
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --tab-bg: #1e293b;
+  --tab-color: #64748b;
+  --tab-active: #22c55e;
+  --scrollbar: #334155;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+  background-color: var(--bg-page);
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-bar {
+  display: flex;
+  background: var(--tab-bg);
+  border-top: 1px solid var(--border-color);
+  padding-bottom: var(--sab);
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  gap: 2px;
+  cursor: pointer;
+  color: var(--tab-color);
+  font-size: 10px;
+  font-weight: 500;
+  min-height: 56px;
+  transition: color 0.2s;
+}
+
+.tab-item.active {
+  color: var(--tab-active);
+}
+
+/* Card style using theme variables */
+.bg-card {
+  background-color: var(--bg-card);
+}
+
+.btn-primary {
+  @apply bg-green-500 hover:bg-green-400 active:bg-green-600
+         text-white font-bold rounded-2xl py-4 px-8
+         transition-all duration-150 select-none;
+}
+
+.btn-danger {
+  @apply bg-red-500 hover:bg-red-400 active:bg-red-600
+         text-white font-bold rounded-2xl py-4 px-8
+         transition-all duration-150 select-none;
+}
+
+.btn-secondary {
+  @apply bg-slate-700 hover:bg-slate-600 active:bg-slate-800
+         dark:bg-slate-700 dark:hover:bg-slate-600 dark:active:bg-slate-800
+         text-slate-900 dark:text-white font-semibold rounded-2xl py-3 px-6
+         transition-all duration-150 select-none;
+}
+
+.btn-ghost {
+  @apply text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium py-2 px-4 transition-colors select-none;
+}
+
+.input-field {
+  @apply rounded-xl px-4 py-3 w-full
+         bg-slate-100 dark:bg-slate-800
+         border border-slate-300 dark:border-slate-600
+         text-slate-900 dark:text-white placeholder-slate-500
+         focus:outline-none focus:border-primary-500;
+}
+
+.leaflet-container {
+  background: var(--bg-card);
+}
+
+@keyframes record-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.9); }
+}
+
+.record-dot {
+  animation: record-pulse 1.5s ease-in-out infinite;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 2px; }
+
+/* BRB: Big Red Button — large, bold, high-contrast tap targets */
+.brb {
+  min-height: 64px;
+}
