@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Safe area support for iOS notch/home bar */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Base colours: light default, dark override ────────────────────────── */
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: #f9fafb; /* gray-50 */
+  color: #111827;            /* gray-900 */
+}
+
+html.dark,
+html.dark body,
+html.dark #root {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+/* ── App shell ─────────────────────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+  background-color: #f9fafb;
+}
+
+html.dark .app-shell {
+  background-color: #0f172a;
+}
+
+/* ── Scrollable page content ────────────────────────────────────────────── */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Bottom tab bar ─────────────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb; /* gray-200 */
+  padding-bottom: var(--sab);
+}
+
+html.dark .tab-bar {
+  background: #1e293b;
+  border-top-color: #334155;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  gap: 2px;
+  cursor: pointer;
+  color: #9ca3af; /* gray-400 */
+  transition: color 150ms;
+  font-size: 10px;
+  font-weight: 500;
+  min-height: 56px;
+}
+
+html.dark .tab-item {
+  color: #64748b;
+}
+
+.tab-item.active {
+  color: #16a34a; /* green-600 — visible on white */
+}
+
+html.dark .tab-item.active {
+  color: #22c55e; /* green-400 — visible on dark */
+}
+
+/* ── Component utility classes ──────────────────────────────────────────── */
+
+.stat-card {
+  @apply bg-white dark:bg-slate-800 rounded-2xl p-4;
+}
+
+.btn-primary {
+  @apply bg-primary-500 hover:bg-primary-400 active:bg-primary-600
+         text-white font-bold rounded-2xl py-4 px-8
+         transition-all duration-150 select-none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.btn-danger {
+  @apply bg-red-500 hover:bg-red-400 active:bg-red-600
+         text-white font-bold rounded-2xl py-4 px-8
+         transition-all duration-150 select-none;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 hover:bg-gray-200 active:bg-gray-300
+         dark:bg-slate-700 dark:hover:bg-slate-600 dark:active:bg-slate-800
+         text-gray-700 dark:text-white
+         font-semibold rounded-2xl py-3 px-6
+         transition-all duration-150 select-none;
+}
+
+.btn-ghost {
+  @apply text-gray-500 dark:text-slate-400
+         hover:text-gray-900 dark:hover:text-white
+         font-medium py-2 px-4
+         transition-colors duration-150 select-none;
+}
+
+.input-field {
+  @apply bg-gray-50 dark:bg-slate-800
+         border border-gray-300 dark:border-slate-600
+         rounded-xl px-4 py-3
+         text-gray-900 dark:text-white
+         placeholder-gray-400 dark:placeholder-slate-500
+         focus:outline-none focus:border-primary-500
+         transition-colors w-full;
+}
+
+/* ── Leaflet map ────────────────────────────────────────────────────────── */
+.leaflet-container {
+  background: #e5e7eb; /* gray-200 — light mode */
+}
+
+html.dark .leaflet-container {
+  background: #1e293b;
+}
+
+/* ── Pulsing record indicator ───────────────────────────────────────────── */
+@keyframes record-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.9); }
+}
+
+.record-dot {
+  animation: record-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+html.dark ::-webkit-scrollbar-thumb { background: #334155; }
