@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { BleProvider } from './context/BleContext.jsx';
+import { CarsProvider } from './context/CarsContext.jsx';
+import { SupervisorsProvider } from './context/SupervisorsContext.jsx';
 import { TripProvider } from './context/TripContext.jsx';
 import { TabBar } from './components/TabBar.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
@@ -14,7 +16,8 @@ import { TripDetail } from './pages/TripDetail.jsx';
 import { Supervisors } from './pages/Supervisors.jsx';
 import { CarManagement } from './pages/CarManagement.jsx';
 import { Settings } from './pages/Settings.jsx';
-import { SyncStatus } from './pages/SyncStatus.jsx';
+import { ManualLogTrip } from './pages/ManualLogTrip.jsx';
+import { AutoSync } from './components/AutoSync.jsx';
 
 export default function App() {
   return (
@@ -22,7 +25,10 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <BleProvider>
+            <CarsProvider>
+            <SupervisorsProvider>
             <TripProvider>
+              <AutoSync />
               <div className="app-shell">
                 <div className="page-content">
                   <Routes>
@@ -35,12 +41,14 @@ export default function App() {
                     <Route path="/supervisors" element={<Supervisors />} />
                     <Route path="/car" element={<CarManagement />} />
                     <Route path="/settings" element={<Settings />} />
-                    <Route path="/sync" element={<SyncStatus />} />
+                    <Route path="/manual-log" element={<ManualLogTrip />} />
                   </Routes>
                 </div>
                 <TabBar />
               </div>
             </TripProvider>
+            </SupervisorsProvider>
+            </CarsProvider>
           </BleProvider>
         </AuthProvider>
       </BrowserRouter>

@@ -5,7 +5,6 @@ const TABS = [
   { path: '/', icon: '🏠', label: 'Home' },
   { path: '/history', icon: '📋', label: 'Logbook' },
   { path: '/car', icon: '🚗', label: 'Car' },
-  { path: '/sync', icon: '☁️', label: 'Sync' },
   { path: '/settings', icon: '⚙️', label: 'Settings' },
 ];
 

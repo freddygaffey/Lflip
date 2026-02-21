@@ -61,10 +61,10 @@ export function SyncStatus() {
       )}
 
       {errors.length > 0 && (
-        <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 space-y-2">
-          <div className="text-red-400 font-semibold">Errors</div>
+        <div className="bg-red-900/40 border border-red-600 rounded-xl p-4 space-y-2">
+          <div className="text-red-100 font-semibold text-base">Errors</div>
           {errors.map((e, i) => (
-            <div key={i} className="text-red-300 text-sm">{e}</div>
+            <div key={i} className="text-red-50 text-base leading-relaxed">{e}</div>
           ))}
         </div>
       )}

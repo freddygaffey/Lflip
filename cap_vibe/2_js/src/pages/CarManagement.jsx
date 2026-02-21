@@ -12,12 +12,14 @@ export function CarManagement() {
   const { cars, addCar, deleteCar, updateCar, refresh } = useCars();
   const [deviceInfo, setDeviceInfo] = useState(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
-  const [loadingOdo, setLoadingOdo] = useState(false);
   const [addingCar, setAddingCar] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
   const [carName, setCarName] = useState('');
+  const [addDefaultSupervisorId, setAddDefaultSupervisorId] = useState(null);
+  const [addDefaultSupervisorName, setAddDefaultSupervisorName] = useState('');
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [addError, setAddError] = useState(null);
+  const [submittingAdd, setSubmittingAdd] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [carToRemove, setCarToRemove] = useState(null);
   const [editingDefaultSdFor, setEditingDefaultSdFor] = useState(null);
@@ -52,25 +54,6 @@ export function CarManagement() {
     }
   };
 
-  const connectedCar = cars.find((c) => c.esp32DeviceId === connectedDeviceId);
-
-  const loadOdoFromEsp = async () => {
-    if (!isConnected) return;
-    setLoadingOdo(true);
-    setAddError(null);
-    try {
-      const odo = await bleService.getCurrentOdometer?.();
-      if (odo != null && connectedCar?.id) {
-        await updateCar(connectedCar.id, { lastOdometer: odo });
-        refresh();
-      }
-    } catch (err) {
-      setAddError(err?.message ?? 'Failed to get odometer');
-    } finally {
-      setLoadingOdo(false);
-    }
-  };
-
   const loadDeviceInfo = async () => {
     if (!isConnected) return;
     setLoadingInfo(true);
@@ -88,15 +71,20 @@ export function CarManagement() {
     setSelectedDevice(device);
     setNumberPlate('');
     setCarName('');
+    setAddDefaultSupervisorId(null);
+    setAddDefaultSupervisorName('');
     setAddError(null);
     setAddingCar(true);
   };
 
   const cancelAddCar = () => {
+    setSubmittingAdd(false);
     setAddingCar(false);
     setSelectedDevice(null);
     setNumberPlate('');
     setCarName('');
+    setAddDefaultSupervisorId(null);
+    setAddDefaultSupervisorName('');
     setAddError(null);
   };
 
@@ -106,20 +94,25 @@ export function CarManagement() {
       setAddError('Please enter the number plate');
       return;
     }
-    if (!selectedDevice) return;
-    const name = carName?.trim() || plate;
+    if (!selectedDevice || submittingAdd) return;
+    setSubmittingAdd(true);
     setAddError(null);
+    const name = carName?.trim() || plate;
     try {
       await connect(selectedDevice.id);
       await addCar({
         numberPlate: plate,
         name,
         esp32DeviceId: selectedDevice.id,
+        defaultSupervisorId: addDefaultSupervisorId || undefined,
+        defaultSupervisorName: addDefaultSupervisorName || undefined,
       });
       cancelAddCar();
       refresh();
     } catch (err) {
       setAddError(err?.message ?? 'Failed to add car');
+    } finally {
+      setSubmittingAdd(false);
     }
   };
 
@@ -280,6 +273,22 @@ export function CarManagement() {
               className="input-field w-full"
             />
           </div>
+          <div>
+            <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Default supervisor (optional)</label>
+            <SupervisorPicker
+              value={addDefaultSupervisorId}
+              onChange={(id, name) => {
+                setAddDefaultSupervisorId(id);
+                setAddDefaultSupervisorName(name ?? '');
+              }}
+            />
+            <button
+              onClick={() => { setAddDefaultSupervisorId(null); setAddDefaultSupervisorName(''); }}
+              className="btn-ghost text-sm mt-1"
+            >
+              Clear
+            </button>
+          </div>
           {addError && (
             <div className="text-red-500 dark:text-red-400 text-sm">{addError}</div>
           )}
@@ -287,27 +296,18 @@ export function CarManagement() {
             <button onClick={cancelAddCar} className="btn-secondary flex-1">Cancel</button>
             <button
               onClick={handleAddCar}
-              disabled={!numberPlate?.trim()}
-              className="btn-primary flex-1"
+              disabled={!numberPlate?.trim() || submittingAdd}
+              className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Add Car
+              {submittingAdd ? 'Adding…' : 'Add Car'}
             </button>
           </div>
         </div>
       )}
 
       {isConnected && !addingCar && (
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl p-4 space-y-3">
-          <div className="text-slate-700 dark:text-slate-300 font-semibold">Connected ESP32 Info</div>
-          {connectedCar && (
-            <button
-              onClick={loadOdoFromEsp}
-              disabled={loadingOdo}
-              className="btn-secondary w-full"
-            >
-              {loadingOdo ? 'Getting…' : 'Get ODO from ESP32'}
-            </button>
-          )}
+        <div className="bg-slate-200 dark:bg-slate-700 rounded-2xl p-4 space-y-3 border border-slate-300 dark:border-slate-600">
+          <div className="text-slate-900 dark:text-white font-semibold text-lg">Connected ESP32 Info</div>
           <button
             onClick={loadDeviceInfo}
             disabled={loadingInfo}
@@ -318,20 +318,20 @@ export function CarManagement() {
           {deviceInfo && (
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Firmware</span>
-                <span className="text-slate-900 dark:text-white">{deviceInfo.firmwareVersion}</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">Firmware</span>
+                <span className="text-slate-900 dark:text-white font-mono">{deviceInfo.firmwareVersion}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">MAC</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">MAC</span>
                 <span className="text-slate-900 dark:text-white font-mono text-xs">{deviceInfo.mac}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Battery</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">Battery</span>
                 <span className="text-slate-900 dark:text-white">{deviceInfo.batteryPct}%</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">OBD2</span>
-                <span className={deviceInfo.obd2Connected ? 'text-green-400' : 'text-slate-600 dark:text-slate-400'}>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">OBD2</span>
+                <span className={deviceInfo.obd2Connected ? 'text-green-600 dark:text-green-400 font-medium' : 'text-slate-600 dark:text-slate-400'}>
                   {deviceInfo.obd2Connected ? 'Connected' : 'Not connected'}
                 </span>
               </div>

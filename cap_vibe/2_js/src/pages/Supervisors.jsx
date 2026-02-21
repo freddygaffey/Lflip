@@ -1,19 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api/index.js';
+import { useSupervisors } from '../context/SupervisorsContext.jsx';
 
 export function Supervisors() {
   const navigate = useNavigate();
-  const [supervisors, setSupervisors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { supervisors, loading, refresh } = useSupervisors();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState('');
   const [licenceNumber, setLicenceNumber] = useState('');
   const [relationship, setRelationship] = useState('Parent');
-
-  useEffect(() => {
-    apiService.getSupervisors().then(setSupervisors).finally(() => setLoading(false));
-  }, []);
 
   const handleAdd = async () => {
     if (!name.trim()) return;
@@ -25,7 +21,7 @@ export function Supervisors() {
         relationship,
         createdAt: Date.now(),
       });
-      setSupervisors((prev) => [...prev, sup]);
+      refresh();
       setName('');
       setLicenceNumber('');
     } finally {
@@ -36,7 +32,7 @@ export function Supervisors() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this supervisor?')) return;
     await apiService.deleteSupervisor(id);
-    setSupervisors((prev) => prev.filter((s) => s.id !== id));
+    refresh();
   };
 
   return (

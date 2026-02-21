@@ -11,11 +11,6 @@ export function Dashboard() {
   const { activeTrip } = useTripContext();
   const { cars, loading } = useCars();
 
-  const displayCars = cars.length > 0 ? cars : [
-    { id: 'car-001', name: 'ABC-123', numberPlate: 'ABC-123', lastOdometer: 43500 },
-    { id: 'car-002', name: 'XYZ-789', numberPlate: 'XYZ-789', lastOdometer: 52100 },
-  ];
-
   return (
     <div className="page-content px-4 py-6 flex flex-col min-h-0">
       <div className="flex items-center justify-between mb-6">
@@ -41,28 +36,64 @@ export function Dashboard() {
         {/* BRB: Big Red Button philosophy — large, bold, high-contrast */}
         {!activeTrip && (
           <>
-            <div className="text-slate-600 dark:text-slate-400 text-sm font-medium uppercase tracking-wide mb-2">
-              Select car
-            </div>
-            {displayCars.slice(0, 3).map((car, i) => (
+            {cars.length > 0 ? (
+              <>
+                <div className="text-slate-600 dark:text-slate-400 text-sm font-medium uppercase tracking-wide mb-2">
+                  Select car
+                </div>
+                {cars.slice(0, 3).map((car, i) => {
+                  const carColors = [
+                    'bg-teal-500/90 hover:bg-teal-400 active:bg-teal-600 border border-teal-400/50',
+                    'bg-sky-500/90 hover:bg-sky-400 active:bg-sky-600 border border-sky-400/50',
+                    'bg-violet-500/90 hover:bg-violet-400 active:bg-violet-600 border border-violet-400/50',
+                  ];
+                  return (
+                    <button
+                      key={car.id}
+                      onClick={() => navigate('/start', { state: { carId: car.id, carName: car.name ?? car.numberPlate } })}
+                      className={`w-full py-5 rounded-2xl text-white font-semibold text-xl ${carColors[i % carColors.length]} transition-all duration-150 select-none`}
+                    >
+                      {car.name ?? car.numberPlate}
+                    </button>
+                  );
+                })}
+              </>
+            ) : (
               <button
-                key={car.id}
-                onClick={() => navigate('/start', { state: { carId: car.id, carName: car.name ?? car.numberPlate } })}
-                className="brb w-full py-6 rounded-2xl text-white font-bold text-2xl
-                           bg-red-600 hover:bg-red-500 active:bg-red-700
-                           border-2 border-red-500 shadow-lg
-                           transition-all duration-150 select-none"
+                onClick={() => navigate('/car')}
+                className="w-full py-5 rounded-2xl text-white font-semibold text-xl bg-slate-500/90 hover:bg-slate-400 active:bg-slate-600 border border-slate-400/50 transition-all duration-150 select-none"
               >
-                {car.name ?? car.numberPlate}
+                Add your first car →
               </button>
-            ))}
+            )}
+            <button
+              onClick={() => navigate('/start', { state: { guestCar: true } })}
+              className="w-full py-4 rounded-2xl text-slate-700 dark:text-slate-200 font-medium text-lg
+                         bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-900/60
+                         active:bg-amber-300 dark:active:bg-amber-900/80
+                         border border-amber-300/50 dark:border-amber-700/50
+                         transition-all duration-150 select-none"
+            >
+              Guest car
+            </button>
 
             <button
+              onClick={() => navigate('/manual-log')}
+              className="w-full py-4 rounded-2xl text-slate-700 dark:text-slate-200 font-medium text-lg
+                         bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700
+                         active:bg-slate-300 dark:active:bg-slate-600
+                         border border-slate-300 dark:border-slate-600
+                         transition-all duration-150 select-none mt-2"
+            >
+              Log trip manually
+            </button>
+            <button
               onClick={() => navigate('/history')}
-              className="brb w-full py-5 rounded-2xl text-white font-bold text-xl
-                         bg-slate-600 dark:bg-slate-700 hover:bg-slate-500 dark:hover:bg-slate-600 active:bg-slate-700 dark:active:bg-slate-800
-                         border-2 border-slate-500
-                         transition-all duration-150 select-none mt-4"
+              className="w-full py-4 rounded-2xl text-slate-700 dark:text-slate-200 font-medium text-lg
+                         bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700
+                         active:bg-slate-300 dark:active:bg-slate-600
+                         border border-slate-300 dark:border-slate-600
+                         transition-all duration-150 select-none mt-2"
             >
               View details
             </button>

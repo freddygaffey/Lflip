@@ -82,6 +82,9 @@ export const tripManager = {
   },
 
   async stopTrip(endOdometer, weather) {
+    // #region agent log
+    fetch('http://127.0.0.1:7938/ingest/f7aa0a24-53c8-4219-b65d-21d2777d153f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'90cb2b'},body:JSON.stringify({sessionId:'90cb2b',location:'tripManager.js:stopTrip',message:'stopTrip called',data:{endOdometer,weather,startOdometer:this.state?.startOdometer},hypothesisId:'C',timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (!this.state || this.state.phase !== 'active') {
       throw new Error('No active trip');
     }

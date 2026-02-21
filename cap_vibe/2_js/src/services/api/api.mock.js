@@ -32,6 +32,27 @@ async function saveJson(key, value) {
   await Preferences.set({ key, value: JSON.stringify(value) });
 }
 
+async function saveTrips(trips) {
+  const trimmed = trips.map(trimTripForStorage);
+  await saveJson(KEYS.trips, trimmed);
+}
+
+/** Trim trip GPS/accel arrays for storage to avoid localStorage quota (demo / web). */
+function trimTripForStorage(trip) {
+  const max = 50;
+  const sample = (arr, n) => {
+    if (!arr || !arr.length || arr.length <= n) return arr ?? [];
+    if (n <= 1) return arr.length ? [arr[0]] : [];
+    const step = (arr.length - 1) / (n - 1);
+    return Array.from({ length: n }, (_, i) => arr[Math.round(Math.min(i * step, arr.length - 1))]);
+  };
+  return {
+    ...trip,
+    gpsPoints: sample(trip?.gpsPoints, max),
+    accelPoints: sample(trip?.accelPoints, max),
+  };
+}
+
 export class MockApiService {
   constructor() {
     this.trips = [];
@@ -49,21 +70,15 @@ export class MockApiService {
     if (!seeded) {
       this.trips = createSeedTrips();
       this.supervisors = createSeedSupervisors();
-      this.cars = [
-        { id: 'car-001', name: 'ABC-123', numberPlate: 'ABC-123', lastOdometer: 43500 },
-        { id: 'car-002', name: 'XYZ-789', numberPlate: 'XYZ-789', lastOdometer: 52100 },
-      ];
-      await saveJson(KEYS.trips, this.trips);
+      this.cars = [];
+      await saveTrips(this.trips);
       await saveJson(KEYS.supervisors, this.supervisors);
       await saveJson(KEYS.cars, this.cars);
       await saveJson(KEYS.seeded, true);
     } else {
       this.trips = (await loadJson(KEYS.trips)) ?? [];
       this.supervisors = (await loadJson(KEYS.supervisors)) ?? [];
-      this.cars = (await loadJson(KEYS.cars)) ?? [
-      { id: 'car-001', name: 'ABC-123', numberPlate: 'ABC-123', lastOdometer: 43500 },
-      { id: 'car-002', name: 'XYZ-789', numberPlate: 'XYZ-789', lastOdometer: 52100 },
-    ];
+      this.cars = (await loadJson(KEYS.cars)) ?? [];
     }
     this.authToken = (await loadJson(KEYS.authToken)) ?? null;
   }
@@ -98,7 +113,7 @@ export class MockApiService {
     const updated = { ...trip, syncStatus: 'synced', cloudId: `cloud-${trip.id}` };
     if (idx >= 0) this.trips[idx] = updated;
     else this.trips.push(updated);
-    await saveJson(KEYS.trips, this.trips);
+    await saveTrips(this.trips);
     return { cloudId: updated.cloudId };
   }
 
@@ -133,7 +148,7 @@ export class MockApiService {
     await randomDelay();
     maybeNetworkError();
     this.trips = this.trips.filter((t) => t.id !== tripId);
-    await saveJson(KEYS.trips, this.trips);
+    await saveTrips(this.trips);
   }
 
   async approveTrip(tripId, approved) {
@@ -148,7 +163,7 @@ export class MockApiService {
       approvedBy: 'mock-parent',
       approvedAt: Date.now(),
     };
-    await saveJson(KEYS.trips, this.trips);
+    await saveTrips(this.trips);
     return { success: true };
   }
 
@@ -259,6 +274,6 @@ export class MockApiService {
     const idx = this.trips.findIndex((t) => t.id === trip.id);
     if (idx >= 0) this.trips[idx] = trip;
     else this.trips.push(trip);
-    await saveJson(KEYS.trips, this.trips);
+    await saveTrips(this.trips);
   }
 }

@@ -39,7 +39,7 @@ export function TripHistory() {
             nswFormat ? 'bg-green-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 shadow-sm dark:shadow-none'
           }`}
         >
-          📋 NSW format
+          📋 Log book format
         </button>
       </div>
 

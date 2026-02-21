@@ -14,24 +14,28 @@ export function StartTrip() {
   const { status: bleStatus } = useBle();
   const { cars, updateCar } = useCars();
 
+  const guestCar = location.state?.guestCar === true;
   const selectedCar = location.state?.carId
     ? { id: location.state.carId, name: location.state.carName }
-    : null;
+    : guestCar
+      ? { id: null, name: 'Guest car' }
+      : null;
 
   const [step, setStep] = useState('supervisor');
   const [supervisorId, setSupervisorId] = useState(null);
   const [supervisorName, setSupervisorName] = useState('');
   const [odoLast3, setOdoLast3] = useState('');
+  const [odoManual, setOdoManual] = useState('');
   const [odoFromEsp, setOdoFromEsp] = useState(null);
   const [loadingOdo, setLoadingOdo] = useState(false);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
 
-  const carForOdo = selectedCar
+  const carForOdo = guestCar ? null : (selectedCar
     ? cars.find((c) => c.id === selectedCar.id) ?? cars[0]
-    : cars[0];
+    : cars[0]);
 
-  // Pre-fill supervisor from car's default SD when available
+  // Pre-fill supervisor from car's default SD when available (not for guest car)
   useEffect(() => {
     if (carForOdo?.defaultSupervisorId && !supervisorId) {
       setSupervisorId(carForOdo.defaultSupervisorId);
@@ -41,7 +45,9 @@ export function StartTrip() {
 
   const lastOdo = odoFromEsp ?? carForOdo?.lastOdometer ?? 43200;
   const odoBase = Math.floor(lastOdo / 1000) * 1000;
-  const fullOdo = odoLast3.length === 3 ? odoBase + parseInt(odoLast3, 10) : odoBase;
+  const fullOdoFromLast3 = odoLast3.length === 3 ? odoBase + parseInt(odoLast3, 10) : odoBase;
+  const fullOdoManual = parseInt(odoManual.replace(/\D/g, ''), 10) || 0;
+  const fullOdo = guestCar ? (odoFromEsp ?? fullOdoManual) : fullOdoFromLast3;
 
   const handleGetOdoFromEsp = async () => {
     setLoadingOdo(true);
@@ -51,7 +57,8 @@ export function StartTrip() {
       if (odo != null) {
         setOdoFromEsp(odo);
         setOdoLast3(String(odo).slice(-3));
-        if (carForOdo?.id) {
+        setOdoManual(String(odo));
+        if (carForOdo?.id && !guestCar) {
           await updateCar?.(carForOdo.id, { lastOdometer: odo });
         }
       }
@@ -63,7 +70,7 @@ export function StartTrip() {
   };
 
   const handleStart = async () => {
-    if (!supervisorId || !supervisorName) return;
+    if (!supervisorId || !supervisorName || fullOdo < 1) return;
     setStarting(true);
     setError(null);
     try {
@@ -71,7 +78,7 @@ export function StartTrip() {
         supervisorId,
         supervisorName,
         weather: 'sunny',
-        startOdometer: fullOdo,
+        startOdometer: Math.round(fullOdo),
       });
       navigate('/active', { replace: true });
     } catch (err) {
@@ -90,7 +97,8 @@ export function StartTrip() {
         if (odo != null) {
           setOdoFromEsp(odo);
           setOdoLast3(String(odo).slice(-3));
-          if (carForOdo?.id) {
+          setOdoManual(String(odo));
+          if (carForOdo?.id && !guestCar) {
             await updateCar?.(carForOdo.id, { lastOdometer: odo });
           }
           await startTrip({
@@ -166,38 +174,79 @@ export function StartTrip() {
 
       {step === 'odo' && (
         <div className="space-y-4">
-          <h2 className="text-slate-900 dark:text-white font-semibold text-lg mb-1">Confirm odometer</h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm">
-            Last known: {lastOdo.toLocaleString()} km. Enter last 3 digits to confirm.
-          </p>
-          {bleStatus === 'connected' && (
-            <button
-              onClick={handleGetOdoFromEsp}
-              disabled={loadingOdo}
-              className="btn-secondary w-full mb-2"
-            >
-              {loadingOdo ? 'Getting from ESP32…' : 'Get ODO from ESP32'}
-            </button>
+          <h2 className="text-slate-900 dark:text-white font-semibold text-lg mb-1">
+            {guestCar ? 'Enter start odometer' : 'Confirm odometer'}
+          </h2>
+          {guestCar ? (
+            <>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Enter the odometer reading at trip start. GPS & sensors will log during the trip.
+              </p>
+              {bleStatus === 'connected' && (
+                <button
+                  onClick={handleGetOdoFromEsp}
+                  disabled={loadingOdo}
+                  className="btn-secondary w-full mb-2"
+                >
+                  {loadingOdo ? 'Getting from ESP32…' : 'Get ODO from ESP32'}
+                </button>
+              )}
+              <div>
+                <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Start odometer (km)</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={odoManual}
+                  onChange={(e) => setOdoManual(e.target.value.replace(/\D/g, ''))}
+                  placeholder="43250"
+                  className="input-field text-xl font-mono text-center w-full"
+                  autoFocus
+                />
+              </div>
+              {(odoFromEsp ?? fullOdoManual) > 0 && (
+                <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-3 text-center">
+                  <span className="text-slate-600 dark:text-slate-400">Start: </span>
+                  <span className="text-slate-900 dark:text-white font-mono text-xl">
+                    {(odoFromEsp ?? fullOdoManual).toLocaleString()} km
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                Last known: {lastOdo.toLocaleString()} km. Enter last 3 digits to confirm.
+              </p>
+              {bleStatus === 'connected' && (
+                <button
+                  onClick={handleGetOdoFromEsp}
+                  disabled={loadingOdo}
+                  className="btn-secondary w-full mb-2"
+                >
+                  {loadingOdo ? 'Getting from ESP32…' : 'Get ODO from ESP32'}
+                </button>
+              )}
+              <div>
+                <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Last 3 digits of ODO</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={3}
+                  value={odoLast3}
+                  onChange={(e) => setOdoLast3(e.target.value.replace(/\D/g, '').slice(-3))}
+                  placeholder={String(lastOdo).slice(-3)}
+                  className="input-field text-xl font-mono text-center"
+                  autoFocus
+                />
+              </div>
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-3 text-center">
+                <span className="text-slate-600 dark:text-slate-400">Odometer: </span>
+                <span className="text-slate-900 dark:text-white font-mono text-xl">
+                  {odoLast3.length === 3 ? fullOdo.toLocaleString() : `${odoBase.toLocaleString()}XXX`} km
+                </span>
+              </div>
+            </>
           )}
-          <div>
-            <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Last 3 digits of ODO</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={3}
-              value={odoLast3}
-              onChange={(e) => setOdoLast3(e.target.value.replace(/\D/g, '').slice(-3))}
-              placeholder={String(lastOdo).slice(-3)}
-              className="input-field text-xl font-mono text-center"
-              autoFocus
-            />
-          </div>
-          <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-3 text-center">
-            <span className="text-slate-600 dark:text-slate-400">Odometer: </span>
-            <span className="text-slate-900 dark:text-white font-mono text-xl">
-              {odoLast3.length === 3 ? fullOdo.toLocaleString() : `${odoBase.toLocaleString()}XXX`} km
-            </span>
-          </div>
 
           {error && (
             <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-400 text-sm">
@@ -205,7 +254,7 @@ export function StartTrip() {
             </div>
           )}
 
-          {bleStatus !== 'connected' && (
+          {bleStatus !== 'connected' && !guestCar && (
             <div className="bg-amber-900/20 border border-amber-700/50 rounded-xl p-3 text-amber-400 text-sm">
               ⚠️ ESP32 not connected — trip will use manual odometer.
             </div>
@@ -217,7 +266,7 @@ export function StartTrip() {
             </button>
             <button
               onClick={handleStart}
-              disabled={odoLast3.length < 3 || starting}
+              disabled={(guestCar ? fullOdo < 1 : odoLast3.length < 3) || starting}
               className="btn-primary flex-1 bg-green-500 hover:bg-green-400 disabled:opacity-50"
             >
               {starting ? 'Starting…' : '🚗 Start'}

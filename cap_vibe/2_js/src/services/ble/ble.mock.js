@@ -65,8 +65,15 @@ export class MockBleService {
   async getCurrentOdometer() {
     if (this.status !== 'connected') throw new Error('BLE not connected');
     await delay(600);
-    const odo = this.activeTripStartOdo ?? this.mockCurrentOdo;
-    return Math.round(odo);
+    const startOdo = this.activeTripStartOdo ?? this.mockCurrentOdo;
+    // During active trip, simulate odometer increasing with elapsed time
+    if (this.activeTripStartTime) {
+      const durationMin = (Date.now() - this.activeTripStartTime) / 60000;
+      const distanceKm = Math.max((durationMin / 60) * 48, 0.1); // ~48 km/h, min 0.1 km
+      const endOdo = startOdo + distanceKm;
+      return Math.round(endOdo);
+    }
+    return Math.round(startOdo);
   }
 
   /** Odometer only — ESP32 provides { startOdo, endOdo } at trip end */

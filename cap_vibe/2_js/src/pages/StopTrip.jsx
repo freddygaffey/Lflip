@@ -1,19 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WeatherPicker } from '../components/WeatherPicker.jsx';
+import { ConnectionBadge } from '../components/ConnectionBadge.jsx';
 import { useTripContext } from '../context/TripContext.jsx';
 import { useBle } from '../context/BleContext.jsx';
 import { bleService } from '../services/ble/index.js';
+import { totalDistanceKm } from '../utils/calculateDistance.js';
 import { formatDate, formatTime, formatHoursMinutes } from '../utils/formatTime.js';
 
 export function StopTrip() {
   const navigate = useNavigate();
   const { activeTrip, stopTrip, lastCompletedTrip } = useTripContext();
   const { status: bleStatus } = useBle();
-  const triedEspRef = useRef(false);
+  const triedAutoRef = useRef(false);
 
   const [step, setStep] = useState('odometer');
-  const [odometer, setOdometer] = useState('');
+  const [odoLast3, setOdoLast3] = useState('');
+  const [odoFromEsp, setOdoFromEsp] = useState(null);
+  const [gpsEstimateUsed, setGpsEstimateUsed] = useState(false);
+  const [loadingOdo, setLoadingOdo] = useState(false);
   const [weather, setWeather] = useState(null);
   const [completedTrip, setCompletedTrip] = useState(null);
   const [error, setError] = useState(null);
@@ -26,31 +31,52 @@ export function StopTrip() {
     }
   }, [lastCompletedTrip]);
 
+  // On odometer step: try car ODO → auto-advance to weather if success; else try GPS interpolation → prompt user
   useEffect(() => {
-    if (!activeTrip || step !== 'odometer' || triedEspRef.current) return;
-    if (bleStatus !== 'connected' || !bleService.getCurrentOdometer) return;
-    triedEspRef.current = true;
-    setStopping(true);
+    if (!activeTrip || step !== 'odometer' || triedAutoRef.current) return;
+    const startOdo = activeTrip.startOdometer ?? 0;
+
+    setLoadingOdo(true);
     setError(null);
-    bleService.getCurrentOdometer()
-      .then((endOdo) => {
-        if (endOdo == null) return;
-        const startOdo = activeTrip?.startOdometer ?? 0;
-        if (endOdo <= startOdo) return;
-        return stopTrip(Math.round(endOdo), 'sunny');
-      })
-      .then((trip) => {
-        if (trip) {
-          setCompletedTrip(trip);
-          setStep('summary');
+
+    const run = async () => {
+      let didSet = false;
+
+      try {
+        // 1. Try to get ODO from car (ESP32)
+        if (bleStatus === 'connected' && bleService.getCurrentOdometer) {
+          const endOdo = await bleService.getCurrentOdometer();
+          if (endOdo != null && endOdo >= startOdo) {
+            setOdoFromEsp(endOdo);
+            setOdoLast3(String(Math.round(endOdo)).slice(-3));
+            setStep('weather');
+            didSet = true;
+          }
         }
-      })
-      .catch((err) => {
-        setError(err?.message ?? 'Could not get odometer from ESP32 — enter manually below.');
-      })
-      .finally(() => {
-        setStopping(false);
-      });
+      } catch {
+        // Car ODO failed — fall through to GPS
+      }
+
+      if (!didSet) {
+        // 2. Try GPS interpolation on distance traveled
+        const pts = activeTrip.gpsPoints ?? [];
+        if (pts.length >= 2) {
+          const distKm = totalDistanceKm(pts);
+          const estEndOdo = Math.round(startOdo + distKm);
+          if (estEndOdo >= startOdo) {
+            setOdoFromEsp(estEndOdo);
+            setOdoLast3(String(estEndOdo).slice(-3));
+            setGpsEstimateUsed(true);
+            didSet = true;
+          }
+        }
+      }
+
+      // Only block retries when we successfully got a value; otherwise retry when activeTrip updates
+      if (didSet) triedAutoRef.current = true;
+    };
+
+    run().finally(() => setLoadingOdo(false));
   }, [activeTrip, step, bleStatus]);
 
   if (!activeTrip && !completedTrip) {
@@ -65,15 +91,37 @@ export function StopTrip() {
   }
 
   const startOdo = activeTrip?.startOdometer ?? 0;
+  const lastOdo = odoFromEsp ?? startOdo;
+  const odoBase = Math.floor(lastOdo / 1000) * 1000;
+  const fullOdo = odoLast3.length === 3 ? odoBase + parseInt(odoLast3, 10) : odoBase;
+
+  const handleGetOdoFromEsp = async () => {
+    setLoadingOdo(true);
+    setError(null);
+    try {
+      const odo = await bleService.getCurrentOdometer?.();
+      if (odo != null) {
+        setOdoFromEsp(odo);
+        setOdoLast3(String(odo).slice(-3));
+      }
+    } catch (err) {
+      setError(err?.message ?? 'Failed to get odometer from ESP32');
+    } finally {
+      setLoadingOdo(false);
+    }
+  };
 
   const handleStop = async () => {
-    if (!odometer || !activeTrip) return;
-    const endOdo = parseFloat(odometer);
-    if (endOdo <= startOdo) return;
+    if (!activeTrip) return;
+    const endOdo = odoLast3.length === 3 ? fullOdo : null;
+    // #region agent log
+    fetch('http://127.0.0.1:7938/ingest/f7aa0a24-53c8-4219-b65d-21d2777d153f',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'90cb2b'},body:JSON.stringify({sessionId:'90cb2b',location:'StopTrip.jsx:handleStop',message:'handleStop called',data:{odoLast3,fullOdo,startOdo,endOdo,willEarlyReturn:endOdo==null||endOdo<=startOdo},hypothesisId:'B,C',timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    if (endOdo == null || endOdo < startOdo) return;
     setStopping(true);
     setError(null);
     try {
-      const trip = await stopTrip(endOdo, weather ?? 'sunny');
+      const trip = await stopTrip(Math.round(endOdo), weather ?? 'sunny');
       setCompletedTrip(trip);
       setStep('summary');
     } catch (err) {
@@ -83,76 +131,81 @@ export function StopTrip() {
   };
 
   if (step === 'odometer') {
+    const canProceed = odoLast3.length === 3 && fullOdo >= startOdo;
     return (
       <div className="page-content px-4 py-6 space-y-5">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-6">
           <button onClick={() => navigate('/active')} className="text-slate-600 dark:text-slate-400 text-xl p-1">←</button>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white">Stop Trip</h1>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex-1">Stop Trip</h1>
+          <ConnectionBadge status={bleStatus} />
         </div>
 
-        {stopping && !error && (
-          <p className="text-slate-600 dark:text-slate-400 text-sm text-center py-4">
-            Getting end odometer from ESP32…
+        {loadingOdo ? (
+          <p className="text-slate-600 dark:text-slate-400 text-sm text-center py-8">
+            Getting ODO from car…
           </p>
-        )}
-
-        {error && (
-          <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-
-        {!stopping && (
-        <div className="space-y-3">
+        ) : (
+        <div className="space-y-4">
+          <h2 className="text-slate-900 dark:text-white font-semibold text-lg mb-1">Confirm end odometer</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
+            Start was {startOdo.toLocaleString()} km. Enter last 3 digits of end odometer.
+          </p>
+          {gpsEstimateUsed && (
+            <p className="text-blue-400 dark:text-blue-300 text-sm bg-blue-900/20 rounded-xl px-3 py-2">
+              📍 Pre-filled from GPS distance — please confirm or correct.
+            </p>
+          )}
           {bleStatus === 'connected' && (
             <button
-              onClick={async () => {
-                setStopping(true);
-                setError(null);
-                try {
-                  const endOdo = await bleService.getCurrentOdometer?.();
-                  if (endOdo != null && endOdo > startOdo) {
-                    const trip = await stopTrip(Math.round(endOdo), 'sunny');
-                    setCompletedTrip(trip);
-                    setStep('summary');
-                    return;
-                  }
-                } catch (e) {
-                  setError(e?.message ?? 'Failed to get odometer');
-                } finally {
-                  setStopping(false);
-                }
-              }}
-              disabled={stopping}
-              className="btn-secondary w-full"
+              onClick={handleGetOdoFromEsp}
+              disabled={loadingOdo}
+              className="btn-secondary w-full mb-2"
             >
-              Get end ODO from ESP32
+              {loadingOdo ? 'Getting from ESP32…' : 'Get ODO from ESP32'}
             </button>
           )}
           <div>
-          <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">End odometer (km)</label>
-          <input
-            type="number"
-            inputMode="numeric"
-            value={odometer}
-            onChange={(e) => setOdometer(e.target.value)}
-            placeholder={`e.g. ${startOdo + 15}`}
-            className="input-field text-xl font-mono"
-            autoFocus
-          />
-          {odometer && parseFloat(odometer) <= startOdo && (
-            <p className="text-red-400 text-xs mt-1">Must be greater than start ({startOdo} km)</p>
+            <label className="text-slate-600 dark:text-slate-400 text-sm block mb-1.5">Last 3 digits of ODO</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={3}
+              value={odoLast3}
+              onChange={(e) => setOdoLast3(e.target.value.replace(/\D/g, '').slice(-3))}
+              placeholder={String(startOdo).slice(-3)}
+              className="input-field text-xl font-mono text-center"
+              autoFocus
+            />
+          </div>
+          <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-3 text-center">
+            <span className="text-slate-600 dark:text-slate-400">End odometer: </span>
+            <span className="text-slate-900 dark:text-white font-mono text-xl">
+              {odoLast3.length === 3 ? fullOdo.toLocaleString() : `${odoBase.toLocaleString()}XXX`} km
+            </span>
+          </div>
+          {odoLast3.length === 3 && fullOdo < startOdo && (
+            <p className="text-red-400 text-xs">Must not be less than start ({startOdo.toLocaleString()} km)</p>
           )}
-        </div>
 
-          {odometer && parseFloat(odometer) > startOdo && (
-            <button
-              onClick={() => setStep('weather')}
-              className="btn-primary w-full"
-            >
-              Next: Weather →
-            </button>
+          {error && (
+            <div className="bg-red-900/30 border border-red-700 rounded-xl p-3 text-red-400 text-sm">
+              {error}
+            </div>
           )}
+
+          {bleStatus !== 'connected' && (
+            <div className="bg-amber-900/20 border border-amber-700/50 rounded-xl p-3 text-amber-400 text-sm">
+              ⚠️ ESP32 not connected — enter end odometer manually.
+            </div>
+          )}
+
+          <button
+            onClick={() => setStep('weather')}
+            disabled={!canProceed}
+            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next: Weather →
+          </button>
         </div>
         )}
       </div>

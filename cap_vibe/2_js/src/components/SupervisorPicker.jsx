@@ -1,16 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { apiService } from '../services/api/index.js';
+import React from 'react';
+import { useSupervisors } from '../context/SupervisorsContext.jsx';
 
 export function SupervisorPicker({ value, onChange }) {
-  const [supervisors, setSupervisors] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    apiService.getSupervisors().then((sups) => {
-      setSupervisors(sups);
-      setLoading(false);
-    });
-  }, []);
+  const { supervisors, loading } = useSupervisors();
 
   if (loading) {
     return <div className="text-slate-600 dark:text-slate-400 text-sm text-center py-4">Loading supervisors…</div>;
