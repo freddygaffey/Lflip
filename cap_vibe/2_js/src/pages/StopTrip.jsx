@@ -240,7 +240,7 @@ export function StopTrip() {
           disabled={stopping}
           className="btn-danger w-full text-xl py-5 disabled:opacity-50"
         >
-          {stopping ? '⏳ Stopping…' : '⏹ Stop & Save Trip'}
+          {stopping ? '⏳ Stopping…' : 'Save Trip'}
         </button>
       </div>
     );

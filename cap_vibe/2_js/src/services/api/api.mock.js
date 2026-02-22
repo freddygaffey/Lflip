@@ -1,7 +1,7 @@
 import { Preferences } from '@capacitor/preferences';
 import { v4 as uuidv4 } from 'uuid';
 import { createSeedTrips, createSeedSupervisors } from '../../utils/seedData.js';
-import { DEFAULT_TARGET_HOURS, NIGHT_HOURS_REQUIRED } from '../../config.js';
+import { STATE_REQUIREMENTS, DEFAULT_STATE, DEFAULT_TARGET_HOURS, NIGHT_HOURS_REQUIRED } from '../../config.js';
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 const randomDelay = () => delay(200 + Math.random() * 300);
@@ -117,15 +117,16 @@ export class MockApiService {
     const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
     const profile = profiles[userId];
     const userName = profile?.name ?? name;
-    const user = { userId, name: userName, role, licenceNumber: profile?.licenceNumber ?? null };
-    profiles[userId] = { ...profiles[userId], name: userName, licenceNumber: user.licenceNumber };
+    const userState = profile?.state ?? DEFAULT_STATE;
+    const user = { userId, name: userName, role, licenceNumber: profile?.licenceNumber ?? null, state: userState };
+    profiles[userId] = { ...profiles[userId], name: userName, licenceNumber: user.licenceNumber, state: userState };
     await saveJson(KEYS.userProfiles, profiles);
     await saveJson(KEYS.authToken, token);
     await saveJson(KEYS.currentUser, user);
     return { token, ...user };
   }
 
-  async register(email, _password, name, licenceNumber, role) {
+  async register(email, _password, name, licenceNumber, role, state) {
     await this._init();
     await randomDelay();
     maybeNetworkError();
@@ -134,9 +135,10 @@ export class MockApiService {
     if (!name) name = email.split('@')[0].replace(/[._]/g, ' ');
     const userRole = role === 'parent' || role === 'learner' ? role : 'learner';
     const userId = `mock-user-${uuidv4().slice(0, 8)}`;
-    const user = { userId, name, role: userRole, licenceNumber: licenceNumber?.trim() || null };
+    const userState = state || DEFAULT_STATE;
+    const user = { userId, name, role: userRole, licenceNumber: licenceNumber?.trim() || null, state: userState };
     const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
-    profiles[userId] = { ...profiles[userId], name, licenceNumber: user.licenceNumber };
+    profiles[userId] = { ...profiles[userId], name, licenceNumber: user.licenceNumber, state: userState };
     await saveJson(KEYS.userProfiles, profiles);
     await saveJson(KEYS.authToken, token);
     await saveJson(KEYS.currentUser, user);
@@ -148,16 +150,29 @@ export class MockApiService {
     const token = await loadJson(KEYS.authToken);
     if (!token) return null;
     let user = await loadJson(KEYS.currentUser);
-    if (!user) return { userId: 'mock-user-001', name: 'User', role: 'learner', licenceNumber: null };
+    if (!user) return { userId: 'mock-user-001', name: 'User', role: 'learner', licenceNumber: null, state: DEFAULT_STATE };
     const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
     const profile = profiles[user.userId];
-    return { ...user, licenceNumber: profile?.licenceNumber ?? user.licenceNumber ?? null };
+    return { ...user, licenceNumber: profile?.licenceNumber ?? user.licenceNumber ?? null, state: profile?.state ?? user.state ?? DEFAULT_STATE };
   }
 
   async logout() {
     await Preferences.remove({ key: KEYS.authToken });
     await Preferences.remove({ key: KEYS.currentUser });
     this.authToken = null;
+  }
+
+  async updateState(newState) {
+    await this._init();
+    const user = await loadJson(KEYS.currentUser);
+    if (!user) throw new Error('Not logged in');
+    user.state = newState;
+    await saveJson(KEYS.currentUser, user);
+    const profiles = (await loadJson(KEYS.userProfiles)) ?? {};
+    if (profiles[user.userId]) {
+      profiles[user.userId].state = newState;
+      await saveJson(KEYS.userProfiles, profiles);
+    }
   }
 
   async syncTrip(trip) {
@@ -377,6 +392,9 @@ export class MockApiService {
     await this._init();
     await randomDelay();
 
+    const user = await this.getCurrentUser();
+    const reqs = STATE_REQUIREMENTS[user?.state] || STATE_REQUIREMENTS[DEFAULT_STATE];
+
     const completed = this.trips.filter((t) => t.status === 'complete');
     const totalMinutes = completed.reduce((acc, t) => acc + (t.dayMinutes ?? 0) + (t.nightMinutes ?? 0), 0);
     const dayMinutes = completed.reduce((acc, t) => acc + (t.dayMinutes ?? 0), 0);
@@ -388,8 +406,8 @@ export class MockApiService {
       dayHours: dayMinutes / 60,
       nightHours: nightMinutes / 60,
       tripCount: completed.length,
-      targetHours: DEFAULT_TARGET_HOURS,
-      nightTargetHours: NIGHT_HOURS_REQUIRED,
+      targetHours: reqs.total,
+      nightTargetHours: reqs.night,
       lastTripDate: sorted[0]?.startTime,
     };
   }

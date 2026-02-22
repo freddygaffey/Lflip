@@ -11,6 +11,9 @@ export function Supervisors() {
   const [licenceNumber, setLicenceNumber] = useState('');
   const [relationship, setRelationship] = useState('Parent');
 
+  const LICENCE_REGEX = /^[A-Za-z0-9]{6,10}$/;
+  const licenceValid = licenceNumber === '' || LICENCE_REGEX.test(licenceNumber);
+
   const handleAdd = async () => {
     if (!name.trim()) return;
     setAdding(true);
@@ -55,9 +58,13 @@ export function Supervisors() {
           type="text"
           placeholder="Licence number (optional)"
           value={licenceNumber}
-          onChange={(e) => setLicenceNumber(e.target.value)}
-          className="input-field"
+          onChange={(e) => setLicenceNumber(e.target.value.replace(/[^A-Za-z0-9]/g, ''))}
+          maxLength={10}
+          className={`input-field ${licenceNumber && !licenceValid ? 'ring-2 ring-red-400' : ''}`}
         />
+        {licenceNumber && !licenceValid && (
+          <p className="text-red-400 text-xs -mt-1">Must be 6–10 alphanumeric characters</p>
+        )}
         <select
           value={relationship}
           onChange={(e) => setRelationship(e.target.value)}
@@ -68,7 +75,7 @@ export function Supervisors() {
           <option value="Friend">Friend</option>
           <option value="Other">Other</option>
         </select>
-        <button onClick={handleAdd} disabled={!name.trim() || adding} className="btn-primary w-full">
+        <button onClick={handleAdd} disabled={!name.trim() || !licenceValid || adding} className="btn-primary w-full">
           {adding ? 'Adding…' : 'Add'}
         </button>
       </div>

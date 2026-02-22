@@ -102,7 +102,7 @@ export function StopTrip() {
           disabled={!odometer || stopping || parseFloat(odometer) <= (activeTrip?.startOdometer ?? 0)}
           className="btn-danger w-full disabled:opacity-50 text-xl py-5"
         >
-          {stopping ? '⏳ Stopping…' : '⏹ Stop & Save Trip'}
+          {stopping ? '⏳ Stopping…' : 'Save Trip'}
         </button>
       </div>
     );

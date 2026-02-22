@@ -91,15 +91,33 @@ export function TripHistory() {
           {error}
         </div>
       )}
-      {!loading && filteredTrips.length === 0 && (
+      {!loading && isParent && learners.length === 0 && (
+        <div className="text-center py-12 space-y-3">
+          <div className="text-5xl">👨‍👧</div>
+          <p className="text-slate-700 dark:text-slate-300 font-medium">No learners linked yet</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs mx-auto">
+            Link your learner's account to view their driving progress and approve trips.
+          </p>
+          <button onClick={() => navigate('/scan-pair')} className="btn-primary">
+            Add a learner
+          </button>
+        </div>
+      )}
+      {!loading && filteredTrips.length === 0 && !(isParent && learners.length === 0) && (
         <div className="text-center py-12 space-y-3">
           <div className="text-5xl">📋</div>
           <p className="text-slate-600 dark:text-slate-400">
             {learnerFilter ? 'No trips for this learner.' : 'No trips recorded yet.'}
           </p>
-          <button onClick={() => navigate('/start')} className="btn-primary">
-            Start your first trip
-          </button>
+          {isParent ? (
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              Your learner's trips will appear here once they start driving.
+            </p>
+          ) : (
+            <button onClick={() => navigate('/start')} className="btn-primary">
+              Start your first trip
+            </button>
+          )}
         </div>
       )}
 

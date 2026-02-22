@@ -1,15 +1,23 @@
+import { Preferences } from '@capacitor/preferences';
 import { API_BASE_URL } from '../../config.js';
 
-/**
- * Real API Service — implement when Flask backend is ready.
- */
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
+
 export class RealApiService {
   constructor() {
     this.baseUrl = API_BASE_URL;
     this.token = null;
+    this._ready = this._loadToken();
+  }
+
+  async _loadToken() {
+    const { value } = await Preferences.get({ key: TOKEN_KEY });
+    this.token = value || null;
   }
 
   async _fetch(endpoint, options = {}) {
+    await this._ready;
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers: {
@@ -18,91 +26,206 @@ export class RealApiService {
         ...options.headers,
       },
     });
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `API error: ${res.status}`);
+    }
     return res.json();
   }
 
-  async login(_email, _password) {
-    throw new Error('Real API not implemented yet');
+  // ── Auth ──────────────────────────────────────────────────────────────
+
+  async login(email, password) {
+    const data = await this._fetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    this.token = data.token;
+    await Preferences.set({ key: TOKEN_KEY, value: data.token });
+    await Preferences.set({ key: USER_KEY, value: JSON.stringify(data) });
+    return data;
   }
 
-  async register(_email, _password, _name, _licenceNumber, _role) {
-    throw new Error('Real API not implemented yet');
+  async register(email, password, name, licenceNumber, role, state) {
+    const data = await this._fetch('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name, licenceNumber, role, state }),
+    });
+    this.token = data.token;
+    await Preferences.set({ key: TOKEN_KEY, value: data.token });
+    await Preferences.set({ key: USER_KEY, value: JSON.stringify(data) });
+    return data;
   }
 
   async getCurrentUser() {
-    return null;
+    await this._ready;
+    if (!this.token) return null;
+    try {
+      const data = await this._fetch('/api/auth/me');
+      await Preferences.set({ key: USER_KEY, value: JSON.stringify(data) });
+      return data;
+    } catch {
+      this.token = null;
+      await Preferences.remove({ key: TOKEN_KEY });
+      await Preferences.remove({ key: USER_KEY });
+      return null;
+    }
   }
 
   async logout() {
     this.token = null;
+    await Preferences.remove({ key: TOKEN_KEY });
+    await Preferences.remove({ key: USER_KEY });
   }
 
-  async syncTrip(_trip) {
-    throw new Error('Real API not implemented yet');
+  async updateEmail(newEmail, password) {
+    return this._fetch('/api/auth/update-email', {
+      method: 'PATCH',
+      body: JSON.stringify({ newEmail, password }),
+    });
   }
 
-  async getTrips(_filters) {
-    throw new Error('Real API not implemented yet');
+  async updatePassword(currentPassword, newPassword) {
+    return this._fetch('/api/auth/update-password', {
+      method: 'PATCH',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
   }
 
-  async getTrip(_tripId) {
-    throw new Error('Real API not implemented yet');
+  async updateState(state) {
+    const data = await this._fetch('/api/auth/update-state', {
+      method: 'PATCH',
+      body: JSON.stringify({ state }),
+    });
+    const { value } = await Preferences.get({ key: USER_KEY });
+    if (value) {
+      const user = JSON.parse(value);
+      user.state = state;
+      await Preferences.set({ key: USER_KEY, value: JSON.stringify(user) });
+    }
+    return data;
   }
 
-  async deleteTrip(_tripId) {
-    throw new Error('Real API not implemented yet');
+  // ── Trips ─────────────────────────────────────────────────────────────
+
+  async syncTrip(trip) {
+    return this._fetch('/api/trips', {
+      method: 'POST',
+      body: JSON.stringify(trip),
+    });
   }
 
-  async approveTrip(_tripId, _approved) {
-    throw new Error('Real API not implemented yet');
+  async saveLocalTrip(trip) {
+    return this.syncTrip(trip);
+  }
+
+  async getTrips(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.supervisorId) params.set('supervisorId', filters.supervisorId);
+    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
+    if (filters.dateTo) params.set('dateTo', filters.dateTo);
+    if (filters.nightOnly) params.set('nightOnly', '1');
+    if (filters.dayOnly) params.set('dayOnly', '1');
+    const qs = params.toString();
+    return this._fetch(`/api/trips${qs ? `?${qs}` : ''}`);
+  }
+
+  async getTrip(tripId) {
+    return this._fetch(`/api/trips/${tripId}`);
+  }
+
+  async deleteTrip(tripId) {
+    return this._fetch(`/api/trips/${tripId}`, { method: 'DELETE' });
+  }
+
+  async approveTrip(tripId, approved) {
+    return this._fetch(`/api/trips/${tripId}/approve`, {
+      method: 'PATCH',
+      body: JSON.stringify({ approved }),
+    });
+  }
+
+  // ── Pairing ───────────────────────────────────────────────────────────
+
+  async createPairingToken() {
+    return this._fetch('/api/pair/create', { method: 'POST' });
+  }
+
+  async completePairing(token) {
+    return this._fetch('/api/pair/complete', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
   }
 
   async getLinkedLearners() {
-    return [];
+    try {
+      return await this._fetch('/api/pair/linked');
+    } catch {
+      return [];
+    }
   }
 
-  async createPairingToken() {
-    throw new Error('Real API not implemented yet');
-  }
-
-  async completePairing(_token) {
-    throw new Error('Real API not implemented yet');
-  }
+  // ── Supervisors ───────────────────────────────────────────────────────
 
   async getSupervisors() {
-    throw new Error('Real API not implemented yet');
+    return this._fetch('/api/supervisors');
   }
 
-  async addSupervisor(_supervisor) {
-    throw new Error('Real API not implemented yet');
+  async addSupervisor(supervisor) {
+    return this._fetch('/api/supervisors', {
+      method: 'POST',
+      body: JSON.stringify(supervisor),
+    });
   }
 
-  async updateSupervisor(_id, _updates) {
-    throw new Error('Real API not implemented yet');
+  async updateSupervisor(id, updates) {
+    return this._fetch(`/api/supervisors/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
   }
 
-  async deleteSupervisor(_id) {
-    throw new Error('Real API not implemented yet');
+  async deleteSupervisor(id) {
+    return this._fetch(`/api/supervisors/${id}`, { method: 'DELETE' });
   }
+
+  // ── Cars ──────────────────────────────────────────────────────────────
 
   async getCars() {
-    throw new Error('Real API not implemented yet');
+    return this._fetch('/api/cars');
   }
 
-  async addCar(_car) {
-    throw new Error('Real API not implemented yet');
+  async addCar(car) {
+    return this._fetch('/api/cars', {
+      method: 'POST',
+      body: JSON.stringify(car),
+    });
   }
 
-  async deleteCar(_id) {
-    throw new Error('Real API not implemented yet');
+  async updateCar(id, updates) {
+    return this._fetch(`/api/cars/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
   }
+
+  async deleteCar(id) {
+    return this._fetch(`/api/cars/${id}`, { method: 'DELETE' });
+  }
+
+  // ── Stats ─────────────────────────────────────────────────────────────
 
   async getLogbookSummary() {
-    throw new Error('Real API not implemented yet');
+    return this._fetch('/api/logbook/summary');
   }
 
-  async registerDevice(_mac) {
-    throw new Error('Real API not implemented yet');
+  // ── Device ────────────────────────────────────────────────────────────
+
+  async registerDevice(mac) {
+    return this._fetch('/api/devices/register', {
+      method: 'POST',
+      body: JSON.stringify({ mac }),
+    });
   }
 }

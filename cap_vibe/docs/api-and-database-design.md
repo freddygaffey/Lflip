@@ -352,83 +352,123 @@ Response 200:
 
 ## 4. SQLite Schema (Flask Development)
 
-For a simple HSC setup, SQLite is sufficient:
+For a simple HSC setup, SQLite is sufficient. Enable foreign keys per connection: `PRAGMA foreign_keys = ON;`
 
 ```sql
-CREATE TABLE users (
-  id TEXT PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  name TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN ('learner','parent')),
-  created_at INTEGER NOT NULL
-);
+-- =============================================================================
+-- L-Plate Tracker — SQLite Schema (updated)
+-- =============================================================================
+-- Enable foreign key enforcement (must run per connection)
+PRAGMA foreign_keys = ON;
 
-CREATE TABLE trips (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id),
-  supervisor_id TEXT REFERENCES supervisors(id),
-  supervisor_name TEXT,
-  car_id TEXT REFERENCES cars(id),
-  start_time INTEGER NOT NULL,
-  end_time INTEGER,
-  start_odometer INTEGER NOT NULL,
-  end_odometer INTEGER,
-  status TEXT NOT NULL,
-  sync_status TEXT NOT NULL,
-  approval_state TEXT DEFAULT 'pending',
-  approved_by TEXT REFERENCES users(id),
-  approved_at INTEGER,
-  weather TEXT NOT NULL,
-  gps_points TEXT,
-  accel_points TEXT,
-  accel_events TEXT,
-  distance_km REAL,
-  day_minutes INTEGER,
-  night_minutes INTEGER,
-  odo_source TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
+-- =============================================================================
+-- 1. CREATE TABLE statements (in dependency order)
+-- =============================================================================
+
+CREATE TABLE users (
+    id              TEXT PRIMARY KEY,
+    email           TEXT NOT NULL UNIQUE,
+    password_hash   TEXT NOT NULL,
+    name            TEXT NOT NULL,
+    role            TEXT NOT NULL CHECK (role IN ('learner', 'parent')),
+    licence_number  TEXT,
+    created_at      INTEGER NOT NULL
 );
 
 CREATE TABLE supervisors (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id),
-  name TEXT NOT NULL,
-  licence_number TEXT,
-  relationship TEXT NOT NULL,
-  created_at INTEGER NOT NULL
+    id              TEXT PRIMARY KEY,
+    user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name            TEXT NOT NULL,
+    licence_number  TEXT,
+    relationship    TEXT NOT NULL CHECK (relationship IN ('Parent', 'Instructor', 'Friend', 'Other')),
+    created_at      INTEGER NOT NULL,
+    updated_at      INTEGER NOT NULL
 );
 
 CREATE TABLE cars (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id),
-  name TEXT NOT NULL,
-  number_plate TEXT,
-  last_odometer INTEGER,
-  esp32_device_id TEXT,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL
+    id              TEXT PRIMARY KEY,
+    user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name            TEXT NOT NULL,
+    number_plate    TEXT,
+    last_odometer   REAL,
+    esp32_device_id TEXT,
+    created_at      INTEGER NOT NULL,
+    updated_at      INTEGER NOT NULL
 );
 
 CREATE TABLE parent_links (
-  id TEXT PRIMARY KEY,
-  parent_id TEXT NOT NULL REFERENCES users(id),
-  learner_id TEXT NOT NULL REFERENCES users(id),
-  created_at INTEGER NOT NULL,
-  UNIQUE(parent_id, learner_id)
+    id              TEXT PRIMARY KEY,
+    parent_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    learner_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at      INTEGER NOT NULL,
+    UNIQUE (parent_id, learner_id),
+    CHECK (parent_id != learner_id)
 );
 
 CREATE TABLE pairing_tokens (
-  token TEXT PRIMARY KEY,
-  learner_id TEXT NOT NULL REFERENCES users(id),
-  expires_at INTEGER NOT NULL
+    token           TEXT PRIMARY KEY,
+    learner_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at      INTEGER NOT NULL
 );
 
-CREATE INDEX idx_trips_user ON trips(user_id);
-CREATE INDEX idx_trips_approval ON trips(approval_state);
-CREATE INDEX idx_parent_links_parent ON parent_links(parent_id);
-CREATE INDEX idx_pairing_tokens_expires ON pairing_tokens(expires_at);
+CREATE TABLE trips (
+    id              TEXT PRIMARY KEY,
+    user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    supervisor_id   TEXT REFERENCES supervisors(id) ON DELETE SET NULL,
+    supervisor_name TEXT,
+    car_id          TEXT REFERENCES cars(id) ON DELETE SET NULL,
+    car_name        TEXT,
+    learner_name    TEXT,
+    cloud_id        TEXT,
+    start_time      INTEGER NOT NULL,
+    end_time        INTEGER,
+    start_odometer  REAL,
+    end_odometer    REAL,
+    start_lat       REAL,
+    start_lng       REAL,
+    status          TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (status IN ('pending', 'active', 'stopped', 'complete')),
+    sync_status     TEXT NOT NULL DEFAULT 'unsynced'
+                        CHECK (sync_status IN ('unsynced', 'syncing', 'synced', 'error')),
+    approval_state  TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (approval_state IN ('pending', 'approved', 'rejected')),
+    approved_by     TEXT REFERENCES users(id) ON DELETE SET NULL,
+    approved_at     INTEGER,
+    weather         TEXT CHECK (weather IN ('sunny', 'overcast', 'rain', 'night')),
+    gps_points      TEXT,
+    accel_points    TEXT,
+    accel_events    TEXT,
+    distance_km     REAL,
+    odo_distance_km REAL,
+    day_minutes     REAL,
+    night_minutes   REAL,
+    max_speed_kmh   REAL,
+    avg_speed_kmh   REAL,
+    odo_source      TEXT CHECK (odo_source IN ('esp32', 'manual')),
+    version         INTEGER NOT NULL DEFAULT 1,
+    created_at      INTEGER NOT NULL,
+    updated_at      INTEGER NOT NULL
+);
+
+-- =============================================================================
+-- 2. CREATE INDEX statements
+-- =============================================================================
+
+CREATE INDEX idx_users_role              ON users(role);
+CREATE INDEX idx_supervisors_user_id     ON supervisors(user_id);
+CREATE INDEX idx_cars_user_id            ON cars(user_id);
+CREATE INDEX idx_cars_esp32_device_id    ON cars(esp32_device_id) WHERE esp32_device_id IS NOT NULL;
+CREATE INDEX idx_parent_links_parent_id  ON parent_links(parent_id);
+CREATE INDEX idx_parent_links_learner_id ON parent_links(learner_id);
+CREATE INDEX idx_pairing_tokens_learner  ON pairing_tokens(learner_id);
+CREATE INDEX idx_pairing_tokens_expires  ON pairing_tokens(expires_at);
+CREATE INDEX idx_trips_user_id           ON trips(user_id);
+CREATE INDEX idx_trips_approval_state    ON trips(approval_state);
+CREATE INDEX idx_trips_created_at        ON trips(created_at);
+CREATE INDEX idx_trips_supervisor_id     ON trips(supervisor_id);
+CREATE INDEX idx_trips_user_status       ON trips(user_id, status);
+CREATE INDEX idx_trips_user_approval     ON trips(user_id, approval_state);
+CREATE INDEX idx_trips_user_created      ON trips(user_id, created_at);
 ```
 
 ---

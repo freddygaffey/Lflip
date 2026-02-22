@@ -14,7 +14,13 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    allowedHosts: true, // allow ngrok and other tunnel hosts for beta testing
+    allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     rollupOptions: {

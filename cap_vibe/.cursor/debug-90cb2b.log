@@ -80,3 +80,9 @@
 {"sessionId":"90cb2b","location":"tripManager.js:stopTrip","message":"stopTrip called","data":{"endOdometer":43500,"weather":"sunny","startOdometer":43500},"hypothesisId":"C","timestamp":1771644979872}
 {"sessionId":"90cb2b","location":"StopTrip.jsx:handleStop","message":"handleStop called","data":{"odoLast3":"500","fullOdo":43500,"startOdo":43500,"endOdo":43500,"willEarlyReturn":true},"hypothesisId":"B,C","timestamp":1771648401403}
 {"sessionId":"90cb2b","location":"tripManager.js:stopTrip","message":"stopTrip called","data":{"endOdometer":43500,"weather":"rain","startOdometer":43500},"hypothesisId":"C","timestamp":1771648401405}
+{"sessionId":"90cb2b","location":"StopTrip.jsx:handleStop","message":"handleStop called","data":{"odoLast3":"500","fullOdo":43500,"startOdo":43500,"endOdo":43500,"willEarlyReturn":true},"hypothesisId":"B,C","timestamp":1771797858686}
+{"sessionId":"90cb2b","location":"tripManager.js:stopTrip","message":"stopTrip called","data":{"endOdometer":43500,"weather":"night","startOdometer":43500},"hypothesisId":"C","timestamp":1771797858687}
+{"sessionId":"90cb2b","location":"StopTrip.jsx:handleStop","message":"handleStop called","data":{"odoLast3":"500","fullOdo":43500,"startOdo":43500,"endOdo":43500,"willEarlyReturn":true},"hypothesisId":"B,C","timestamp":1771798138920}
+{"sessionId":"90cb2b","location":"tripManager.js:stopTrip","message":"stopTrip called","data":{"endOdometer":43500,"weather":"sunny","startOdometer":43500},"hypothesisId":"C","timestamp":1771798138921}
+{"sessionId":"90cb2b","location":"StopTrip.jsx:handleStop","message":"handleStop called","data":{"odoLast3":"500","fullOdo":43500,"startOdo":43500,"endOdo":43500,"willEarlyReturn":true},"hypothesisId":"B,C","timestamp":1771798419967}
+{"sessionId":"90cb2b","location":"tripManager.js:stopTrip","message":"stopTrip called","data":{"endOdometer":43500,"weather":"rain","startOdometer":43500},"hypothesisId":"C","timestamp":1771798419967}

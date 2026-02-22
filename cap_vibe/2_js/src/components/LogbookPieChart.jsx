@@ -3,10 +3,9 @@ import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import { formatHoursDecimal } from '../utils/formatTime.js';
 import { DEFAULT_TARGET_HOURS, NIGHT_HOURS_REQUIRED } from '../config.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 ChartJS.register(ArcElement, Tooltip);
-
-const DAY_TARGET = DEFAULT_TARGET_HOURS - NIGHT_HOURS_REQUIRED; // 100h
 
 function ProgressRing({ value, target, color, label }) {
   const pct = target > 0 ? Math.min(value / target, 1) : 0;
@@ -52,7 +51,7 @@ function ProgressRing({ value, target, color, label }) {
   );
 }
 
-function computeSummaryFromTrips(trips) {
+function computeSummaryFromTrips(trips, targetTotal, targetNight) {
   const completed = trips.filter((t) => t.status === 'complete');
   const totalMinutes = completed.reduce((acc, t) => acc + (t.dayMinutes ?? 0) + (t.nightMinutes ?? 0), 0);
   const dayMinutes = completed.reduce((acc, t) => acc + (t.dayMinutes ?? 0), 0);
@@ -61,14 +60,15 @@ function computeSummaryFromTrips(trips) {
     totalHours: totalMinutes / 60,
     dayHours: dayMinutes / 60,
     nightHours: nightMinutes / 60,
-    targetHours: DEFAULT_TARGET_HOURS,
-    nightTargetHours: NIGHT_HOURS_REQUIRED,
+    targetHours: targetTotal,
+    nightTargetHours: targetNight,
   };
 }
 
 export function LogbookPieChart({ summary, learners = [], trips = [] }) {
-  const targetTotal = summary?.targetHours ?? DEFAULT_TARGET_HOURS;
-  const targetNight = summary?.nightTargetHours ?? NIGHT_HOURS_REQUIRED;
+  const { stateReqs } = useAuth();
+  const targetTotal = stateReqs?.total ?? summary?.targetHours ?? DEFAULT_TARGET_HOURS;
+  const targetNight = stateReqs?.night ?? summary?.nightTargetHours ?? NIGHT_HOURS_REQUIRED;
   const targetDay = targetTotal - targetNight;
 
   // Multi-kid: one row per learner
@@ -77,7 +77,7 @@ export function LogbookPieChart({ summary, learners = [], trips = [] }) {
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-4 shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent space-y-6">
         {learners.map((learner) => {
           const learnerTrips = trips.filter((t) => t.learnerId === learner.id);
-          const s = computeSummaryFromTrips(learnerTrips);
+          const s = computeSummaryFromTrips(learnerTrips, targetTotal, targetNight);
           return (
             <div key={learner.id} className="flex flex-col gap-2">
               <div className="text-sm font-semibold text-slate-700 dark:text-slate-300">{learner.name}</div>
