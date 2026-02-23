@@ -8,7 +8,11 @@ export class RealApiService {
   constructor() {
     this.baseUrl = API_BASE_URL;
     this.token = null;
-    this._ready = this._loadToken();
+    this.csrfToken = null;
+    this._ready = Promise.all([
+      this._loadToken(),
+      this._fetchCsrfToken(),
+    ]);
   }
 
   async _loadToken() {
@@ -16,18 +20,39 @@ export class RealApiService {
     this.token = value || null;
   }
 
+  async _fetchCsrfToken() {
+    try {
+      const res = await fetch(`${this.baseUrl}/api/csrf-token`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        this.csrfToken = data.csrfToken || null;
+      }
+    } catch {
+      this.csrfToken = null;
+    }
+  }
+
   async _fetch(endpoint, options = {}) {
     await this._ready;
+    const method = (options.method || 'GET').toUpperCase();
+    const needsCsrf = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method);
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
+        ...(needsCsrf && this.csrfToken && { 'X-CSRFToken': this.csrfToken }),
         ...options.headers,
       },
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
+      const isCsrfError = res.status === 400 && (body.error || '').toLowerCase().includes('csrf');
+      if (isCsrfError && needsCsrf && !options._csrfRetried) {
+        await this._fetchCsrfToken();
+        return this._fetch(endpoint, { ...options, _csrfRetried: true });
+      }
       throw new Error(body.error || `API error: ${res.status}`);
     }
     return res.json();
@@ -218,6 +243,15 @@ export class RealApiService {
 
   async getLogbookSummary() {
     return this._fetch('/api/logbook/summary');
+  }
+
+  // ── Bug Reports ────────────────────────────────────────────────────────
+
+  async submitBugReport(description) {
+    return this._fetch('/api/bug-reports', {
+      method: 'POST',
+      body: JSON.stringify({ description }),
+    });
   }
 
   // ── Device ────────────────────────────────────────────────────────────

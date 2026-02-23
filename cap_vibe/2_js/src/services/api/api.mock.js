@@ -412,6 +412,13 @@ export class MockApiService {
     };
   }
 
+  async submitBugReport(description) {
+    await this._init();
+    await randomDelay();
+    maybeNetworkError();
+    return { success: true, id: uuidv4() };
+  }
+
   async registerDevice(_mac) {
     await this._init();
     await randomDelay();

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { apiService } from '../services/api/index.js';
 import { STATE_REQUIREMENTS, DEFAULT_STATE } from '../config.js';
 
 export function Settings() {
@@ -22,6 +23,10 @@ export function Settings() {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMsg, setPasswordMsg] = useState({ text: '', ok: false });
+
+  const [bugDescription, setBugDescription] = useState('');
+  const [bugLoading, setBugLoading] = useState(false);
+  const [bugMsg, setBugMsg] = useState({ text: '', ok: false });
 
   const isValidEmail = (value) =>
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
@@ -278,6 +283,47 @@ export function Settings() {
             Pair with parent
           </button>
         )}
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 space-y-3 shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent">
+        <div className="text-slate-700 dark:text-slate-300 font-semibold">Bug Report</div>
+        <p className="text-slate-600 dark:text-slate-400 text-sm">
+          Found a bug? Let us know so we can fix it.
+        </p>
+        <textarea
+          value={bugDescription}
+          onChange={(e) => setBugDescription(e.target.value)}
+          placeholder="Describe what went wrong, steps to reproduce, etc."
+          rows={4}
+          className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm placeholder-slate-400 focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+        />
+        {bugMsg.text && (
+          <div className={`text-xs ${bugMsg.ok ? 'text-green-500' : 'text-red-500'}`}>{bugMsg.text}</div>
+        )}
+        <button
+          onClick={async () => {
+            const desc = bugDescription.trim();
+            if (!desc) {
+              setBugMsg({ text: 'Please describe the bug', ok: false });
+              return;
+            }
+            setBugMsg({ text: '', ok: false });
+            setBugLoading(true);
+            try {
+              await apiService.submitBugReport(desc);
+              setBugMsg({ text: 'Thank you! Your report has been submitted.', ok: true });
+              setBugDescription('');
+            } catch (err) {
+              setBugMsg({ text: err?.message ?? 'Failed to submit report', ok: false });
+            } finally {
+              setBugLoading(false);
+            }
+          }}
+          disabled={bugLoading || !bugDescription.trim()}
+          className="w-full py-2.5 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-300 dark:border-slate-600 transition-colors text-sm"
+        >
+          {bugLoading ? 'Submitting…' : 'Submit bug report'}
+        </button>
       </div>
 
       <div className="h-4" />

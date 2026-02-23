@@ -43,18 +43,12 @@ export function ScanToPair() {
     setLoading(true);
     setError(null);
     try {
-      const BarcodeScanner = (await import('@capacitor-community/barcode-scanner')).BarcodeScanner;
-      const status = await BarcodeScanner.checkPermissions({ force: true });
-      if (status.camera !== 'granted') {
-        setError('Camera permission required');
-        setLoading(false);
-        return;
-      }
-      document.body.classList.add('scanner-active');
-      const result = await BarcodeScanner.startScan();
-      document.body.classList.remove('scanner-active');
-      if (result?.hasContent && result.content) {
-        await handlePair(result.content);
+      const { CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHint } = await import('@capacitor/barcode-scanner');
+      const result = await CapacitorBarcodeScanner.scanBarcode({
+        hint: CapacitorBarcodeScannerTypeHint.QR_CODE,
+      });
+      if (result?.ScanResult) {
+        await handlePair(result.ScanResult);
       }
     } catch (err) {
       setError(err?.message ?? 'Scan failed');
