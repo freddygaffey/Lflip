@@ -106,6 +106,15 @@ CREATE INDEX IF NOT EXISTS idx_trips_supervisor_id     ON trips(supervisor_id);
 CREATE INDEX IF NOT EXISTS idx_trips_user_status       ON trips(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_trips_user_approval     ON trips(user_id, approval_state);
 CREATE INDEX IF NOT EXISTS idx_trips_user_created      ON trips(user_id, created_at);
+
+CREATE TABLE IF NOT EXISTS bug_reports (
+    id              TEXT PRIMARY KEY,
+    user_id         TEXT REFERENCES users(id) ON DELETE SET NULL,
+    description     TEXT NOT NULL,
+    created_at      INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_bug_reports_created_at ON bug_reports(created_at);
 """
 
 
@@ -134,6 +143,21 @@ def init_db():
 
 def _migrate(conn):
     """Add columns that may be missing in older databases."""
+    cursor = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='bug_reports'"
+    )
+    if not cursor.fetchone():
+        conn.executescript("""
+            CREATE TABLE bug_reports (
+                id              TEXT PRIMARY KEY,
+                user_id         TEXT REFERENCES users(id) ON DELETE SET NULL,
+                description     TEXT NOT NULL,
+                created_at      INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_bug_reports_created_at ON bug_reports(created_at);
+        """)
+        conn.commit()
+
     cursor = conn.execute("PRAGMA table_info(users)")
     columns = {row[1] for row in cursor.fetchall()}
     if 'state' not in columns:

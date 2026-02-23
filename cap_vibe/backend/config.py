@@ -2,7 +2,11 @@ import os
 
 DATABASE = os.getenv('LPLATE_DB', 'lplate.db')
 JWT_SECRET = os.getenv('JWT_SECRET', 'change-me-in-production')
+SECRET_KEY = os.getenv('SECRET_KEY', JWT_SECRET)
 JWT_EXPIRY_DAYS = 7
+
+# CSRF protection (Flask-WTF)
+WTF_CSRF_HEADERS = ['X-CSRFToken']
 
 STATE_REQUIREMENTS = {
     'ACT': {'total': 100, 'night': 10},

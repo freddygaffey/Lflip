@@ -8,10 +8,17 @@ from flask_cors import CORS
 import bcrypt
 
 from db import get_db, close_db, init_db
-from auth import create_token, require_auth
-from config import STATE_REQUIREMENTS, DEFAULT_STATE, DEFAULT_TARGET_HOURS, NIGHT_HOURS_REQUIRED
+from auth import create_token, require_auth, decode_token
+from config import (
+    STATE_REQUIREMENTS, DEFAULT_STATE, DEFAULT_TARGET_HOURS, NIGHT_HOURS_REQUIRED,
+    SECRET_KEY, WTF_CSRF_HEADERS,
+)
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['WTF_CSRF_HEADERS'] = WTF_CSRF_HEADERS
+csrf = CSRFProtect(app)
 CORS(app)
 app.teardown_appcontext(close_db)
 
@@ -96,6 +103,16 @@ def _linked_learner_ids(parent_id):
         'SELECT learner_id FROM parent_links WHERE parent_id = ?', (parent_id,)
     ).fetchall()
     return [r['learner_id'] for r in rows]
+
+
+# =============================================================================
+# CSRF
+# =============================================================================
+
+@app.route('/api/csrf-token', methods=['GET'])
+def csrf_token():
+    """Return CSRF token for SPA. No auth required."""
+    return jsonify({'csrfToken': generate_csrf()})
 
 
 # =============================================================================
@@ -696,6 +713,37 @@ def logbook_summary():
         'nightTargetHours': target_night,
         'lastTripDate': rows[0]['start_time'] if rows else None,
     })
+
+
+# =============================================================================
+# Bug Reports
+# =============================================================================
+
+@app.route('/api/bug-reports', methods=['POST'])
+def submit_bug_report():
+    """Submit a bug report. Auth optional — if logged in, user_id is stored for follow-up."""
+    body = request.get_json(force=True) or {}
+    description = (body.get('description') or '').strip()
+    if not description:
+        return jsonify({'error': 'Please describe the bug'}), 400
+
+    user_id = None
+    header = request.headers.get('Authorization', '')
+    if header.startswith('Bearer '):
+        try:
+            payload = decode_token(header[7:])
+            user_id = payload['sub']
+        except Exception:
+            pass
+
+    report_id = str(uuid.uuid4())
+    now = _now_ms()
+    get_db().execute(
+        'INSERT INTO bug_reports (id, user_id, description, created_at) VALUES (?, ?, ?, ?)',
+        (report_id, user_id, description, now),
+    )
+    get_db().commit()
+    return jsonify({'success': True, 'id': report_id})
 
 
 # =============================================================================
