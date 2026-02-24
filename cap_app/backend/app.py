@@ -1,79 +1,77 @@
-import flask
-from flask import jsonify, Response, request 
-from flask_cors import CORS
-from werkzeug.security import check_password_hash, generate_password_hash
-import json
-import flask_login
+from flask import Flask, request, jsonify, render_template, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from data_base import db, User
 
-import config
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db.init_app(app)
 
-app = flask.Flask(__name__)
-CORS(app)
-
-login_manager = flask_login.LoginManager()
+login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.route('/', methods=['GET'])
 def home():
-    return "Hello, World!"
+    return redirect('/login')
 
-class User(flask_login.UserMixin):
-    def __init__(self, id, password_hash, state, role,license_number=None):
-        self.id = id
-        self.password_hash = password_hash
-        self.state = config.states[state]
-        if self.state is None:
-            raise ValueError(f"Invalid state: {state}")
-
-        roles = ["learner","sd_driver"]
-        if role not in roles:
-            raise ValueError(f"Invalid role: {role}")
-        self.role = role
-        if self.role == "sd_driver":
-            if license_number is None:
-                raise ValueError("License number is required for SD driver")
-        self.license_number = license_number
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-    def get_id(self):
-        return self.id
-    def get_state(self):
-        return self.state
-    def get_role(self):
-        return self.role
-    def get_license_number(self):
-        return self.license_number
-
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST', 'GET'])
 def login():
-    data = request.get_json()
+    if request.method == 'GET':
+        return render_template('login.html')
+    data = request.form
     username = data.get('username')
     password = data.get('password')
-    state = data.get('state')
-    role = data.get('role')
-    license_number = data.get('license_number')
-
-    user = User(id=1, password_hash=generate_password_hash(password), state=state, role=role, license_number=license_number)
+    if not username or not password:
+        return render_template('login.html', error='Username and password required'), 400
+    user = User.query.filter_by(username=username).first()
+    if not user or not check_password_hash(user.password_hash, password):
+        return render_template('login.html', error='Invalid username or password'), 401
     login_user(user)
-    return jsonify({"message": "Login successful"}), 200
+    return redirect(url_for('private'))
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
-    return jsonify({"message": "Logout successful"}), 200
+    return redirect(url_for('login'))
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['POST', 'GET'])
 def register():
-    data = request.get_json()
+    if request.method == 'GET':
+        return render_template('register.html')
+    data = request.form
     username = data.get('username')
     password = data.get('password')
     state = data.get('state')
     role = data.get('role')
-    license_number = data.get('license_number')
-    user = User(id=1, password_hash=generate_password_hash(password), state=state, role=role, license_number=license_number)
-    register_user(user)
-    return jsonify({"message": "Register successful"}), 200
+    license_number = data.get('license_number') or None
+    if not username or not password or not state or not role:
+        return render_template('register.html', error='Username, password, state and role required'), 400
+    if User.query.filter_by(username=username).first():
+        return render_template('register.html', error='Username already taken'), 400
+    user = User(
+        username=username,
+        password_hash=generate_password_hash(password),
+        state=state,
+        role=role,
+        license_number=license_number
+    )
+    db.session.add(user)
+    db.session.commit()
+    login_user(user)
+    return redirect(url_for('private'))
+
+@app.route('/private', methods=['GET'])
+@login_required
+def private():
+    return "This is top secret. <a href='/logout'>Logout</a>"
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True, port=5000, host='0.0.0.0')
