@@ -1,0 +1,10 @@
+{
+  "appId": "com.pebnum.llogger",
+  "appName": "Lloger",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false
+    }
+  }
+}
