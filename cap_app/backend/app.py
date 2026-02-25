@@ -4,8 +4,10 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from data import db, User
 from config import states
 from utils import is_pwd_valid, is_username_valid
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.config['SECRET_KEY'] = 'd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686fd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686f'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db.init_app(app)
@@ -23,37 +25,38 @@ def load_user(user_id):
 ########################################################
 @app.post("/api/login")
 def login():
-    data = request.form
+    data = request.json
     username = data.get("username")
     pwd = data.get("password")
     if not username or not pwd:
-        return "username and/or pwd required", 400
+        return jsonify({"message": "username and/or pwd required"}), 400
     user = User.query.filter_by(username=username).first()
     if not user:
-        return "invalid credentials", 401
+        return jsonify({"message": "invalid credentials"}), 401
     if check_password_hash(user.password_hash, pwd):
         login_user(user)
-        return "ok", 200
+        return jsonify({"message": "ok"}), 200
     else:
-        return "invalid credentials", 401
+        return jsonify({"message": "invalid credentials"}), 401
 
 @app.post("/api/logout")
 def logout():
     logout_user()
-    return "logged out", 200
+    return jsonify({"message": "logged out"}), 200
 
 @app.post("/api/register")
 def register():
-    data = request.form
+    data = request.json
+    print(data)
     username = data.get("username")
     pwd = data.get("pwd")
     state = data.get("state")
     role = data.get("role")
     licence_no = data.get("licence_no")
-    if role not in ["learner","sd"]: return "not a valid role", 400
-    if state not in states: return "not valid state", 400
-    if not is_username_valid(username): return "enter a valid username", 400
-    if not is_pwd_valid(pwd): return "enter a valid pwd", 400
+    if role not in ["learner","sd"]: return jsonify({"message": "not a valid role"}), 400
+    if state not in states: return jsonify({"message": "not valid state"}), 400
+    if not is_username_valid(username): return jsonify({"message": "enter a valid username"}), 400
+    if not is_pwd_valid(pwd): return jsonify({"message": "enter a valid pwd"}), 400
     pwd_hash = generate_password_hash(pwd)
 
     user = User(
@@ -66,8 +69,10 @@ def register():
     db.session.add(user)
     db.session.commit()
     login_user(user)
-    return "registered", 201
+    return jsonify({"message": "ok"}) ,200
+
 @app.post("/api/test")
+
 def test():
     return "some string", 200
 if __name__ == "__main__":
