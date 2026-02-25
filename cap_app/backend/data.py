@@ -1,7 +1,5 @@
 import flask_sqlalchemy
 import flask_login
-from flask import Flask
-import config
 from werkzeug.security import check_password_hash
 
 db = flask_sqlalchemy.SQLAlchemy()

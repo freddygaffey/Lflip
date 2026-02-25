@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
-from data_base import db, User
+from data import db, User
+from config import states
+from utils import is_pwd_valid, is_username_valid
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SECRET_KEY'] = 'd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686fd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686f'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db.init_app(app)
 
@@ -16,62 +18,59 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route('/', methods=['GET'])
-def home():
-    return redirect('/login')
-
-@app.route('/login', methods=['POST', 'GET'])
+########################################################
+# api routes
+########################################################
+@app.post("/api/login")
 def login():
-    if request.method == 'GET':
-        return render_template('login.html')
     data = request.form
-    username = data.get('username')
-    password = data.get('password')
-    if not username or not password:
-        return render_template('login.html', error='Username and password required'), 400
+    username = data.get("username")
+    pwd = data.get("password")
+    if not username or not pwd:
+        return "username and/or pwd required", 400
     user = User.query.filter_by(username=username).first()
-    if not user or not check_password_hash(user.password_hash, password):
-        return render_template('login.html', error='Invalid username or password'), 401
-    login_user(user)
-    return redirect(url_for('private'))
+    if not user:
+        return "invalid credentials", 401
+    if check_password_hash(user.password_hash, pwd):
+        login_user(user)
+        return "ok", 200
+    else:
+        return "invalid credentials", 401
 
-@app.route('/logout', methods=['GET', 'POST'])
+@app.post("/api/logout")
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return "logged out", 200
 
-@app.route('/register', methods=['POST', 'GET'])
+@app.post("/api/register")
 def register():
-    if request.method == 'GET':
-        return render_template('register.html')
     data = request.form
-    username = data.get('username')
-    password = data.get('password')
-    state = data.get('state')
-    role = data.get('role')
-    license_number = data.get('license_number') or None
-    if not username or not password or not state or not role:
-        return render_template('register.html', error='Username, password, state and role required'), 400
-    if User.query.filter_by(username=username).first():
-        return render_template('register.html', error='Username already taken'), 400
+    username = data.get("username")
+    pwd = data.get("pwd")
+    state = data.get("state")
+    role = data.get("role")
+    licence_no = data.get("licence_no")
+    if role not in ["learner","sd"]: return "not a valid role", 400
+    if state not in states: return "not valid state", 400
+    if not is_username_valid(username): return "enter a valid username", 400
+    if not is_pwd_valid(pwd): return "enter a valid pwd", 400
+    pwd_hash = generate_password_hash(pwd)
+
     user = User(
         username=username,
-        password_hash=generate_password_hash(password),
+        password_hash=pwd_hash,
         state=state,
         role=role,
-        license_number=license_number
-    )
+        license_number=licence_no)
+
     db.session.add(user)
     db.session.commit()
     login_user(user)
-    return redirect(url_for('private'))
-
-@app.route('/private', methods=['GET'])
-@login_required
-def private():
-    return "This is top secret. <a href='/logout'>Logout</a>"
-
-if __name__ == '__main__':
+    return "registered", 201
+@app.post("/api/test")
+def test():
+    return "some string", 200
+if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    app.run(host="0.0.0.0")
