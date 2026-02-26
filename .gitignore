@@ -11,9 +11,33 @@ L_plate_server/*.hex
 L_plate_server/*.map
 
 # Operating system files
-L_plate_server/.DS_Store
-L_plate_server/Thumbs.db
+.DS_Store
+Thumbs.db
 
 # Release artifacts
 L_plate_server/releases/
 
+# Cap app / Node
+.idea/
+node_modules/
+*.map
+.sourcemaps
+dist/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+.eggs/
+# Large archives (use split .001, .002 for storage)
+cap_app.zip
+
+# Backend instance data
+cap_app/backend/instance/
+cap_app/instance/
