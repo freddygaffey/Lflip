@@ -35,8 +35,10 @@ __pycache__/
 *.egg
 *.egg-info/
 .eggs/
-# Large archives (use split .001, .002 for storage)
+# Large archives
 cap_app.zip
+cap_app.zip.001
+cap_app.zip.002
 
 # Backend instance data
 cap_app/backend/instance/
