@@ -4,6 +4,7 @@
         <ion-input v-model="username" placeholder="username" type="text"></ion-input>
         <ion-input v-model="password" placeholder="password" type="password"></ion-input>
         <ion-button @click="signIn">sign in</ion-button>
+        <a href="/register">register</a>
       </ion-content>
     </ion-page>
   </template>

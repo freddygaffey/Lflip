@@ -4,14 +4,16 @@
         <ion-input v-model="username" placeholder="username" type="text"></ion-input>
         <ion-input v-model="password" placeholder="password" type="password"></ion-input>
         <ion-select v-model="state" placeholder="Select state" interface="popover">
-            <ion-select-option value="act">ACT</ion-select-option>
-            <ion-select-option value="nsw">NSW</ion-select-option>
-            <ion-select-option value="vic">VIC</ion-select-option>
-            <ion-select-option value="qld">QLD</ion-select-option>
-            <ion-select-option value="sa">SA</ion-select-option>
-            <ion-select-option value="wa">WA</ion-select-option>
-            <ion-select-option value="tas">TAS</ion-select-option>
-            <ion-select-option value="nt">NT</ion-select-option>
+            <select v-model="state" slot="lable">
+                <ion-select-option value="act">ACT</ion-select-option>
+                <ion-select-option value="nsw">NSW</ion-select-option>
+                <ion-select-option value="vic">VIC</ion-select-option>
+                <ion-select-option value="qld">QLD</ion-select-option>
+                <ion-select-option value="sa">SA</ion-select-option>
+                <ion-select-option value="wa">WA</ion-select-option>
+                <ion-select-option value="tas">TAS</ion-select-option>
+                <ion-select-option value="nt">NT</ion-select-option>
+            </select>
         </ion-select>
         <ion-button :color="role == 'learner' ? 'success' : 'danger'" v-model="role" @click="role = 'learner'">learner</ion-button>
         <ion-button :color="role == 'sd' ? 'success' : 'danger'" v-model="role" @click="role = 'sd'">sd</ion-button>
