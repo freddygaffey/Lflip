@@ -93,6 +93,10 @@ Shows how the parent approves trips and how the log drive process flows from the
 
 ![Approving a Trip DFD](images/dfd-approving-trip.png)
 
+## Prototype Gallery
+
+UI prototypes live in `app_ui_prototypes/`. Run `python server.py` and open http://localhost:5000 to view them. See `app_ui_prototypes/PROTOTYPE_GUIDE.md` for adding new prototypes with theme toggle and screen preview support.
+
 ## Storyboard
 
 ### Dashboard & Logbook

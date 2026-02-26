@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c0e14">
+<title>L-Plate Logger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #0c0e14;
+  --surface: #161a22;
+  --surface2: #1e232d;
+  --surface3: #262d3a;
+  --accent: #00d4aa;
+  --accent-dim: #00d4aa33;
+  --accent-glow: #00d4aa20;
+  --danger: #ff3b5c;
+  --danger-dim: #ff3b5c33;
+  --warning: #ffb347;
+  --success: #00d4aa;
+  --text: #e8ecf0;
+  --text-dim: #8a92a0;
+  --text-muted: #5a6274;
+  --border: rgba(255,255,255,0.06);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 20px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'Space Mono', monospace;
+  --nav-height: 68px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface2: #f5f7fa;
+  --surface3: #e8ecf0;
+  --accent: #00a884;
+  --accent-dim: #00a88422;
+  --accent-glow: #00a88415;
+  --danger: #e63950;
+  --danger-dim: #e6395022;
+  --warning: #e89b3c;
+  --text: #1a1d24;
+  --text-dim: #5a6274;
+  --text-muted: #8a92a0;
+  --border: rgba(0,0,0,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  #app { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+}
+
+/* ===== TOAST ===== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 90%;
+  pointer-events: none;
+}
+.toast {
+  background: var(--surface2);
+  color: var(--text);
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  animation: toastIn 0.3s ease;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== AUTH ===== */
+.auth-screen {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  padding: 28px 24px;
+  min-height: 100%;
+}
+.auth-screen.active { display: flex; }
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.auth-brand .l-badge {
+  width: 64px;
+  height: 64px;
+  background: var(--accent);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 32px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  margin-bottom: 12px;
+}
+.auth-brand h1 { font-size: 24px; font-weight: 700; }
+.auth-brand p { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  outline: none;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input.error { border-color: var(--danger); }
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.btn-primary { background: var(--accent); color: var(--bg); }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  margin-top: 8px;
+}
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+}
+.auth-footer { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-dim); }
+
+/* ===== SCREENS ===== */
+.screen {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.screen.active { display: flex; }
+
+.screen-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px calc(var(--nav-height) + var(--safe-bottom) + 16px);
+}
+
+/* ===== BRB LANDING (Innovative: Big Red Button First) ===== */
+.brb-landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 24px;
+  padding-bottom: calc(var(--nav-height) + 100px);
+}
+
+.brb-hero {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.brb-hero .greeting {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.brb-hero .name { font-size: 22px; font-weight: 700; }
+
+.brb-progress-mini {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.brb-progress-mini .ring {
+  width: 56px;
+  height: 56px;
+  position: relative;
+}
+.brb-progress-mini .ring svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+.brb-progress-mini .ring .fg { transition: stroke-dashoffset 0.6s ease; }
+.brb-progress-mini .ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+.brb-progress-mini .ring-sub { font-size: 9px; color: var(--text-dim); font-weight: 400; }
+
+.brb-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+.brb {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: none;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 0 0 4px var(--surface), 0 0 60px var(--danger-dim);
+  position: relative;
+  z-index: 2;
+}
+.brb.idle {
+  background: var(--danger);
+  color: white;
+  animation: brb-pulse 2.5s ease-in-out infinite;
+}
+.brb.recording {
+  background: var(--danger);
+  color: white;
+  animation: brb-recording 1s ease-in-out infinite;
+}
+@keyframes brb-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--surface), 0 0 40px var(--danger-dim); transform: scale(1); }
+  50% { box-shadow: 0 0 0 4px var(--surface), 0 0 80px var(--danger-dim); transform: scale(1.02); }
+}
+@keyframes brb-recording {
+  0%, 100% { box-shadow: 0 0 0 4px var(--surface), 0 0 0 0 var(--danger-dim); }
+  50% { box-shadow: 0 0 0 4px var(--surface), 0 0 0 20px transparent; }
+}
+
+.brb-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 8px;
+  text-align: center;
+}
+
+.brb-quick-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+.brb-quick-btn {
+  padding: 10px 18px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all var(--transition);
+}
+.brb-quick-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.offline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--surface2);
+  color: var(--text-dim);
+  margin-top: 16px;
+}
+.offline-badge.online { background: var(--accent-dim); color: var(--accent); }
+
+/* ===== PRE-TRIP MODAL (Quick setup before start) ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 500;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+
+.modal-sheet {
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px 20px calc(20px + var(--safe-bottom));
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+.quick-select-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.quick-select-item {
+  padding: 12px;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--transition);
+}
+.quick-select-item.selected { border-color: var(--accent); background: var(--accent-dim); }
+.quick-select-item .label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+.quick-select-item .val { font-weight: 600; font-size: 14px; }
+
+.condition-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.condition-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.condition-pill.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+
+/* ===== LIVE TRIP (Dashboard-style) ===== */
+.live-trip-panel {
+  display: none;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin: 0 16px 16px;
+  border: 1px solid var(--danger-dim);
+}
+.live-trip-panel.active { display: block; }
+
+.speedometer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.speedometer .speed-val {
+  font-family: var(--mono);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+}
+.speedometer .speed-unit { font-size: 14px; color: var(--text-dim); margin-left: 4px; }
+.speedometer .speed-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; }
+
+.live-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.live-stat {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+}
+.live-stat .val { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+.live-stat .lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+
+.gps-bar {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+}
+.gps-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--success);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ===== MAP VIEW (Colour-coded speed - README feature) ===== */
+.map-section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+  height: 180px;
+  position: relative;
+}
+.map-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.map-route {
+  position: absolute;
+  inset: 20px;
+}
+.map-route path {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.3s;
+}
+.map-route path.speed-slow { stroke: #00d4aa; }
+.map-route path.speed-med { stroke: #ffb347; }
+.map-route path.speed-fast { stroke: #ff3b5c; }
+.map-legend {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.map-legend span { display: flex; align-items: center; gap: 4px; }
+.map-legend .dot { width: 8px; height: 8px; border-radius: 50%; }
+.map-legend .dot.slow { background: #00d4aa; }
+.map-legend .dot.med { background: #ffb347; }
+.map-legend .dot.fast { background: #ff3b5c; }
+
+/* ===== PROGRESS (3 pie charts - README) ===== */
+.progress-section {
+  padding: 20px 16px;
+}
+.progress-section h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+.pie-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.pie-card {
+  flex: 1;
+  min-width: 100px;
+  max-width: 140px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.pie-card h3 { font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; }
+.pie-svg { width: 80px; height: 80px; margin: 0 auto 8px; }
+.pie-svg svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.pie-val { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.pie-sub { font-size: 11px; color: var(--text-dim); }
+
+/* ===== TRIP HISTORY ===== */
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 16px 12px;
+}
+.history-header h2 { font-size: 20px; font-weight: 700; }
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-pill {
+  white-space: nowrap;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.filter-pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+.trip-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+.trip-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.trip-card:hover { background: var(--surface2); }
+.trip-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.trip-date { font-size: 14px; font-weight: 600; }
+.trip-meta { font-size: 12px; color: var(--text-dim); }
+.trip-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+.trip-badge.approved { background: var(--accent-dim); color: var(--accent); }
+.trip-badge.pending { background: var(--warning); color: var(--bg); }
+.trip-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.trip-tag {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--text-dim);
+}
+
+/* ===== LOGBOOK FORMAT (README: easy to transcribe) ===== */
+.logbook-view {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.8;
+  border: 2px dashed var(--border);
+}
+.logbook-view h3 { font-size: 13px; margin-bottom: 12px; color: var(--text-dim); font-family: var(--font); }
+.logbook-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.logbook-row:last-child { border-bottom: none; }
+
+/* ===== PARENT APPROVALS (RBA - README) ===== */
+.approvals-section { padding: 16px; }
+.approvals-section h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.approval-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.approval-card.pending { border-left: 4px solid var(--warning); }
+.approval-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.approval-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.approval-btn.approve { background: var(--accent); color: var(--bg); }
+.approval-btn.reject { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+
+/* ===== CHATBOT ===== */
+.chat-screen { display: flex; flex-direction: column; height: 100%; }
+.chat-header { padding: 16px; border-bottom: 1px solid var(--border); }
+.chat-header h2 { font-size: 18px; font-weight: 700; }
+.chat-header p { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chat-msg {
+  max-width: 85%;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.chat-msg.bot {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+}
+.chat-msg.user {
+  background: var(--accent);
+  color: var(--bg);
+  align-self: flex-end;
+  font-weight: 500;
+}
+.chat-msg b { font-weight: 700; }
+
+.chat-typing {
+  display: none;
+  align-self: flex-start;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+.chat-typing.show { display: flex; gap: 4px; }
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
+.chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
+.suggest-btn {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.suggest-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.chat-input-bar {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px calc(12px + var(--safe-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+.chat-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+.chat-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== SETTINGS ===== */
+.settings-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+}
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.settings-profile .name { font-size: 17px; font-weight: 700; }
+.settings-profile .role { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+
+.settings-list {
+  background: var(--surface);
+  border-radius: var(--radius);
+  margin: 0 16px 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+}
+.settings-item:last-child { border-bottom: none; }
+.settings-item:hover { background: var(--surface2); }
+
+.toggle {
+  width: 48px;
+  height: 28px;
+  border-radius: 14px;
+  background: var(--text-muted);
+  position: relative;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: '';
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform var(--transition);
+}
+.toggle.on::after { transform: translateX(20px); }
+
+.signout-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 16px;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--danger-dim);
+  color: var(--danger);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: calc(var(--nav-height) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 100;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+.nav-item.active { color: var(--accent); }
+.nav-item svg { width: 22px; height: 22px; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- AUTH -->
+  <div class="auth-screen active" id="loginScreen">
+    <div class="auth-brand">
+      <div class="l-badge">L</div>
+      <h1>L-Plate Logger</h1>
+      <p>Log hours. Get your P's. Faster.</p>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input class="form-input" id="loginEmail" type="email" placeholder="you@email.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input class="form-input" id="loginPass" type="password" placeholder="Min 8 characters">
+    </div>
+    <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
+    <button class="btn btn-ghost" onclick="demoLogin('learner')">Quick Demo — Learner</button>
+    <button class="btn btn-ghost" onclick="demoLogin('parent')">Quick Demo — Parent</button>
+    <div class="auth-footer">
+      No account? <button class="btn-link" onclick="showAuth('registerScreen')">Register</button>
+    </div>
+  </div>
+
+  <div class="auth-screen" id="registerScreen">
+    <div class="auth-brand">
+      <div class="l-badge">L</div>
+      <h1>Create Account</h1>
+      <p>Start tracking your 120 hours</p>
+    </div>
+    <div class="form-group">
+      <label>First Name</label>
+      <input class="form-input" id="regFirst" placeholder="Alex">
+    </div>
+    <div class="form-group">
+      <label>Last Name</label>
+      <input class="form-input" id="regLast" placeholder="Smith">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input class="form-input" id="regEmail" type="email" placeholder="you@email.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input class="form-input" id="regPass" type="password" placeholder="Min 8 characters">
+    </div>
+    <div class="form-group">
+      <label>Account Type</label>
+      <select class="form-input" id="regType">
+        <option value="learner">Learner Driver</option>
+        <option value="parent">Parent / Supervisor</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>State</label>
+      <select class="form-input" id="regState">
+        <option value="NSW">NSW</option>
+        <option value="VIC">VIC</option>
+        <option value="QLD">QLD</option>
+        <option value="SA">SA</option>
+        <option value="WA">WA</option>
+        <option value="TAS">TAS</option>
+        <option value="NT">NT</option>
+        <option value="ACT">ACT</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="handleRegister()">Create Account</button>
+    <div class="auth-footer">
+      Have an account? <button class="btn-link" onclick="showAuth('loginScreen')">Sign In</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="screen" id="loggerScreen">
+    <div class="screen-scroll">
+      <div class="brb-landing">
+        <div class="brb-hero">
+          <div class="greeting" id="greeting">Good morning</div>
+          <div class="name" id="userName">Alex</div>
+        </div>
+        <div class="brb-progress-mini" id="progressMini"></div>
+        <div class="brb-wrapper">
+          <button class="brb idle" id="brb" onclick="handleBRB()">START</button>
+        </div>
+        <div class="brb-sub" id="brbSub">Tap to begin a drive</div>
+        <div class="brb-quick-actions">
+          <button class="brb-quick-btn" onclick="openPreTripModal()">Vehicle & Supervisor</button>
+          <button class="brb-quick-btn" onclick="navigateTo('historyScreen')">View Trips</button>
+        </div>
+        <div class="offline-badge" id="offlineBadge">📡 Offline mode</div>
+      </div>
+
+      <div class="live-trip-panel" id="liveTripPanel">
+        <div class="speedometer">
+          <div><span class="speed-val" id="liveSpeed">0</span><span class="speed-unit">km/h</span></div>
+          <div class="speed-label">Current Speed</div>
+        </div>
+        <div class="live-stats-grid">
+          <div class="live-stat"><div class="val" id="liveDist">0.0</div><div class="lbl">km</div></div>
+          <div class="live-stat"><div class="val" id="liveTime">00:00</div><div class="lbl">Time</div></div>
+          <div class="live-stat"><div class="val" id="liveBrakes">0</div><div class="lbl">Harsh</div></div>
+          <div class="live-stat"><div class="val" id="liveGps">●</div><div class="lbl">GPS</div></div>
+        </div>
+        <div class="gps-bar">
+          <span><span class="gps-dot"></span><span id="gpsCoords">-33.8688, 151.2093</span></span>
+          <span>Acc: <span id="gpsAcc">3.2</span>m</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY with Map -->
+  <div class="screen" id="historyScreen">
+    <div class="history-header">
+      <h2>Trip History</h2>
+    </div>
+    <div class="filter-row">
+      <span class="filter-pill active" data-f="all" onclick="filterTrips(this)">All</span>
+      <span class="filter-pill" data-f="approved" onclick="filterTrips(this)">Approved</span>
+      <span class="filter-pill" data-f="pending" onclick="filterTrips(this)">Pending</span>
+      <span class="filter-pill" data-f="night" onclick="filterTrips(this)">Night</span>
+    </div>
+    <div class="screen-scroll">
+      <div class="map-section">
+        <div class="map-placeholder">
+          <svg class="map-route" viewBox="0 0 200 140" preserveAspectRatio="none">
+            <path class="speed-slow" d="M10 70 Q50 50 90 60 T170 70" stroke="#00d4aa" stroke-width="3"/>
+            <path class="speed-med" d="M10 80 Q60 90 100 75 T170 65" stroke="#ffb347" stroke-width="3"/>
+            <path class="speed-fast" d="M10 90 Q70 100 120 85 T170 80" stroke="#ff3b5c" stroke-width="3"/>
+          </svg>
+          <div class="map-legend">
+            <span><span class="dot slow"></span>&lt;50</span>
+            <span><span class="dot med"></span>50-80</span>
+            <span><span class="dot fast"></span>&gt;80</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <h2>Progress to P1</h2>
+        <div class="pie-row" id="pieCharts"></div>
+      </div>
+
+      <div class="trip-list" id="tripList"></div>
+    </div>
+  </div>
+
+  <!-- APPROVALS (Parent RBA) -->
+  <div class="screen" id="approvalsScreen">
+    <div class="approvals-section">
+      <h2>Approve Drives</h2>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:16px">Review and approve learner trips</p>
+      <div id="approvalsList"></div>
+    </div>
+  </div>
+
+  <!-- CHATBOT -->
+  <div class="screen chat-screen" id="chatScreen">
+    <div class="chat-header">
+      <h2>Road Rules AI</h2>
+      <p>Ask about NSW learner driving laws</p>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">G'day! Ask me anything about NSW learner driver rules, hours, or licence conditions.</div>
+      <div class="chat-typing" id="chatTyping"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    </div>
+    <div class="chat-suggestions" id="chatSuggestions">
+      <button class="suggest-btn" onclick="askQuestion(this.textContent)">Hours for P1?</button>
+      <button class="suggest-btn" onclick="askQuestion(this.textContent)">Night driving rules?</button>
+      <button class="suggest-btn" onclick="askQuestion(this.textContent)">Speed limits?</button>
+      <button class="suggest-btn" onclick="askQuestion(this.textContent)">Logbook requirements?</button>
+      <button class="suggest-btn" onclick="askQuestion(this.textContent)">L-plate rules?</button>
+      <button class="suggest-btn" onclick="askQuestion(this.textContent)">Supervisor requirements?</button>
+    </div>
+    <div class="chat-input-bar">
+      <input class="chat-input" id="chatInput" placeholder="Ask about NSW road rules..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" onclick="sendChat()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="settingsScreen">
+    <div class="screen-scroll">
+      <div class="settings-profile">
+        <div class="avatar" id="settingsAvatar">A</div>
+        <div class="name" id="settingsName">Alex Mitchell</div>
+        <div class="role" id="settingsRole">Learner Driver</div>
+      </div>
+      <div class="settings-list">
+        <div class="settings-item" onclick="toggleTheme()">
+          <span>Dark Mode</span>
+          <div class="toggle" id="themeToggle"></div>
+        </div>
+        <div class="settings-item" onclick="toast('Demo only')"><span>Profile</span><span>›</span></div>
+        <div class="settings-item" onclick="toast('Demo only')"><span>Supervisors</span><span>›</span></div>
+        <div class="settings-item" onclick="toast('Demo only')"><span>Export Logbook</span><span>›</span></div>
+      </div>
+      <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- PRE-TRIP MODAL -->
+  <div class="modal-overlay" id="preTripModal" onclick="if(event.target===this)closePreTripModal()">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Quick setup before drive</div>
+      <div class="form-group">
+        <label>Vehicle</label>
+        <div class="quick-select-grid" id="vehicleSelect">
+          <div class="quick-select-item selected" data-v="Mum's Corolla" onclick="selectQuick(this,'vehicle')"><div class="label">Vehicle</div><div class="val">Mum's Corolla</div></div>
+          <div class="quick-select-item" data-v="Dad's Ranger" onclick="selectQuick(this,'vehicle')"><div class="label">Vehicle</div><div class="val">Dad's Ranger</div></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Supervising Driver</label>
+        <div class="quick-select-grid" id="supervisorSelect">
+          <div class="quick-select-item selected" data-v="Sarah M." onclick="selectQuick(this,'supervisor')"><div class="label">Supervisor</div><div class="val">Sarah M.</div></div>
+          <div class="quick-select-item" data-v="David M." onclick="selectQuick(this,'supervisor')"><div class="label">Supervisor</div><div class="val">David M.</div></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Conditions (optional)</label>
+        <div class="condition-pills" id="conditionPills">
+          <span class="condition-pill" data-c="rain" onclick="toggleCondition(this)">Rain</span>
+          <span class="condition-pill" data-c="night" onclick="toggleCondition(this)">Night</span>
+          <span class="condition-pill" data-c="city" onclick="toggleCondition(this)">City</span>
+          <span class="condition-pill" data-c="highway" onclick="toggleCondition(this)">Highway</span>
+          <span class="condition-pill" data-c="school" onclick="toggleCondition(this)">School Zone</span>
+          <span class="condition-pill" data-c="rural" onclick="toggleCondition(this)">Rural</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="startDriveFromModal()">Start Drive</button>
+      <button class="btn btn-ghost" onclick="closePreTripModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- TRIP DETAIL + LOGBOOK MODAL -->
+  <div class="modal-overlay" id="tripModal" onclick="if(event.target===this)closeTripModal()">
+    <div class="modal-sheet" id="tripModalContent"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav hidden" id="bottomNav">
+    <button class="nav-item active" data-screen="loggerScreen" onclick="navigateTo('loggerScreen',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Drive
+    </button>
+    <button class="nav-item" data-screen="historyScreen" onclick="navigateTo('historyScreen',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      History
+    </button>
+    <button class="nav-item" id="navApprovals" data-screen="approvalsScreen" onclick="navigateTo('approvalsScreen',this)" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Approve
+    </button>
+    <button class="nav-item" data-screen="chatScreen" onclick="navigateTo('chatScreen',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Rules
+    </button>
+    <button class="nav-item" data-screen="settingsScreen" onclick="navigateTo('settingsScreen',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<script>
+// ===== DATA =====
+const USERS = [
+  { email: 'demo@lplate.app', password: 'password123', first: 'Alex', last: 'Mitchell', type: 'learner', state: 'NSW' },
+  { email: 'parent@lplate.app', password: 'password123', first: 'Sarah', last: 'Mitchell', type: 'parent', state: 'NSW' },
+];
+
+const TRIPS = [
+  { id: 1, date: '2026-02-24', startTime: '08:15', duration: 75, distance: 42.3, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['city', 'school'], status: 'approved', night: false },
+  { id: 2, date: '2026-02-22', startTime: '18:45', duration: 90, distance: 58.1, supervisor: 'David M.', vehicle: "Dad's Ranger", conditions: ['night', 'highway'], status: 'approved', night: true },
+  { id: 3, date: '2026-02-20', startTime: '10:30', duration: 60, distance: 35.7, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['rain', 'city'], status: 'approved', night: false },
+  { id: 4, date: '2026-02-18', startTime: '19:00', duration: 45, distance: 28.9, supervisor: 'David M.', vehicle: "Dad's Ranger", conditions: ['night', 'rural'], status: 'pending', night: true },
+  { id: 5, date: '2026-02-15', startTime: '14:00', duration: 120, distance: 85.2, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['highway', 'rural'], status: 'approved', night: false },
+  { id: 6, date: '2026-02-12', startTime: '20:30', duration: 55, distance: 31.4, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['night', 'city', 'rain'], status: 'approved', night: true },
+  { id: 7, date: '2026-02-10', startTime: '09:00', duration: 95, distance: 62.8, supervisor: 'David M.', vehicle: "Dad's Ranger", conditions: ['city', 'highway'], status: 'pending', night: false },
+];
+
+const TOTAL_HRS = 58;
+const NIGHT_HRS = 12;
+const DAY_HRS = TOTAL_HRS - NIGHT_HRS;
+const TOTAL_REQ = 120;
+const NIGHT_REQ = 20;
+
+const CHATBOT = {
+  'hours': `To get your P1 licence in NSW, you need <b>120 hours</b> of supervised driving, with at least <b>20 hours at night</b>. You must hold your learner licence for <b>12 months minimum</b> before the driving test.`,
+  'night': `Night driving in NSW: at least <b>20 hours</b> of your 120 must be at night (sunset to sunrise). You must still be supervised. Record night trips accurately in your logbook.`,
+  'speed': `Learner drivers in NSW must <b>not exceed 90 km/h</b> regardless of posted limit. <b>Zero blood alcohol</b> at all times.`,
+  'logbook': `Your NSW logbook must record: <b>Date</b>, <b>start/end times</b>, <b>duration</b>, <b>odometer readings</b>, <b>day/night</b>, <b>supervisor name and signature</b>, <b>road conditions</b>.`,
+  'lplate': `In NSW, display <b>L-plates front and rear</b> at all times. Must be clearly visible. Remove when a learner is not driving.`,
+  'supervisor': `Supervising driver must: hold <b>full unrestricted Australian licence</b> for <b>1+ year</b>, sit beside you, <b>BAC under 0.05</b>, be awake and able to take control.`,
+  'default': `Check the <b>NSW Transport website</b> or call <b>13 22 13</b> for up-to-date learner driver rules.`,
+};
+
+// ===== STATE =====
+let currentUser = null;
+let tripRecording = false;
+let tripTimer = null;
+let tripSeconds = 0;
+let tripDistance = 0;
+let tripBrakes = 0;
+let currentFilter = 'all';
+let isDark = true;
+let selectedVehicle = "Mum's Corolla";
+let selectedSupervisor = 'Sarah M.';
+
+// ===== SESSION =====
+(function init() {
+  const saved = sessionStorage.getItem('lplate_user');
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    enterApp();
+  }
+  const theme = localStorage.getItem('lplate_theme');
+  if (theme === 'light') { isDark = false; document.documentElement.setAttribute('data-theme', 'light'); const t = document.getElementById('themeToggle'); if (t) t.classList.add('on'); }
+})();
+
+// ===== AUTH =====
+function showAuth(id) {
+  document.querySelectorAll('.auth-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !email.includes('@')) { toast('Enter a valid email'); return; }
+  if (!pass || pass.length < 8) { toast('Password must be 8+ characters'); return; }
+  const user = USERS.find(u => u.email === email && u.password === pass);
+  if (!user) { toast('Invalid credentials. Try demo@lplate.app / password123'); return; }
+  currentUser = user;
+  sessionStorage.setItem('lplate_user', JSON.stringify(user));
+  enterApp();
+}
+
+function handleRegister() {
+  const first = document.getElementById('regFirst').value.trim();
+  const last = document.getElementById('regLast').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  if (!first || !last || !email || !pass) { toast('Fill all fields'); return; }
+  if (pass.length < 8) { toast('Password 8+ characters'); return; }
+  const newUser = { email, password: pass, first, last, type: document.getElementById('regType').value, state: document.getElementById('regState').value };
+  USERS.push(newUser);
+  currentUser = newUser;
+  sessionStorage.setItem('lplate_user', JSON.stringify(newUser));
+  toast('Account created!');
+  enterApp();
+}
+
+function demoLogin(type) {
+  currentUser = type === 'learner' ? USERS[0] : USERS[1];
+  sessionStorage.setItem('lplate_user', JSON.stringify(currentUser));
+  enterApp();
+}
+
+function signOut() {
+  currentUser = null;
+  sessionStorage.removeItem('lplate_user');
+  if (tripRecording) toggleTrip();
+  document.getElementById('bottomNav').classList.add('hidden');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  showAuth('loginScreen');
+  toast('Signed out');
+}
+
+function enterApp() {
+  document.querySelectorAll('.auth-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('bottomNav').classList.remove('hidden');
+  updateUserUI();
+  applyRoleUI();
+  renderProgressMini();
+  renderPieCharts();
+  renderTrips();
+  renderApprovals();
+  const isParent = currentUser.type === 'parent';
+  if (isParent) navigateTo('approvalsScreen', document.getElementById('navApprovals'));
+  else navigateTo('loggerScreen', document.querySelector('[data-screen="loggerScreen"]'));
+}
+
+function updateUserUI() {
+  if (!currentUser) return;
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting').textContent = g;
+  document.getElementById('userName').textContent = currentUser.first;
+  document.getElementById('settingsAvatar').textContent = currentUser.first[0];
+  document.getElementById('settingsName').textContent = currentUser.first + ' ' + currentUser.last;
+  document.getElementById('settingsRole').textContent = currentUser.type === 'learner' ? 'Learner Driver' : 'Parent / Supervisor';
+}
+
+function applyRoleUI() {
+  const isParent = currentUser && currentUser.type === 'parent';
+  document.getElementById('navApprovals').style.display = isParent ? '' : 'none';
+  const driveNav = document.querySelector('[data-screen="loggerScreen"]');
+  if (driveNav) driveNav.style.display = isParent ? 'none' : '';
+}
+
+// ===== NAVIGATION =====
+function navigateTo(screenId, navEl) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+}
+
+// ===== BRB (Big Red Button - README) =====
+function handleBRB() {
+  if (tripRecording) {
+    toggleTrip();
+    return;
+  }
+  openPreTripModal();
+}
+
+function openPreTripModal() {
+  document.getElementById('preTripModal').classList.add('show');
+}
+
+function closePreTripModal() {
+  document.getElementById('preTripModal').classList.remove('show');
+  document.getElementById('brbSub').textContent = 'Tap START to begin';
+}
+
+function selectQuick(el, type) {
+  el.parentElement.querySelectorAll('.quick-select-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  if (type === 'vehicle') selectedVehicle = el.dataset.v;
+  if (type === 'supervisor') selectedSupervisor = el.dataset.v;
+}
+
+function toggleCondition(el) {
+  el.classList.toggle('active');
+}
+
+function startDriveFromModal() {
+  closePreTripModal();
+  toggleTrip();
+}
+
+// ===== TRIP RECORDING =====
+function toggleTrip() {
+  const btn = document.getElementById('brb');
+  const panel = document.getElementById('liveTripPanel');
+  const sub = document.getElementById('brbSub');
+  if (!tripRecording) {
+    tripRecording = true;
+    tripSeconds = 0;
+    tripDistance = 0;
+    tripBrakes = 0;
+    btn.textContent = 'STOP';
+    btn.classList.remove('idle');
+    btn.classList.add('recording');
+    panel.classList.add('active');
+    sub.textContent = 'Recording — tap STOP when done';
+    toast('Trip started');
+    tripTimer = setInterval(updateLiveData, 1000);
+  } else {
+    tripRecording = false;
+    clearInterval(tripTimer);
+    btn.textContent = 'START';
+    btn.classList.remove('recording');
+    btn.classList.add('idle');
+    panel.classList.remove('active');
+    sub.textContent = 'Tap to begin a drive';
+    toast('Trip saved — ' + formatTime(tripSeconds));
+  }
+}
+
+function updateLiveData() {
+  tripSeconds++;
+  const speed = Math.floor(40 + Math.random() * 50);
+  tripDistance += speed / 3600;
+  if (Math.random() < 0.01) tripBrakes++;
+  document.getElementById('liveSpeed').textContent = speed;
+  document.getElementById('liveDist').textContent = tripDistance.toFixed(1);
+  document.getElementById('liveTime').textContent = formatTime(tripSeconds);
+  document.getElementById('liveBrakes').textContent = tripBrakes;
+  const lat = (-33.8688 + (Math.random() - 0.5) * 0.01).toFixed(4);
+  const lng = (151.2093 + (Math.random() - 0.5) * 0.01).toFixed(4);
+  document.getElementById('gpsCoords').textContent = lat + ', ' + lng;
+  document.getElementById('gpsAcc').textContent = (2 + Math.random() * 4).toFixed(1);
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60).toString().padStart(2, '0');
+  const s = (secs % 60).toString().padStart(2, '0');
+  return m + ':' + s;
+}
+
+// ===== PROGRESS MINI & PIE CHARTS (3 pies - README) =====
+function renderProgressMini() {
+  const circ = 2 * Math.PI * 24;
+  const totalPct = Math.min(TOTAL_HRS / TOTAL_REQ, 1);
+  const nightPct = Math.min(NIGHT_HRS / NIGHT_REQ, 1);
+  const container = document.getElementById('progressMini');
+  container.innerHTML = `
+    <div class="ring">
+      <svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="none" stroke="var(--border)" stroke-width="4"/><circle class="fg" cx="28" cy="28" r="24" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - totalPct)}" stroke-linecap="round"/></svg>
+      <div class="ring-text"><span>${TOTAL_HRS}h</span><span class="ring-sub">of 120</span></div>
+    </div>
+    <div class="ring">
+      <svg viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="none" stroke="var(--border)" stroke-width="4"/><circle class="fg" cx="28" cy="28" r="24" fill="none" stroke="#818cf8" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - nightPct)}" stroke-linecap="round"/></svg>
+      <div class="ring-text"><span>${NIGHT_HRS}h</span><span class="ring-sub">of 20</span></div>
+    </div>
+  `;
+}
+
+function renderPieCharts() {
+  const dayPct = (DAY_HRS / TOTAL_HRS * 100) || 0;
+  const nightPct = (NIGHT_HRS / TOTAL_HRS * 100) || 0;
+  const totalPct = (TOTAL_HRS / TOTAL_REQ * 100) || 0;
+  const circ = 2 * Math.PI * 32;
+  document.getElementById('pieCharts').innerHTML = `
+    <div class="pie-card">
+      <h3>Total</h3>
+      <div class="pie-svg"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="40" cy="40" r="32" fill="none" stroke="var(--accent)" stroke-width="8" stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - totalPct / 100)}" stroke-linecap="round" transform="rotate(-90 40 40)"/></svg></div>
+      <div class="pie-val">${TOTAL_HRS}h</div>
+      <div class="pie-sub">of 120h (${Math.round(totalPct)}%)</div>
+    </div>
+    <div class="pie-card">
+      <h3>Day</h3>
+      <div class="pie-svg"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="40" cy="40" r="32" fill="none" stroke="#ffb347" stroke-width="8" stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - dayPct / 100)}" stroke-linecap="round" transform="rotate(-90 40 40)"/></svg></div>
+      <div class="pie-val">${DAY_HRS}h</div>
+      <div class="pie-sub">${Math.round(dayPct)}% of total</div>
+    </div>
+    <div class="pie-card">
+      <h3>Night</h3>
+      <div class="pie-svg"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="8"/><circle cx="40" cy="40" r="32" fill="none" stroke="#818cf8" stroke-width="8" stroke-dasharray="${circ}" stroke-dashoffset="${circ * (1 - nightPct / 100)}" stroke-linecap="round" transform="rotate(-90 40 40)"/></svg></div>
+      <div class="pie-val">${NIGHT_HRS}h</div>
+      <div class="pie-sub">of 20h (${Math.round(NIGHT_HRS/NIGHT_REQ*100)}%)</div>
+    </div>
+  `;
+}
+
+// ===== TRIP HISTORY =====
+function renderTrips() {
+  const filtered = TRIPS.filter(t => {
+    if (currentFilter === 'approved') return t.status === 'approved';
+    if (currentFilter === 'pending') return t.status === 'pending';
+    if (currentFilter === 'night') return t.night;
+    return true;
+  });
+  const container = document.getElementById('tripList');
+  container.innerHTML = filtered.map(t => {
+    const d = new Date(t.date);
+    const dateStr = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+    const durStr = t.duration >= 60 ? Math.floor(t.duration/60) + 'h ' + (t.duration%60) + 'm' : t.duration + 'm';
+    return `<div class="trip-card" onclick="openTripModal(${t.id})">
+      <div class="trip-card-top">
+        <div>
+          <div class="trip-date">${dateStr} · ${t.startTime}</div>
+          <div class="trip-meta">${t.distance} km · ${durStr} · ${t.supervisor}</div>
+        </div>
+        <span class="trip-badge ${t.status}">${t.status}</span>
+      </div>
+      <div class="trip-tags">${t.conditions.map(c => `<span class="trip-tag">${c}</span>`).join('')} ${t.night ? '<span class="trip-tag">night</span>' : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterTrips(el) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = el.dataset.f;
+  renderTrips();
+}
+
+// ===== TRIP MODAL + LOGBOOK FORMAT (README: easy to transcribe) =====
+function openTripModal(id) {
+  const t = TRIPS.find(tr => tr.id === id);
+  if (!t) return;
+  const d = new Date(t.date);
+  const dateStr = d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const durStr = t.duration >= 60 ? Math.floor(t.duration/60) + 'h ' + (t.duration%60) + 'm' : t.duration + 'm';
+  const endMins = Math.floor(t.startTime.split(':')[0]) * 60 + parseInt(t.startTime.split(':')[1]) + t.duration;
+  const endH = Math.floor(endMins / 60);
+  const endM = endMins % 60;
+  const endTime = String(endH).padStart(2,'0') + ':' + String(endM).padStart(2,'0');
+
+  document.getElementById('tripModalContent').innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">${dateStr}</div>
+    <div class="logbook-view">
+      <h3>Logbook format — copy to physical logbook</h3>
+      <div class="logbook-row"><span>Date</span><span>${t.date}</span></div>
+      <div class="logbook-row"><span>Start time</span><span>${t.startTime}</span></div>
+      <div class="logbook-row"><span>End time</span><span>${endTime}</span></div>
+      <div class="logbook-row"><span>Duration</span><span>${durStr}</span></div>
+      <div class="logbook-row"><span>Distance</span><span>${t.distance} km</span></div>
+      <div class="logbook-row"><span>Day/Night</span><span>${t.night ? 'Night' : 'Day'}</span></div>
+      <div class="logbook-row"><span>Supervisor</span><span>${t.supervisor}</span></div>
+      <div class="logbook-row"><span>Vehicle</span><span>${t.vehicle}</span></div>
+      <div class="logbook-row"><span>Conditions</span><span>${t.conditions.join(', ')}</span></div>
+      <div class="logbook-row"><span>Status</span><span>${t.status}</span></div>
+    </div>
+  `;
+  document.getElementById('tripModal').classList.add('show');
+}
+
+function closeTripModal() {
+  document.getElementById('tripModal').classList.remove('show');
+}
+
+// ===== APPROVALS (Parent RBA) =====
+function renderApprovals() {
+  const pending = TRIPS.filter(t => t.status === 'pending');
+  const container = document.getElementById('approvalsList');
+  if (pending.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-dim);font-size:14px">No trips pending approval.</p>';
+    return;
+  }
+  container.innerHTML = pending.map(t => {
+    const d = new Date(t.date);
+    const dateStr = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+    const durStr = t.duration >= 60 ? Math.floor(t.duration/60) + 'h ' + (t.duration%60) + 'm' : t.duration + 'm';
+    return `<div class="approval-card pending">
+      <div class="trip-date">${dateStr} · ${t.startTime}</div>
+      <div class="trip-meta" style="margin-top:4px">${t.distance} km · ${durStr} · ${t.vehicle} · ${t.supervisor}</div>
+      <div class="approval-actions">
+        <button class="approval-btn approve" onclick="approveTrip(${t.id})">Approve</button>
+        <button class="approval-btn reject" onclick="rejectTrip(${t.id})">Reject</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function approveTrip(id) {
+  const t = TRIPS.find(tr => tr.id === id);
+  if (t) { t.status = 'approved'; toast('Trip approved'); renderApprovals(); renderTrips(); }
+}
+
+function rejectTrip(id) {
+  const t = TRIPS.find(tr => tr.id === id);
+  if (t) { t.status = 'rejected'; toast('Trip rejected'); renderApprovals(); renderTrips(); }
+}
+
+// ===== CHATBOT =====
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  askQuestion(msg);
+}
+
+function askQuestion(q) {
+  const messages = document.getElementById('chatMessages');
+  const typing = document.getElementById('chatTyping');
+  const userMsg = document.createElement('div');
+  userMsg.className = 'chat-msg user';
+  userMsg.textContent = q;
+  messages.insertBefore(userMsg, typing);
+  document.getElementById('chatSuggestions').style.display = 'none';
+  typing.classList.add('show');
+  messages.scrollTop = messages.scrollHeight;
+
+  const lower = q.toLowerCase();
+  let response = CHATBOT.default;
+  if (lower.includes('hour') || lower.includes('p1') || lower.includes('120')) response = CHATBOT.hours;
+  else if (lower.includes('night')) response = CHATBOT.night;
+  else if (lower.includes('speed') || lower.includes('limit') || lower.includes('90')) response = CHATBOT.speed;
+  else if (lower.includes('logbook') || lower.includes('log book')) response = CHATBOT.logbook;
+  else if (lower.includes('l-plate') || lower.includes('l plate')) response = CHATBOT.lplate;
+  else if (lower.includes('supervis') || lower.includes('accompan')) response = CHATBOT.supervisor;
+
+  setTimeout(() => {
+    typing.classList.remove('show');
+    const botMsg = document.createElement('div');
+    botMsg.className = 'chat-msg bot';
+    botMsg.innerHTML = response.replace(/\n/g, '<br>');
+    messages.insertBefore(botMsg, typing);
+    messages.scrollTop = messages.scrollHeight;
+  }, 800 + Math.random() * 800);
+}
+
+// ===== TOAST =====
+function toast(msg) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ===== THEME =====
+function toggleTheme() {
+  isDark = !isDark;
+  const toggle = document.getElementById('themeToggle');
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    toggle.classList.remove('on');
+    localStorage.setItem('lplate_theme', 'dark');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    toggle.classList.add('on');
+    localStorage.setItem('lplate_theme', 'light');
+  }
+}
+
+// Hash-based preview for gallery (#logger, #history, #chat, #settings, #approvals)
+(function(){
+  const params = new URLSearchParams(location.search);
+  const theme = params.get('theme');
+  if (theme === 'light' || theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('lplate_theme', theme);
+  }
+  const h = (location.hash || '').slice(1);
+  const map = { logger: 'loggerScreen', history: 'historyScreen', chat: 'chatScreen', settings: 'settingsScreen', approvals: 'approvalsScreen' };
+  if (map[h] && typeof demoLogin === 'function') {
+    demoLogin('learner');
+    setTimeout(() => { const el = document.querySelector('[data-screen="' + map[h] + '"]'); if (typeof navigateTo === 'function') navigateTo(map[h], el || null); }, 600);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>L-Plate Logger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root, [data-theme="dark"] {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1a1a24;
+    --surface3: #22222e;
+    --accent: #00e676;
+    --accent-dim: #00e67633;
+    --accent-glow: #00e67620;
+    --warning: #ff6b35;
+    --danger: #ff3366;
+    --text: #e8e8f0;
+    --text-dim: #8888a0;
+    --text-muted: #555568;
+    --nav-bg: #13131a;
+    --nav-border: #ffffff08;
+    --chip-border: #ffffff15;
+    --chip-bg: #1a1a24;
+    --card-border: #ffffff08;
+    --modal-overlay: rgba(0,0,0,0.7);
+    --input-border: #ffffff15;
+    --start-btn-text: #0a0a0f;
+    --avatar-text: #0a0a0f;
+    --toast-bg: #1a1a24;
+    --toast-border: #ffffff15;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-lg: 24px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --nav-height: 72px;
+  }
+
+  [data-theme="light"] {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface2: #f0f1f4;
+    --surface3: #e6e8ec;
+    --accent: #008c48;
+    --accent-dim: #008c4825;
+    --accent-glow: #008c4818;
+    --warning: #e05a20;
+    --danger: #dd2255;
+    --text: #1a1a2e;
+    --text-dim: #5c5c78;
+    --text-muted: #8c8ca0;
+    --nav-bg: #ffffff;
+    --nav-border: #e0e0e8;
+    --chip-border: #d8d8e2;
+    --chip-bg: #f0f1f4;
+    --card-border: #e4e4ec;
+    --modal-overlay: rgba(0,0,0,0.35);
+    --input-border: #d8d8e2;
+    --start-btn-text: #ffffff;
+    --avatar-text: #ffffff;
+    --toast-bg: #ffffff;
+    --toast-border: #e0e0e8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    padding-top: var(--safe-top);
+    padding-bottom: calc(var(--safe-bottom) + var(--nav-height));
+  }
+
+  /* Scrollable content area */
+  .screen {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 16px 24px;
+  }
+  .screen.active { display: flex; }
+  .screen-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+    padding: 20px 0 12px;
+  }
+  .screen-header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .screen-header .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--nav-height) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: var(--nav-bg);
+    border-top: 1px solid var(--nav-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item svg { width: 22px; height: 22px; }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* ===== LOGGER SCREEN ===== */
+  .hero-start {
+    margin-top: 8px;
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+  }
+  .hero-start::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-start .status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  .status-dot.inactive { background: var(--text-muted); animation: none; }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--accent-dim); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px transparent; }
+  }
+  .status-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-family: 'Space Mono', monospace;
+  }
+  .status-label.inactive { color: var(--text-muted); }
+
+  .start-btn {
+    width: 100%;
+    padding: 20px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #ffffff;
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px var(--accent-dim), 0 0 0 1px var(--accent);
+  }
+  .start-btn:active { transform: scale(0.97); }
+
+  /* Fixed start button wrapper - sits above bottom nav */
+  .fixed-start-wrapper {
+    position: fixed;
+    bottom: calc(var(--nav-height) + var(--safe-bottom) + 8px);
+    left: 16px;
+    right: 16px;
+    z-index: 90;
+  }
+  .fixed-start-wrapper .start-btn {
+    box-shadow: 0 6px 28px var(--accent-dim), 0 0 0 1px var(--accent), 0 -4px 16px rgba(0,0,0,0.3);
+  }
+  .fixed-start-wrapper .start-btn.recording {
+    box-shadow: 0 6px 28px #ff336655, 0 0 0 1px var(--danger), 0 -4px 16px rgba(0,0,0,0.3);
+  }
+
+  .start-btn.recording {
+    background: var(--danger);
+    color: white;
+    box-shadow: 0 4px 20px #ff336644, 0 0 0 1px var(--danger);
+    animation: recording-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes recording-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 #ff336644; }
+    50% { box-shadow: 0 0 0 8px transparent; }
+  }
+
+  .quick-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .quick-info-item {
+    background: var(--surface3);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+  .quick-info-item .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .quick-info-item .value {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  /* Live Trip Panel */
+  .live-trip {
+    display: none;
+    margin-top: 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid var(--danger)33;
+  }
+  .live-trip.active { display: block; }
+  .live-trip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .live-trip-header h3 {
+    font-size: 14px;
+    color: var(--danger);
+    font-family: 'Space Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--danger);
+    animation: pulse-dot 1s ease-in-out infinite;
+  }
+  .live-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  .live-stat .num {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .live-stat .unit {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* Supervisor selector */
+  .supervisor-select {
+    margin-top: 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid var(--card-border);
+  }
+  .supervisor-select .label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .supervisor-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .supervisor-chip {
+    padding: 10px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--chip-border);
+    background: var(--chip-bg);
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .supervisor-chip.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  /* Conditions selector */
+  .conditions {
+    margin-top: 12px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid var(--card-border);
+  }
+  .conditions .label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .condition-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .condition-tag {
+    padding: 8px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--chip-border);
+    background: var(--surface3);
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .condition-tag.selected {
+    border-color: var(--warning);
+    background: #ff6b3520;
+    color: var(--warning);
+  }
+
+  /* Progress Ring */
+  .progress-section {
+    margin-top: 20px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: 1px solid var(--card-border);
+  }
+  .progress-ring-container {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    flex-shrink: 0;
+  }
+  .progress-ring-container svg {
+    transform: rotate(-90deg);
+    width: 90px;
+    height: 90px;
+  }
+  .progress-ring-bg {
+    fill: none;
+    stroke: var(--surface3);
+    stroke-width: 6;
+  }
+  .progress-ring-fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 245;
+    stroke-dashoffset: 245;
+    transition: stroke-dashoffset 1s ease;
+  }
+  .progress-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .progress-center .pct {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .progress-center .pct-sign {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .progress-details h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .progress-details p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .progress-details .hours-breakdown {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .progress-details .hours-breakdown span {
+    color: var(--accent);
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ===== TRIPS SCREEN ===== */
+  .trip-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--card-border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .trip-card:active { transform: scale(0.98); background: var(--surface2); }
+  .trip-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .trip-date {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .trip-duration {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .trip-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-weight: 600;
+  }
+  .trip-badge.approved { background: #00e67620; color: var(--accent); }
+  .trip-badge.pending { background: #ff6b3520; color: var(--warning); }
+  .trip-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .trip-meta svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; }
+
+  .filter-pills {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .filter-pills::-webkit-scrollbar { display: none; }
+  .filter-pill {
+    padding: 8px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--chip-border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-pill.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--start-btn-text);
+  }
+
+  /* ===== CHARTS ===== */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .charts-row.single {
+    grid-template-columns: 1fr;
+  }
+  .chart-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .chart-card.wide {
+    flex-direction: row;
+    gap: 20px;
+    justify-content: center;
+  }
+  .chart-title {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    align-self: flex-start;
+  }
+  .chart-card.wide .chart-title {
+    position: absolute;
+    /* use a different approach for wide */
+  }
+  .chart-card.wide {
+    position: relative;
+    padding-top: 36px;
+  }
+  .chart-card.wide .chart-title {
+    top: 16px;
+    left: 16px;
+  }
+  .chart-card canvas {
+    display: block;
+  }
+  .chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .chart-card.wide .chart-legend {
+    margin-top: 0;
+    flex: 1;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-val {
+    margin-left: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* ===== CHAT SCREEN ===== */
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .chat-bubble {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+    animation: bubble-in 0.3s ease;
+  }
+  @keyframes bubble-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .chat-bubble.bot {
+    background: var(--surface2);
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+  }
+  .chat-bubble.user {
+    background: var(--accent);
+    color: var(--start-btn-text);
+    border-bottom-right-radius: 4px;
+    align-self: flex-end;
+  }
+  .chat-suggestions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+  .chat-suggestion {
+    padding: 8px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--chip-border);
+    background: var(--surface);
+    color: var(--text-dim);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chat-suggestion:active { background: var(--surface2); }
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 0;
+    border-top: 1px solid var(--card-border);
+  }
+  .chat-input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 100px;
+    border: 1px solid var(--input-border);
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+  }
+  .chat-input::placeholder { color: var(--text-muted); }
+  .chat-input:focus { border-color: var(--accent); }
+  .chat-send {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent);
+    color: var(--start-btn-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .chat-send:active { transform: scale(0.9); }
+
+  /* ===== MORE SCREEN ===== */
+  .more-section {
+    margin-bottom: 20px;
+  }
+  .more-section-title {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  .more-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    margin-bottom: 2px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid var(--card-border);
+  }
+  .more-item:first-child { border-radius: var(--radius-sm) var(--radius-sm) 4px 4px; }
+  .more-item:last-child { border-radius: 4px 4px var(--radius-sm) var(--radius-sm); }
+  .more-item:only-child { border-radius: var(--radius-sm); }
+  .more-item:active { background: var(--surface2); }
+  .more-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .more-icon svg { width: 18px; height: 18px; }
+  .more-icon.green { background: #00e67618; color: var(--accent); }
+  .more-icon.orange { background: #ff6b3518; color: var(--warning); }
+  .more-icon.red { background: #ff336618; color: var(--danger); }
+  .more-icon.blue { background: #3388ff18; color: #5599ff; }
+  .more-icon.purple { background: #8855ff18; color: #9977ff; }
+  .more-item-text { flex: 1; }
+  .more-item-text .title { font-size: 14px; font-weight: 500; }
+  .more-item-text .desc { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .more-arrow { color: var(--text-muted); font-size: 14px; }
+
+  /* Profile card */
+  .profile-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    border: 1px solid var(--card-border);
+  }
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent) 0%, #00b0ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--avatar-text);
+    flex-shrink: 0;
+  }
+  .profile-info .name { font-size: 16px; font-weight: 700; }
+  .profile-info .role { font-size: 12px; color: var(--text-dim); }
+
+  /* Toast notification */
+  .toast {
+    position: fixed;
+    top: calc(var(--safe-top) + 16px);
+    left: 16px;
+    right: 16px;
+    padding: 14px 18px;
+    background: var(--toast-bg);
+    border: 1px solid var(--toast-border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    z-index: 200;
+    transform: translateY(-120%);
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    backdrop-filter: blur(20px);
+  }
+  .toast.show { transform: translateY(0); }
+  .toast-icon { font-size: 18px; }
+
+  /* Trip detail modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--modal-overlay);
+    z-index: 150;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 24px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slide-up 0.3s ease;
+  }
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--text-muted);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-sheet h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .modal-sheet .modal-date {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+  .modal-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .modal-stat {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+  }
+  .modal-stat .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal-stat .val { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; margin-top: 4px; }
+  .modal-close {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--chip-border);
+    border-radius: var(--radius);
+    background: none;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Typing animation */
+  .typing-dots {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px 0;
+  }
+  .typing-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    animation: typing 1.2s ease-in-out infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* Speed gauge on live trip */
+  .speed-display {
+    text-align: center;
+    margin: 12px 0;
+  }
+  .speed-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .speed-unit {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* Theme toggle */
+  .theme-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--card-border);
+    margin-bottom: 2px;
+  }
+  .theme-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .toggle-track {
+    width: 50px;
+    height: 28px;
+    border-radius: 14px;
+    background: var(--surface3);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.25s;
+    flex-shrink: 0;
+    border: 1px solid var(--chip-border);
+  }
+  .toggle-track.on { background: var(--accent-dim); border-color: var(--accent); }
+  .toggle-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .toggle-track.on .toggle-thumb {
+    left: 24px;
+    background: var(--accent);
+  }
+  /* ===== APPROVALS ===== */
+  .approval-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--card-border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .approval-card:active { transform: scale(0.98); background: var(--surface2); }
+  .approval-card.pending-card { border-left: 3px solid var(--warning); }
+  .approval-card.approved-card { border-left: 3px solid var(--accent); opacity: 0.7; }
+  .approval-card.rejected-card { border-left: 3px solid var(--danger); opacity: 0.7; }
+  .approval-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .approval-card .learner-name {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .approval-card .trip-info {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .approval-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .approval-actions button {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-approve { background: var(--accent); color: #fff; }
+  .btn-reject { background: var(--surface3); color: var(--text-dim); border: 1px solid var(--chip-border) !important; }
+  .btn-approve:active, .btn-reject:active { transform: scale(0.95); }
+  .approval-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    font-family: 'Space Mono', monospace;
+  }
+  .reviewed-status {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 100px;
+  }
+  .reviewed-status.was-approved { background: #00e67620; color: var(--accent); }
+  .reviewed-status.was-rejected { background: #ff336620; color: var(--danger); }
+  .feedback-note {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ===== AUTH SCREENS ===== */
+  .auth-wrapper {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .auth-wrapper.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+  }
+  .auth-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -1px;
+  }
+  .auth-logo span { color: var(--accent); }
+  .auth-tagline {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    border: 1px solid var(--card-border);
+  }
+  .auth-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .auth-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+  .auth-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .auth-tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .auth-field {
+    margin-bottom: 14px;
+  }
+  .auth-field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .auth-field input, .auth-field select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--input-border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .auth-field input:focus, .auth-field select:focus {
+    border-color: var(--accent);
+  }
+  .auth-field input::placeholder { color: var(--text-muted); }
+  .auth-field select {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .auth-field .field-row {
+    display: flex;
+    gap: 10px;
+  }
+  .auth-field .field-row > * { flex: 1; }
+  .auth-submit {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #ffffff;
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: all 0.15s;
+  }
+  .auth-submit:active { transform: scale(0.97); }
+  .auth-error {
+    background: #ff336618;
+    color: var(--danger);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .auth-error.show { display: block; }
+  .auth-footer {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .auth-footer a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .auth-demo {
+    text-align: center;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--card-border);
+  }
+  .auth-demo-btn {
+    background: none;
+    border: 1px solid var(--chip-border);
+    border-radius: 100px;
+    padding: 10px 20px;
+    color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .auth-demo-btn:active { background: var(--surface2); }
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div class="auth-wrapper" id="authScreen">
+  <div class="auth-logo">L<span>.</span>Plate</div>
+  <div class="auth-tagline">Learner Driver Hours Tracker</div>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Log In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Sign Up</button>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+
+    <!-- Login Form -->
+    <div id="loginForm">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="learner@example.com">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter password">
+      </div>
+      <button class="auth-submit" onclick="handleLogin()">LOG IN</button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="registerForm" style="display:none;">
+      <div class="auth-field">
+        <div class="field-row">
+          <div>
+            <label>First Name</label>
+            <input type="text" id="regFirst" placeholder="Alex">
+          </div>
+          <div>
+            <label>Last Name</label>
+            <input type="text" id="regLast" placeholder="Smith">
+          </div>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="learner@example.com">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="regPassword" placeholder="Min 8 characters">
+      </div>
+      <div class="auth-field">
+        <label>Account Type</label>
+        <select id="regRole">
+          <option value="learner">Learner Driver</option>
+          <option value="parent">Parent / Supervisor</option>
+        </select>
+      </div>
+      <div class="auth-field">
+        <label>State</label>
+        <select id="regState">
+          <option value="NSW">New South Wales</option>
+          <option value="VIC">Victoria</option>
+          <option value="QLD">Queensland</option>
+          <option value="SA">South Australia</option>
+          <option value="WA">Western Australia</option>
+          <option value="TAS">Tasmania</option>
+          <option value="NT">Northern Territory</option>
+          <option value="ACT">Australian Capital Territory</option>
+        </select>
+      </div>
+      <button class="auth-submit" onclick="handleRegister()">CREATE ACCOUNT</button>
+    </div>
+
+    <div class="auth-demo">
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Quick access</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button class="auth-demo-btn" onclick="handleDemoLogin('learner')">🚗 Demo Learner</button>
+        <button class="auth-demo-btn" onclick="handleDemoLogin('parent')">👨‍👩‍👧 Demo Parent</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-footer">
+    <div style="margin-top:20px;font-size:11px;">Demo credentials: <span style="color:var(--text-dim);">demo@lplate.app / password123</span></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon"></span>
+  <span class="toast-text"></span>
+</div>
+
+<!-- ===== LOGGER SCREEN ===== -->
+<div class="screen active" id="screen-logger">
+  <div class="screen-header" style="padding:14px 0 8px;">
+    <h1 style="font-size:20px;">L-Plate Logger</h1>
+  </div>
+
+  <div class="hero-start" style="padding:16px;" id="preTrip">
+    <div class="status-row" style="margin-bottom:12px;">
+      <div class="status-dot inactive" id="gps-dot"></div>
+      <span class="status-label inactive" id="gps-label">PHONE GPS SEARCHING...</span>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <div style="flex:1;">
+        <div class="label" style="font-size:10px;margin-bottom:6px;">Vehicle</div>
+        <div class="supervisor-chips" id="carChips" style="gap:6px;">
+          <button class="supervisor-chip car-chip selected" onclick="selectCar(this)" style="padding:8px 12px;font-size:12px;">🚗 Corolla</button>
+          <button class="supervisor-chip car-chip" onclick="selectCar(this)" style="padding:8px 12px;font-size:12px;">🚙 RAV4</button>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div class="label" style="font-size:10px;margin-bottom:6px;">Supervisor</div>
+        <div class="supervisor-chips" style="gap:6px;">
+          <button class="supervisor-chip selected" onclick="selectSupervisor(this)" style="padding:8px 12px;font-size:12px;">Mum</button>
+          <button class="supervisor-chip" onclick="selectSupervisor(this)" style="padding:8px 12px;font-size:12px;">Dad</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conditions inline -->
+    <div style="margin-bottom:0;">
+      <div class="label" style="font-size:10px;margin-bottom:6px;">Conditions</div>
+      <div class="condition-row" style="gap:6px;" id="conditionChips">
+        <button class="condition-tag" onclick="toggleCondition(this)" style="padding:6px 10px;font-size:11px;">🌧 Rain</button>
+        <button class="condition-tag" onclick="toggleCondition(this)" style="padding:6px 10px;font-size:11px;">🌙 Night</button>
+        <button class="condition-tag" onclick="toggleCondition(this)" style="padding:6px 10px;font-size:11px;">🏙 City</button>
+        <button class="condition-tag selected" onclick="toggleCondition(this)" style="padding:6px 10px;font-size:11px;">🛣 Hwy</button>
+        <button class="condition-tag" onclick="toggleCondition(this)" style="padding:6px 10px;font-size:11px;">🏫 School</button>
+        <button class="condition-tag" onclick="toggleCondition(this)" style="padding:6px 10px;font-size:11px;">⛰ Rural</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live trip panel (hidden by default) -->
+  <div class="live-trip" id="liveTrip">
+    <div class="live-trip-header">
+      <h3><span class="live-dot"></span> RECORDING TRIP</h3>
+      <span style="font-size:12px;color:var(--text-muted)" id="tripTimer">00:00</span>
+    </div>
+    <div class="speed-display">
+      <div class="speed-num" id="speedVal">0</div>
+      <div class="speed-unit">km/h</div>
+    </div>
+    <div class="live-stats">
+      <div class="live-stat">
+        <div class="num" id="distVal">0.0</div>
+        <div class="unit">km driven</div>
+      </div>
+      <div class="live-stat">
+        <div class="num" id="nightVal">No</div>
+        <div class="unit">night driving</div>
+      </div>
+      <div class="live-stat">
+        <div class="num" id="harshVal">0</div>
+        <div class="unit">harsh brakes</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--text-muted);">
+      📍 <span id="mockLocation">-35.2809, 149.1300</span> · Accuracy: <span id="mockAccuracy">3m</span>
+    </div>
+  </div>
+
+  <!-- Progress section -->
+  <div class="progress-section" style="margin-top:12px;padding:16px;gap:14px;">
+    <div class="progress-ring-container" style="width:70px;height:70px;">
+      <svg viewBox="0 0 90 90" style="width:70px;height:70px;">
+        <circle class="progress-ring-bg" cx="45" cy="45" r="39"/>
+        <circle class="progress-ring-fill" id="progressRing" cx="45" cy="45" r="39"/>
+      </svg>
+      <div class="progress-center">
+        <div class="pct" style="font-size:15px;" id="pctVal">54</div>
+        <div class="pct-sign" style="font-size:10px;">%</div>
+      </div>
+    </div>
+    <div class="progress-details">
+      <h3 style="font-size:13px;">64h 48m <span style="font-weight:400;color:var(--text-dim);font-size:12px;">/ 120h</span></h3>
+      <div class="hours-breakdown" style="margin-top:4px;">
+        Day: <span>52h 20m</span> · Night: <span>12h 28m</span>/20h
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="quick-info" id="quickStats" style="margin-top:10px;">
+    <div class="quick-info-item">
+      <div class="label">Today</div>
+      <div class="value" style="font-size:16px;">0h 0m</div>
+    </div>
+    <div class="quick-info-item">
+      <div class="label">This Week</div>
+      <div class="value" style="font-size:16px;">3h 20m</div>
+    </div>
+  </div>
+
+  <!-- Spacer for fixed button -->
+  <div style="height:80px;"></div>
+</div>
+
+<!-- Fixed start button - always visible above nav -->
+<div class="fixed-start-wrapper" id="fixedStartWrapper">
+  <button class="start-btn" id="startBtn" onclick="toggleTrip()">
+    START TRIP
+  </button>
+</div>
+
+<!-- ===== TRIPS SCREEN ===== -->
+<div class="screen" id="screen-trips">
+  <div class="screen-header">
+    <h1>Trip History</h1>
+    <div class="subtitle">All logged driving sessions</div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Day vs Night</div>
+      <canvas id="chartDayNight" width="140" height="140"></canvas>
+      <div class="chart-legend" id="legendDayNight"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Conditions</div>
+      <canvas id="chartConditions" width="140" height="140"></canvas>
+      <div class="chart-legend" id="legendConditions"></div>
+    </div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">By Supervisor</div>
+      <canvas id="chartSupervisor" width="140" height="140"></canvas>
+      <div class="chart-legend" id="legendSupervisor"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">By Vehicle</div>
+      <canvas id="chartVehicle" width="140" height="140"></canvas>
+      <div class="chart-legend" id="legendVehicle"></div>
+    </div>
+  </div>
+  <div class="charts-row single">
+    <div class="chart-card wide">
+      <div class="chart-title">Trip Status</div>
+      <canvas id="chartStatus" width="140" height="140"></canvas>
+      <div class="chart-legend" id="legendStatus"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--text);">Recent Trips</span>
+    <span style="font-size:12px;color:var(--text-muted);" id="tripCount">7 trips</span>
+  </div>
+
+  <div class="filter-pills">
+    <button class="filter-pill active" onclick="filterTrips(this,'all')">All</button>
+    <button class="filter-pill" onclick="filterTrips(this,'approved')">Approved</button>
+    <button class="filter-pill" onclick="filterTrips(this,'pending')">Pending</button>
+    <button class="filter-pill" onclick="filterTrips(this,'night')">Night</button>
+  </div>
+
+  <div id="tripsList"></div>
+</div>
+
+<!-- ===== CHAT SCREEN ===== -->
+<div class="screen" id="screen-chat">
+  <div class="screen-header">
+    <h1>Road Rules AI</h1>
+    <div class="subtitle">Ask about NSW driving laws</div>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-bubble bot">
+        Hey! 👋 I'm your road rules assistant, trained on the NSW Road Transport Act. Ask me anything about learner driving rules, speed limits, demerit points, or what you need to get your P-plates!
+      </div>
+    </div>
+    <div class="chat-suggestions" id="chatSuggestions">
+      <button class="chat-suggestion" onclick="askSuggestion(this)">How many hours for Ps?</button>
+      <button class="chat-suggestion" onclick="askSuggestion(this)">Night driving rules</button>
+      <button class="chat-suggestion" onclick="askSuggestion(this)">Speed limits for Ls</button>
+      <button class="chat-suggestion" onclick="askSuggestion(this)">Logbook requirements</button>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="Ask about road rules..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" onclick="sendChat()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MORE SCREEN ===== -->
+<div class="screen" id="screen-more">
+  <div class="screen-header">
+    <h1>Settings</h1>
+  </div>
+
+  <div class="profile-card">
+    <div class="avatar">DL</div>
+    <div class="profile-info">
+      <div class="name">Learner Account</div>
+      <div class="role">Learner Licence • NSW</div>
+    </div>
+  </div>
+
+  <div class="more-section">
+    <div class="more-section-title">Account</div>
+    <div class="more-item" onclick="showToast('ℹ️','This feature has not been implemented as it is a demo')">
+      <div class="more-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="more-item-text"><div class="title">Profile</div><div class="desc">Name, licence details</div></div>
+      <span class="more-arrow">›</span>
+    </div>
+    <div class="more-item" onclick="showToast('ℹ️','This feature has not been implemented as it is a demo')">
+      <div class="more-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+      <div class="more-item-text"><div class="title">Supervisors</div><div class="desc">Manage supervising drivers</div></div>
+      <span class="more-arrow">›</span>
+    </div>
+    <div class="more-item" onclick="showToast('ℹ️','This feature has not been implemented as it is a demo')">
+      <div class="more-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+      <div class="more-item-text"><div class="title">Parent Access</div><div class="desc">Link parent for trip approvals</div></div>
+      <span class="more-arrow">›</span>
+    </div>
+  </div>
+
+  <div class="more-section">
+    <div class="more-section-title">Location</div>
+    <div class="more-item" onclick="showToast('ℹ️','This feature has not been implemented as it is a demo')">
+      <div class="more-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+      <div class="more-item-text"><div class="title">Phone GPS</div><div class="desc">Using device location services</div></div>
+      <span class="more-arrow">›</span>
+    </div>
+    <div class="more-item" onclick="showToast('ℹ️','This feature has not been implemented as it is a demo')">
+      <div class="more-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>
+      <div class="more-item-text"><div class="title">Location Accuracy</div><div class="desc">High accuracy mode enabled</div></div>
+      <span class="more-arrow">›</span>
+    </div>
+  </div>
+
+  <div class="more-section">
+    <div class="more-section-title">Appearance</div>
+    <div class="theme-toggle-row">
+      <div class="theme-toggle-left">
+        <div class="more-icon blue" id="themeIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></div>
+        <div class="more-item-text"><div class="title" id="themeLabel">Dark Mode</div><div class="desc">Switch to light theme</div></div>
+      </div>
+      <div class="toggle-track on" id="themeToggle" onclick="toggleTheme()">
+        <div class="toggle-thumb">🌙</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="more-section">
+    <div class="more-section-title">Preferences</div>
+    <div class="more-item" onclick="showToast('ℹ️','This feature has not been implemented as it is a demo')">
+      <div class="more-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+      <div class="more-item-text"><div class="title">Logger Defaults</div><div class="desc">Default supervisor, conditions</div></div>
+      <span class="more-arrow">›</span>
+    </div>
+    <div class="more-item" onclick="showToast('ℹ️','This feature has not been implemented as it is a demo')">
+      <div class="more-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+      <div class="more-item-text"><div class="title">Export Logbook</div><div class="desc">PDF for RMS submission</div></div>
+      <span class="more-arrow">›</span>
+    </div>
+    <div class="more-item" onclick="handleLogout()">
+      <div class="more-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+      <div class="more-item-text"><div class="title">Sign Out</div></div>
+      <span class="more-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- Trip Detail Modal -->
+<div class="modal-overlay" id="tripModal" onclick="if(event.target===this)closeTripModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h2 id="modalTitle">Trip Details</h2>
+    <div class="modal-date" id="modalDate"></div>
+    <div class="modal-stat-grid" id="modalStats"></div>
+    <button class="modal-close" onclick="closeTripModal()">Close</button>
+  </div>
+</div>
+
+<!-- ===== APPROVALS SCREEN (Parent only) ===== -->
+<div class="screen" id="screen-approvals">
+  <div class="screen-header">
+    <h1>Approvals</h1>
+    <div class="subtitle">Review your learner's trips</div>
+  </div>
+
+  <!-- Pending section -->
+  <div style="margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--warning);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--warning);"></span>
+      PENDING APPROVAL
+    </div>
+    <div id="pendingList"></div>
+    <div id="noPending" style="display:none;text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">
+      ✅ No trips pending approval
+    </div>
+  </div>
+
+  <!-- Recently reviewed -->
+  <div>
+    <div style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:10px;">
+      RECENTLY REVIEWED
+    </div>
+    <div id="reviewedList"></div>
+  </div>
+</div>
+
+<!-- Approval Detail Modal -->
+<div class="modal-overlay" id="approvalModal" onclick="if(event.target===this)closeApprovalModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h2 id="approvalTitle">Review Trip</h2>
+    <div class="modal-date" id="approvalDate"></div>
+    <div class="modal-stat-grid" id="approvalStats"></div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-weight:500;">Feedback (optional)</label>
+      <textarea id="approvalFeedback" placeholder="Add notes for your learner..." style="width:100%;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--input-border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;min-height:60px;outline:none;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="approveTrip()" style="flex:1;padding:14px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;">✓ APPROVE</button>
+      <button onclick="rejectTrip()" style="flex:1;padding:14px;border:none;border-radius:var(--radius);background:var(--danger);color:#fff;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;">✗ REJECT</button>
+    </div>
+    <button class="modal-close" onclick="closeApprovalModal()" style="margin-top:10px;">Cancel</button>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="nav-item active" id="nav-logger" onclick="switchScreen('logger',this)" aria-label="Logger">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Logger
+  </button>
+  <button class="nav-item" id="nav-trips" onclick="switchScreen('trips',this)" aria-label="Trips">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Trips
+  </button>
+  <button class="nav-item" id="nav-approvals" onclick="switchScreen('approvals',this)" aria-label="Approvals" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    <span style="position:relative;">Approvals<span class="approval-badge" id="approvalBadge" style="display:none;"></span></span>
+  </button>
+  <button class="nav-item" id="nav-chat" onclick="switchScreen('chat',this)" aria-label="Road Rules AI">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    AI Help
+  </button>
+  <button class="nav-item" id="nav-more" onclick="switchScreen('more',this)" aria-label="More">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    More
+  </button>
+</nav>
+
+<script>
+// ===== AUTH =====
+const mockUsers = [
+  { email: 'demo@lplate.app', password: 'password123', first: 'Demo', last: 'L', role: 'learner', state: 'NSW' },
+  { email: 'mum@test.com', password: 'password123', first: 'Sarah', last: 'L', role: 'parent', state: 'NSW' },
+];
+let currentUser = null;
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('authError').className = 'auth-error';
+  if (tab === 'login') {
+    document.querySelectorAll('.auth-tab')[0].classList.add('active');
+    document.getElementById('loginForm').style.display = '';
+    document.getElementById('registerForm').style.display = 'none';
+  } else {
+    document.querySelectorAll('.auth-tab')[1].classList.add('active');
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = '';
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.className = 'auth-error show';
+}
+
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPassword').value;
+  if (!email || !pass) { showAuthError('Please fill in all fields.'); return; }
+  const user = mockUsers.find(u => u.email === email && u.password === pass);
+  if (!user) { showAuthError('Invalid email or password. Try demo@lplate.app / password123'); return; }
+  loginSuccess(user);
+}
+
+function handleRegister() {
+  const first = document.getElementById('regFirst').value.trim();
+  const last = document.getElementById('regLast').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('regPassword').value;
+  const role = document.getElementById('regRole').value;
+  const state = document.getElementById('regState').value;
+  if (!first || !last || !email || !pass) { showAuthError('Please fill in all fields.'); return; }
+  if (pass.length < 8) { showAuthError('Password must be at least 8 characters.'); return; }
+  if (!email.includes('@')) { showAuthError('Please enter a valid email.'); return; }
+  if (mockUsers.find(u => u.email === email)) { showAuthError('Account with this email already exists.'); return; }
+  const newUser = { email, password: pass, first, last, role, state };
+  mockUsers.push(newUser);
+  loginSuccess(newUser);
+  showToast('🎉', 'Account created! Welcome, ' + first + '!');
+}
+
+function handleDemoLogin(role) {
+  const user = role === 'parent' ? mockUsers[1] : mockUsers[0];
+  loginSuccess(user);
+  showToast(role === 'parent' ? '👨‍👩‍👧' : '🚗', 'Logged in as demo ' + (role === 'parent' ? 'parent' : 'learner'));
+}
+
+function loginSuccess(user) {
+  currentUser = user;
+  sessionStorage.setItem('lplate-user', JSON.stringify(user));
+  const initials = (user.first[0] + (user.last[0] || '')).toUpperCase();
+  document.querySelector('.avatar').textContent = initials;
+  document.querySelector('.profile-info .name').textContent = user.first + ' (' + (user.role === 'learner' ? 'Learner' : 'Supervisor') + ')';
+  document.querySelector('.profile-info .role').textContent = (user.role === 'learner' ? 'Learner Licence' : 'Supervisor') + ' • ' + user.state;
+  document.getElementById('authScreen').classList.add('hidden');
+  setTimeout(() => { document.getElementById('authScreen').style.display = 'none'; }, 300);
+  
+  // Role-based UI
+  applyRoleUI(user.role);
+}
+
+function applyRoleUI(role) {
+  const isParent = role === 'parent';
+  // Show/hide nav items
+  document.getElementById('nav-logger').style.display = isParent ? 'none' : '';
+  document.getElementById('nav-approvals').style.display = isParent ? '' : 'none';
+  document.getElementById('fixedStartWrapper').style.display = isParent ? 'none' : '';
+  
+  // If parent, switch to approvals as default screen
+  if (isParent) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('screen-approvals').classList.add('active');
+    document.getElementById('nav-approvals').classList.add('active');
+    renderApprovals();
+  } else {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('screen-logger').classList.add('active');
+    document.getElementById('nav-logger').classList.add('active');
+  }
+}
+
+function handleLogout() {
+  currentUser = null;
+  sessionStorage.removeItem('lplate-user');
+  document.getElementById('authScreen').style.display = '';
+  requestAnimationFrame(() => { document.getElementById('authScreen').classList.remove('hidden'); });
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('authError').className = 'auth-error';
+  switchAuthTab('login');
+}
+
+// Check session on load
+(function() {
+  const saved = sessionStorage.getItem('lplate-user');
+  if (saved) { try { loginSuccess(JSON.parse(saved)); } catch(e) {} }
+})();
+
+// ===== STATE =====
+let tripActive = false;
+let tripSeconds = 0;
+let tripInterval = null;
+let mockSpeed = 0;
+let mockDist = 0;
+let selectedSupervisor = 'Mum';
+let selectedCar = 'Corolla (Mum\'s)';
+
+// ===== CAR SELECTION =====
+function selectCar(el) {
+  if (el.textContent.includes('+ Add')) {
+    showToast('➕', 'Add vehicle — coming soon!');
+    return;
+  }
+  el.parentElement.querySelectorAll('.car-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCar = el.textContent.replace(/^🚗\s*|^🚙\s*/, '').trim();
+}
+
+// ===== MOCK TRIP DATA =====
+const mockTrips = [
+  { id: 1, date: '25 Feb 2026', day: 'Tue', time: '4:15 PM', duration: '1h 12m', mins: 72, dist: '28.4 km', supervisor: 'Mum', car: 'Corolla', status: 'approved', night: false, conditions: ['Highway', 'City'] },
+  { id: 2, date: '23 Feb 2026', day: 'Sun', time: '7:30 PM', duration: '0h 45m', mins: 45, dist: '15.2 km', supervisor: 'Dad', car: 'RAV4', status: 'approved', night: true, conditions: ['Night', 'City'] },
+  { id: 3, date: '21 Feb 2026', day: 'Fri', time: '10:00 AM', duration: '2h 05m', mins: 125, dist: '62.1 km', supervisor: 'Mum', car: 'Corolla', status: 'pending', night: false, conditions: ['Highway', 'Rural'] },
+  { id: 4, date: '18 Feb 2026', day: 'Tue', time: '6:45 PM', duration: '0h 55m', mins: 55, dist: '18.7 km', supervisor: 'Dad', car: 'RAV4', status: 'pending', night: true, conditions: ['Night', 'Rain'] },
+  { id: 5, date: '15 Feb 2026', day: 'Sat', time: '9:00 AM', duration: '1h 30m', mins: 90, dist: '42.3 km', supervisor: 'Mum', car: 'Corolla', status: 'approved', night: false, conditions: ['Highway'] },
+  { id: 6, date: '12 Feb 2026', day: 'Wed', time: '3:30 PM', duration: '0h 40m', mins: 40, dist: '12.1 km', supervisor: 'Dad', car: 'RAV4', status: 'approved', night: false, conditions: ['City', 'School Zone'] },
+  { id: 7, date: '10 Feb 2026', day: 'Mon', time: '8:00 PM', duration: '1h 10m', mins: 70, dist: '35.6 km', supervisor: 'Mum', car: 'Corolla', status: 'approved', night: true, conditions: ['Night', 'Highway'] },
+];
+
+// ===== MOCK AI RESPONSES =====
+const aiResponses = {
+  'how many hours for ps': "To get your P1 licence in NSW, you need to complete **120 hours** of supervised driving, including at least **20 hours of night driving**. This must be recorded in your learner driver log book.\n\nYou also need to have held your L's for at least **12 months** and pass the Hazard Perception Test (HPT) at a Service NSW centre.",
+  'night driving rules': "For NSW learner drivers, **night driving** counts as any driving between **sunset and sunrise**.\n\nYou need a minimum of **20 hours** of night driving out of your 120 total hours. Night hours are important because they help you develop skills in reduced visibility conditions.\n\nTip: Your L-Plate Logger automatically detects night conditions using your phone's GPS and local sunset times! 🌙",
+  'speed limits for ls': "As a learner driver in NSW, you must not exceed **90 km/h** regardless of the posted speed limit. Even if the sign says 110 km/h on a highway, your max is 90.\n\nOther key rules:\n• You must display **L-plates** on the front and rear of the vehicle\n• **Zero blood alcohol** concentration\n• No using mobile phones at all, even hands-free\n• Must be accompanied by a fully licensed driver at all times",
+  'logbook requirements': "Your NSW learner driver log book must record:\n\n• **Date** of each trip\n• **Start and end times**\n• **Total duration** in hours and minutes\n• **Start and end odometer** readings\n• Whether it was **day or night**\n• The **supervising driver's** name and signature\n• **Road conditions** (wet, dry, etc.)\n\nThe supervising driver must hold an unrestricted Australian licence (not P-plates) and must have held it for at least **1 year**. Your L-Plate Logger handles all of this automatically! ✅",
+  'default': "That's a great question about NSW road rules! Based on the Road Transport Act 2013 and associated regulations:\n\nAs a learner driver, the key things to remember are maintaining your logbook accurately, always driving with a qualified supervising driver, displaying L-plates, and staying under the 90 km/h speed limit.\n\nWant me to go into more detail on any specific topic? I can help with hours requirements, licence conditions, demerit points, or specific road rules."
+};
+
+// ===== THEME =====
+let isDark = localStorage.getItem('lplate-theme') !== 'light';
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.querySelector('meta[name="theme-color"]').content = isDark ? '#0a0a0f' : '#f4f5f7';
+  const toggle = document.getElementById('themeToggle');
+  const label = document.getElementById('themeLabel');
+  const icon = document.getElementById('themeIcon');
+  if (toggle) {
+    if (isDark) {
+      toggle.classList.add('on');
+      toggle.querySelector('.toggle-thumb').textContent = '🌙';
+      label.textContent = 'Dark Mode';
+      label.nextElementSibling.textContent = 'Switch to light theme';
+      icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+    } else {
+      toggle.classList.remove('on');
+      toggle.querySelector('.toggle-thumb').textContent = '☀️';
+      label.textContent = 'Light Mode';
+      label.nextElementSibling.textContent = 'Switch to dark theme';
+      icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+    }
+  }
+}
+
+function toggleTheme() {
+  isDark = !isDark;
+  localStorage.setItem('lplate-theme', isDark ? 'dark' : 'light');
+  applyTheme();
+  showToast(isDark ? '🌙' : '☀️', isDark ? 'Dark mode enabled' : 'Light mode enabled');
+  renderCharts();
+}
+
+// Apply on load
+applyTheme();
+
+// ===== NAVIGATION =====
+function switchScreen(name, el) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  el.classList.add('active');
+  // Only show fixed start button on logger screen for learners
+  const isParent = currentUser && currentUser.role === 'parent';
+  document.getElementById('fixedStartWrapper').style.display = (name === 'logger' && !isParent) ? '' : 'none';
+  if (name === 'trips') renderCharts();
+  if (name === 'approvals') renderApprovals();
+}
+
+// ===== TRIP CONTROL =====
+function toggleTrip() {
+  const btn = document.getElementById('startBtn');
+  if (!tripActive) {
+    // Check car is selected
+    const carSelected = document.querySelector('.car-chip.selected');
+    if (!carSelected || carSelected.textContent.includes('+ Add')) {
+      showToast('⚠️', 'Please select a vehicle first!');
+      return;
+    }
+    tripActive = true;
+    tripSeconds = 0;
+    mockSpeed = 0;
+    mockDist = 0;
+    btn.textContent = '■  STOP TRIP';
+    btn.classList.add('recording');
+    document.getElementById('liveTrip').classList.add('active');
+    document.getElementById('preTrip').style.display = 'none';
+    document.getElementById('quickStats').style.display = 'none';
+    document.getElementById('gps-dot').classList.remove('inactive');
+    document.getElementById('gps-label').classList.remove('inactive');
+    document.getElementById('gps-label').textContent = 'PHONE GPS LOCKED • RECORDING';
+    showToast('🟢', 'Trip started! Drive safe.');
+    
+    tripInterval = setInterval(() => {
+      tripSeconds++;
+      const m = Math.floor(tripSeconds / 60);
+      const s = tripSeconds % 60;
+      document.getElementById('tripTimer').textContent = 
+        String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      
+      // Mock speed & distance
+      if (tripSeconds < 10) {
+        mockSpeed = Math.min(mockSpeed + Math.random() * 12, 60);
+      } else if (tripSeconds < 30) {
+        mockSpeed = 40 + Math.random() * 30;
+      } else {
+        mockSpeed = 50 + Math.random() * 20;
+      }
+      mockDist += (mockSpeed / 3600);
+      
+      document.getElementById('speedVal').textContent = Math.round(mockSpeed);
+      document.getElementById('distVal').textContent = mockDist.toFixed(1);
+      
+      // Mock GPS coordinate drift
+      const baseLat = -35.2809 + (tripSeconds * 0.00008);
+      const baseLng = 149.1300 + (tripSeconds * 0.00005) + (Math.random() * 0.0001);
+      document.getElementById('mockLocation').textContent = baseLat.toFixed(4) + ', ' + baseLng.toFixed(4);
+      document.getElementById('mockAccuracy').textContent = (2 + Math.floor(Math.random() * 4)) + 'm';
+      
+      if (tripSeconds > 15 && Math.random() < 0.02) {
+        const h = parseInt(document.getElementById('harshVal').textContent);
+        document.getElementById('harshVal').textContent = h + 1;
+      }
+    }, 1000);
+  } else {
+    tripActive = false;
+    clearInterval(tripInterval);
+    btn.textContent = 'START TRIP';
+    btn.classList.remove('recording');
+    document.getElementById('liveTrip').classList.remove('active');
+    document.getElementById('preTrip').style.display = '';
+    document.getElementById('quickStats').style.display = '';
+    document.getElementById('gps-dot').classList.add('inactive');
+    document.getElementById('gps-label').classList.add('inactive');
+    document.getElementById('gps-label').textContent = 'PHONE GPS SEARCHING...';
+    
+    const mins = Math.floor(tripSeconds / 60);
+    showToast('✅', `Trip saved! ${mins}m ${tripSeconds%60}s logged.`);
+    
+    // Reset live stats
+    document.getElementById('speedVal').textContent = '0';
+    document.getElementById('distVal').textContent = '0.0';
+    document.getElementById('harshVal').textContent = '0';
+    document.getElementById('tripTimer').textContent = '00:00';
+  }
+}
+
+// ===== SUPERVISOR =====
+function selectSupervisor(el) {
+  el.parentElement.querySelectorAll('.supervisor-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSupervisor = el.textContent;
+  if (el.textContent === '+ Add') {
+    showToast('➕', 'Add supervisor — coming soon!');
+  }
+}
+
+// ===== CONDITIONS =====
+function toggleCondition(el) {
+  el.classList.toggle('selected');
+}
+
+// ===== TRIPS LIST =====
+function renderTrips(filter = 'all') {
+  const list = document.getElementById('tripsList');
+  let trips = mockTrips;
+  if (filter === 'approved') trips = trips.filter(t => t.status === 'approved');
+  if (filter === 'pending') trips = trips.filter(t => t.status === 'pending');
+  if (filter === 'night') trips = trips.filter(t => t.night);
+  
+  list.innerHTML = trips.map(t => `
+    <div class="trip-card" onclick="openTripModal(${t.id})">
+      <div class="trip-card-top">
+        <div>
+          <div class="trip-date">${t.day} ${t.date} • ${t.time}</div>
+          <div class="trip-duration">${t.duration}</div>
+        </div>
+        <span class="trip-badge ${t.status}">${t.status === 'approved' ? '✓ Approved' : '⏳ Pending'}</span>
+      </div>
+      <div class="trip-meta">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${t.dist}</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${t.supervisor}</span>
+        <span>🚗 ${t.car}</span>
+        <span>${t.conditions.join(' • ')}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterTrips(el, filter) {
+  el.parentElement.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderTrips(filter);
+}
+
+function openTripModal(id) {
+  const t = mockTrips.find(tr => tr.id === id);
+  if (!t) return;
+  document.getElementById('modalTitle').textContent = `Trip — ${t.duration}`;
+  document.getElementById('modalDate').textContent = `${t.day} ${t.date} at ${t.time}`;
+  document.getElementById('modalStats').innerHTML = `
+    <div class="modal-stat"><div class="label">Distance</div><div class="val">${t.dist}</div></div>
+    <div class="modal-stat"><div class="label">Duration</div><div class="val">${t.duration}</div></div>
+    <div class="modal-stat"><div class="label">Supervisor</div><div class="val">${t.supervisor}</div></div>
+    <div class="modal-stat"><div class="label">Vehicle</div><div class="val">${t.car}</div></div>
+    <div class="modal-stat"><div class="label">Night</div><div class="val">${t.night ? 'Yes 🌙' : 'No'}</div></div>
+    <div class="modal-stat"><div class="label">Status</div><div class="val" style="color:${t.status==='approved'?'var(--accent)':'var(--warning)'}">${t.status === 'approved' ? '✓ Approved' : '⏳ Pending'}</div></div>
+    <div class="modal-stat"><div class="label">Conditions</div><div class="val" style="font-size:13px;font-family:'DM Sans'">${t.conditions.join(', ')}</div></div>
+  `;
+  document.getElementById('tripModal').classList.add('show');
+}
+
+function closeTripModal() {
+  document.getElementById('tripModal').classList.remove('show');
+}
+
+// ===== CHAT =====
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  
+  document.getElementById('chatSuggestions').style.display = 'none';
+  
+  addChatBubble(msg, 'user');
+  
+  // Show typing
+  const typingId = 'typing-' + Date.now();
+  const typingEl = document.createElement('div');
+  typingEl.className = 'chat-bubble bot';
+  typingEl.id = typingId;
+  typingEl.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  document.getElementById('chatMessages').appendChild(typingEl);
+  scrollChat();
+  
+  setTimeout(() => {
+    typingEl.remove();
+    const key = msg.toLowerCase().replace(/[?!.,]/g, '').trim();
+    const response = aiResponses[key] || aiResponses['default'];
+    addChatBubble(response, 'bot');
+  }, 1200 + Math.random() * 800);
+}
+
+function askSuggestion(el) {
+  document.getElementById('chatInput').value = el.textContent;
+  sendChat();
+}
+
+function addChatBubble(text, type) {
+  const el = document.createElement('div');
+  el.className = `chat-bubble ${type}`;
+  // Simple markdown bold
+  el.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  document.getElementById('chatMessages').appendChild(el);
+  scrollChat();
+}
+
+function scrollChat() {
+  const c = document.getElementById('chatMessages');
+  setTimeout(() => c.scrollTop = c.scrollHeight, 50);
+}
+
+// ===== TOAST =====
+function showToast(icon, text) {
+  const t = document.getElementById('toast');
+  t.querySelector('.toast-icon').textContent = icon;
+  t.querySelector('.toast-text').textContent = text;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== PROGRESS RING =====
+function setProgress(pct) {
+  const circumference = 2 * Math.PI * 39; // ~245
+  const offset = circumference - (pct / 100) * circumference;
+  document.getElementById('progressRing').style.strokeDashoffset = offset;
+  document.getElementById('pctVal').textContent = Math.round(pct);
+}
+
+// ===== APPROVALS =====
+let reviewingTripId = null;
+const reviewedTrips = []; // tracks {id, action, feedback, date}
+
+function renderApprovals() {
+  const pending = mockTrips.filter(t => t.status === 'pending');
+  const approved = mockTrips.filter(t => t.status !== 'pending');
+  
+  // Pending
+  const pendingList = document.getElementById('pendingList');
+  const noPending = document.getElementById('noPending');
+  if (pending.length === 0) {
+    pendingList.innerHTML = '';
+    noPending.style.display = '';
+  } else {
+    noPending.style.display = 'none';
+    pendingList.innerHTML = pending.map(t => `
+      <div class="approval-card pending-card" onclick="openApprovalModal(${t.id})">
+        <div class="approval-card-top">
+          <div>
+            <div class="learner-name">My Trip</div>
+            <div class="trip-info">${t.day} ${t.date} · ${t.time} · ${t.duration}</div>
+          </div>
+          <span class="trip-badge pending">⏳ Pending</span>
+        </div>
+        <div class="trip-meta">
+          <span>📍 ${t.dist}</span>
+          <span>🚗 ${t.car}</span>
+          <span>${t.conditions.join(' · ')}</span>
+        </div>
+        <div class="approval-actions">
+          <button class="btn-approve" onclick="event.stopPropagation();quickApprove(${t.id})">✓ Approve</button>
+          <button class="btn-reject" onclick="event.stopPropagation();openApprovalModal(${t.id})">Review</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  // Reviewed (approved trips + any we've reviewed)
+  const reviewed = [...approved].slice(0, 5);
+  const reviewedList = document.getElementById('reviewedList');
+  reviewedList.innerHTML = reviewed.map(t => {
+    const review = reviewedTrips.find(r => r.id === t.id);
+    const statusClass = (review && review.action === 'rejected') ? 'was-rejected' : 'was-approved';
+    const statusText = (review && review.action === 'rejected') ? '✗ Rejected' : '✓ Approved';
+    return `
+      <div class="approval-card ${(review && review.action === 'rejected') ? 'rejected-card' : 'approved-card'}">
+        <div class="approval-card-top">
+          <div>
+            <div class="learner-name">My Trip</div>
+            <div class="trip-info">${t.day} ${t.date} · ${t.time} · ${t.duration}</div>
+          </div>
+          <span class="reviewed-status ${statusClass}">${statusText}</span>
+        </div>
+        <div class="trip-meta">
+          <span>📍 ${t.dist}</span>
+          <span>🚗 ${t.car}</span>
+        </div>
+        ${review && review.feedback ? `<div class="feedback-note">"${review.feedback}"</div>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  // Update badge
+  updateApprovalBadge();
+}
+
+function updateApprovalBadge() {
+  const pending = mockTrips.filter(t => t.status === 'pending').length;
+  const badge = document.getElementById('approvalBadge');
+  if (pending > 0) {
+    badge.textContent = pending;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function openApprovalModal(id) {
+  const t = mockTrips.find(tr => tr.id === id);
+  if (!t) return;
+  reviewingTripId = id;
+  document.getElementById('approvalTitle').textContent = `Review — ${t.duration}`;
+  document.getElementById('approvalDate').textContent = `${t.day} ${t.date} at ${t.time}`;
+  document.getElementById('approvalFeedback').value = '';
+  document.getElementById('approvalStats').innerHTML = `
+    <div class="modal-stat"><div class="label">Distance</div><div class="val">${t.dist}</div></div>
+    <div class="modal-stat"><div class="label">Duration</div><div class="val">${t.duration}</div></div>
+    <div class="modal-stat"><div class="label">Vehicle</div><div class="val">${t.car}</div></div>
+    <div class="modal-stat"><div class="label">Night</div><div class="val">${t.night ? 'Yes 🌙' : 'No'}</div></div>
+    <div class="modal-stat"><div class="label">Conditions</div><div class="val" style="font-size:13px;font-family:'DM Sans'">${t.conditions.join(', ')}</div></div>
+    <div class="modal-stat"><div class="label">Supervisor</div><div class="val">${t.supervisor}</div></div>
+  `;
+  document.getElementById('approvalModal').classList.add('show');
+}
+
+function closeApprovalModal() {
+  document.getElementById('approvalModal').classList.remove('show');
+  reviewingTripId = null;
+}
+
+function approveTrip() {
+  if (!reviewingTripId) return;
+  const feedback = document.getElementById('approvalFeedback').value.trim();
+  const t = mockTrips.find(tr => tr.id === reviewingTripId);
+  if (t) {
+    t.status = 'approved';
+    reviewedTrips.push({ id: t.id, action: 'approved', feedback, date: new Date().toISOString() });
+  }
+  closeApprovalModal();
+  renderApprovals();
+  showToast('✅', 'Trip approved!');
+}
+
+function rejectTrip() {
+  if (!reviewingTripId) return;
+  const feedback = document.getElementById('approvalFeedback').value.trim();
+  const t = mockTrips.find(tr => tr.id === reviewingTripId);
+  if (t) {
+    t.status = 'rejected';
+    reviewedTrips.push({ id: t.id, action: 'rejected', feedback: feedback || 'Trip rejected by supervisor', date: new Date().toISOString() });
+  }
+  closeApprovalModal();
+  renderApprovals();
+  showToast('❌', 'Trip rejected');
+}
+
+function quickApprove(id) {
+  const t = mockTrips.find(tr => tr.id === id);
+  if (t) {
+    t.status = 'approved';
+    reviewedTrips.push({ id: t.id, action: 'approved', feedback: '', date: new Date().toISOString() });
+  }
+  renderApprovals();
+  showToast('✅', 'Trip approved!');
+}
+
+// ===== PIE CHARTS =====
+function drawPie(canvasId, legendId, data, colors) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const size = 140;
+  
+  // Reset canvas properly
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, size, size);
+
+  const total = data.reduce((s, d) => s + d.value, 0);
+  if (total === 0) return;
+
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerR = 58;
+  const innerR = 36;
+  const gap = data.length > 1 ? 0.03 : 0;
+  let startAngle = -Math.PI / 2;
+
+  // Draw each slice
+  data.forEach((d, i) => {
+    const sliceAngle = (d.value / total) * Math.PI * 2;
+    if (sliceAngle < 0.01) { startAngle += sliceAngle; return; }
+    
+    const gapStart = startAngle + gap;
+    const gapEnd = startAngle + sliceAngle - gap;
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR, gapStart, gapEnd, false);
+    ctx.arc(cx, cy, innerR, gapEnd, gapStart, true);
+    ctx.closePath();
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+
+    startAngle += sliceAngle;
+  });
+
+  // Center hole background
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR - 1, 0, Math.PI * 2);
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#13131a';
+  ctx.fill();
+
+  // Center text — show largest slice percentage
+  const largest = data.reduce((max, d) => d.value > max.value ? d : max, data[0]);
+  const pct = Math.round((largest.value / total) * 100);
+  
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#e8e8f0';
+  ctx.font = "bold 18px 'Space Mono', monospace";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(pct + '%', cx, cy - 5);
+  
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim() || '#555568';
+  ctx.font = "500 10px 'DM Sans', sans-serif";
+  ctx.fillText(largest.label, cx, cy + 10);
+
+  // Legend
+  const legend = document.getElementById(legendId);
+  if (legend) {
+    legend.innerHTML = data.map((d, i) => {
+      const p = Math.round((d.value / total) * 100);
+      return `<div class="legend-item">
+        <span class="legend-dot" style="background:${colors[i % colors.length]}"></span>
+        <span>${d.label}</span>
+        <span class="legend-val">${d.value}h (${p}%)</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function renderCharts() {
+  // Compute stats from mock trips
+  let dayMins = 0, nightMins = 0;
+  let mumMins = 0, dadMins = 0;
+  let corollaMins = 0, rav4Mins = 0;
+  let approvedMins = 0, pendingMins = 0;
+  const conditionCounts = {};
+
+  mockTrips.forEach(t => {
+    if (t.night) nightMins += t.mins; else dayMins += t.mins;
+    if (t.supervisor === 'Mum') mumMins += t.mins; else dadMins += t.mins;
+    if (t.car === 'Corolla') corollaMins += t.mins; else rav4Mins += t.mins;
+    if (t.status === 'approved') approvedMins += t.mins; else pendingMins += t.mins;
+    t.conditions.forEach(c => {
+      conditionCounts[c] = (conditionCounts[c] || 0) + t.mins;
+    });
+  });
+
+  const toH = m => Math.round(m / 60 * 10) / 10;
+
+  const palette = {
+    green: '#00e676',
+    blue: '#448aff',
+    orange: '#ff9100',
+    pink: '#ff4081',
+    purple: '#b388ff',
+    teal: '#64ffda',
+    yellow: '#ffd740',
+    red: '#ff5252',
+  };
+
+  // Day vs Night
+  drawPie('chartDayNight', 'legendDayNight', [
+    { label: 'Day', value: toH(dayMins) },
+    { label: 'Night', value: toH(nightMins) },
+  ], [palette.green, palette.blue]);
+
+  // Conditions - sort by value desc, take top 4
+  const condArr = Object.entries(conditionCounts)
+    .map(([k, v]) => ({ label: k, value: toH(v) }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
+  const condColors = [palette.orange, palette.teal, palette.pink, palette.purple, palette.yellow];
+  drawPie('chartConditions', 'legendConditions', condArr, condColors);
+
+  // Supervisor
+  drawPie('chartSupervisor', 'legendSupervisor', [
+    { label: 'Mum', value: toH(mumMins) },
+    { label: 'Dad', value: toH(dadMins) },
+  ], [palette.pink, palette.blue]);
+
+  // Vehicle
+  drawPie('chartVehicle', 'legendVehicle', [
+    { label: 'Corolla', value: toH(corollaMins) },
+    { label: 'RAV4', value: toH(rav4Mins) },
+  ], [palette.teal, palette.orange]);
+
+  // Status
+  drawPie('chartStatus', 'legendStatus', [
+    { label: 'Approved', value: toH(approvedMins) },
+    { label: 'Pending', value: toH(pendingMins) },
+  ], [palette.green, palette.yellow]);
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  renderTrips();
+  renderCharts();
+  // Animate progress ring in
+  setTimeout(() => setProgress(54), 400);
+  
+  // Simulate GPS lock after 2s
+  setTimeout(() => {
+    if (!tripActive) {
+      document.getElementById('gps-dot').classList.remove('inactive');
+      document.getElementById('gps-label').classList.remove('inactive');
+      document.getElementById('gps-label').textContent = 'PHONE GPS READY';
+    }
+  }, 2000);
+
+  // Hash-based preview for gallery (#logger, #trips, #chat, #more, #approvals)
+  const params = new URLSearchParams(location.search);
+  const urlTheme = params.get('theme');
+  if (urlTheme === 'light' || urlTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', urlTheme);
+    localStorage.setItem('lplate-theme', urlTheme);
+  }
+  const h = (location.hash || '').slice(1);
+  const valid = ['logger', 'trips', 'chat', 'more', 'approvals'];
+  if (valid.includes(h) && typeof handleDemoLogin === 'function') {
+    handleDemoLogin('learner');
+    setTimeout(() => {
+      const el = document.getElementById('nav-' + h);
+      if (el && typeof switchScreen === 'function') switchScreen(h, el);
+    }, 600);
+  }
+});
+</script>
+</body>
+</html>
