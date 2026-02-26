@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0a">
+<title>L-Plate Logger — Terminal</title>
+<script src="preview-theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-panel: #0d0d0d;
+  --bg-elevated: #111111;
+  --border: #1a3a1a;
+  --text: #00ff00;
+  --text-dim: #00cc00;
+  --text-muted: #006600;
+  --accent: #ffb000;
+  --accent-dim: rgba(255,176,0,0.15);
+  --danger: #ff3333;
+  --danger-dim: rgba(255,51,51,0.2);
+  --success: #33ff33;
+  --success-dim: rgba(51,255,51,0.15);
+  --night: #ff6600;
+  --night-dim: rgba(255,102,0,0.2);
+  --font: 'JetBrains Mono', 'Fira Code', monospace;
+  --nav-height: 64px;
+  --radius: 2px;
+}
+
+[data-theme="light"] {
+  --bg: #e8f0e8;
+  --bg-panel: #f5faf5;
+  --bg-elevated: #ffffff;
+  --border: #2a5a2a;
+  --text: #0a3a0a;
+  --text-dim: #1a5a1a;
+  --text-muted: #3a7a3a;
+  --accent: #b8860b;
+  --accent-dim: rgba(184,134,11,0.2);
+  --danger: #cc2222;
+  --danger-dim: rgba(204,34,34,0.15);
+  --success: #228b22;
+  --success-dim: rgba(34,139,34,0.15);
+  --night: #ff6600;
+  --night-dim: rgba(255,102,0,0.2);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* CRT scanlines overlay */
+.crt-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.08),
+    rgba(0,0,0,0.08) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  z-index: 9998;
+  opacity: 0.6;
+}
+[data-theme="light"] .crt-overlay { opacity: 0.2; }
+
+#app {
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+@media (min-width: 500px) {
+  #app { box-shadow: 0 0 0 1px var(--border); }
+}
+
+/* ASCII dividers */
+.ascii-divider {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  margin: 0 0 12px;
+}
+
+/* ===== AUTH ===== */
+.auth-screen {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 20px;
+  min-height: 100%;
+}
+.auth-screen.active { display: flex; }
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.auth-logo {
+  font-family: var(--font);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: 4px;
+}
+.auth-brand h1 { font-size: 18px; font-weight: 600; letter-spacing: 2px; }
+.auth-brand p { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
+
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+}
+.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.form-input.error { border-color: var(--danger); }
+.form-error { color: var(--danger); font-size: 11px; margin-top: 4px; display: none; }
+.form-input.error + .form-error { display: block; }
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; }
+select.form-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23006600' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+  margin-top: 6px;
+}
+.btn-primary:hover { filter: brightness(1.2); }
+.btn-demo {
+  margin-top: 10px;
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  border: 1px dashed var(--border);
+}
+.btn-link { background: none; border: none; color: var(--accent); font-family: var(--font); font-size: 12px; cursor: pointer; padding: 8px; font-weight: 500; }
+.auth-footer { text-align: center; margin-top: 20px; font-size: 12px; color: var(--text-muted); }
+
+/* ===== LOGGER SCREEN ===== */
+.logger-screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 16px;
+  min-height: 100%;
+}
+
+.term-header {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.term-header::before { content: '> '; }
+
+/* BRB - immediate, no scroll */
+.brb-block {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.brb-greeting { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.brb-name { font-size: 16px; font-weight: 700; margin-bottom: 16px; letter-spacing: 2px; }
+
+.brb-btn {
+  width: 100%;
+  max-width: 200px;
+  padding: 20px;
+  border: 2px solid var(--danger);
+  background: var(--danger-dim);
+  color: var(--danger);
+  font-family: var(--font);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius);
+  margin: 0 auto;
+  display: block;
+  transition: all 0.2s;
+}
+.brb-btn:hover { background: var(--danger); color: var(--bg); }
+.brb-btn.recording {
+  animation: blink 1s infinite;
+}
+@keyframes blink { 50% { opacity: 0.7; } }
+
+.brb-config {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+.term-select {
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%23006600' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+/* Progress */
+.progress-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.progress-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+}
+.progress-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.progress-val { font-size: 20px; font-weight: 700; }
+.progress-sub { font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+
+/* Conditions */
+.cond-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cond-tag {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font);
+}
+.cond-tag.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* Live recording overlay */
+.live-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  z-index: 150;
+  flex-direction: column;
+  padding: 20px;
+}
+.live-overlay.show { display: flex; }
+
+.live-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--danger);
+  border-radius: 50%;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.live-title { font-size: 12px; font-weight: 700; color: var(--danger); }
+
+.live-gauges {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.live-gauge {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
+}
+.live-gauge .g-val { font-size: 18px; font-weight: 700; color: var(--accent); }
+.live-gauge .g-unit { font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
+.live-gauge .g-label { font-size: 9px; color: var(--text-dim); margin-top: 4px; }
+
+.gps-line {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+.stop-btn {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid var(--danger);
+  background: var(--danger-dim);
+  color: var(--danger);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: var(--radius);
+  margin-top: auto;
+}
+.stop-btn:hover { background: var(--danger); color: var(--bg); }
+
+/* ===== SCREENS ===== */
+.screen {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.screen.active { display: flex; }
+.screen-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: calc(var(--nav-height) + 24px);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== HISTORY ===== */
+.history-filter {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 14px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.history-filter::-webkit-scrollbar { display: none; }
+.filter-tag {
+  white-space: nowrap;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font);
+}
+.filter-tag.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+.tab-row { display: flex; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.trip-list { display: flex; flex-direction: column; gap: 10px; }
+.trip-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  cursor: pointer;
+  font-family: var(--font);
+}
+.trip-card:hover { border-color: var(--accent); }
+.trip-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.trip-date { font-size: 12px; font-weight: 600; }
+.trip-status {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.trip-status.approved { background: var(--success-dim); color: var(--success); }
+.trip-status.pending { background: var(--accent-dim); color: var(--accent); }
+.trip-meta { display: flex; gap: 14px; font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
+.trip-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.trip-tag {
+  font-size: 9px;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+}
+.trip-tag.night { background: var(--night-dim); color: var(--night); }
+
+/* Charts */
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.chart-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+}
+.chart-panel .title { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+.chart-panel svg { width: 56px; height: 56px; margin: 0 auto; display: block; }
+.chart-panel .val { font-size: 14px; font-weight: 700; margin-top: 6px; }
+.chart-panel .sub { font-size: 9px; color: var(--text-dim); }
+
+.logbook-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  font-size: 12px;
+}
+.logbook-panel h3 { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+.logbook-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.logbook-line:last-child { border-bottom: none; }
+.logbook-line .k { color: var(--text-dim); }
+.logbook-line .v { font-weight: 600; }
+
+/* ===== CHATBOT ===== */
+.chat-header { margin-bottom: 16px; }
+.chat-header h2 { font-size: 14px; font-weight: 700; letter-spacing: 1px; }
+.chat-header p { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 14px;
+}
+.chat-msg {
+  max-width: 88%;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid var(--border);
+  font-family: var(--font);
+}
+.chat-msg.bot { background: var(--bg-panel); align-self: flex-start; }
+.chat-msg.user { background: var(--accent-dim); border-color: var(--accent); align-self: flex-end; }
+.chat-msg b { font-weight: 700; }
+
+.chat-typing {
+  display: none;
+  align-self: flex-start;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.chat-typing.show { display: flex; gap: 6px; }
+.typing-dot { width: 5px; height: 5px; background: var(--text-muted); border-radius: 50%; animation: typingBounce 1.4s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-3px); } }
+
+.chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.suggest-tag {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font);
+}
+.suggest-tag:hover { border-color: var(--accent); color: var(--accent); }
+
+.chat-input-row { display: flex; gap: 10px; padding-bottom: calc(var(--nav-height) + 12px); }
+.chat-input {
+  flex: 1;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 12px;
+  font-family: var(--font);
+  outline: none;
+}
+.chat-input:focus { border-color: var(--accent); }
+.chat-send {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  border: 1px solid var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ===== SETTINGS ===== */
+.settings-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 24px;
+}
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.settings-profile .name { font-size: 14px; font-weight: 700; }
+.settings-profile .role { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.settings-profile .state-badge {
+  font-size: 10px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.settings-section { margin-bottom: 20px; }
+.settings-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  padding: 0 0 8px;
+}
+.settings-list {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font);
+}
+.settings-item:last-child { border-bottom: none; }
+.settings-item:hover { background: var(--bg-elevated); }
+.settings-item .item-left { display: flex; align-items: center; gap: 12px; }
+.toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 2px;
+  background: var(--text-muted);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: '';
+  width: 18px;
+  height: 18px;
+  background: var(--bg);
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s;
+  border: 1px solid var(--border);
+}
+.toggle.on::after { transform: translateX(20px); }
+
+.signout-btn {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px solid var(--danger);
+  background: var(--danger-dim);
+  color: var(--danger);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius);
+  letter-spacing: 1px;
+}
+.signout-btn:hover { background: var(--danger); color: var(--bg); }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  z-index: 100;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  letter-spacing: 0.5px;
+}
+.nav-item svg { width: 20px; height: 20px; }
+.nav-item.active { color: var(--text); }
+
+/* ===== TOAST ===== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 90%;
+  pointer-events: none;
+}
+.toast {
+  background: var(--bg-panel);
+  color: var(--text);
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  font-family: var(--font);
+  animation: toastIn 0.3s ease;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  justify-content: center;
+  align-items: flex-end;
+}
+.modal-overlay.show { display: flex; }
+.modal-sheet {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px 16px 36px;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 36px; height: 3px; background: var(--text-muted); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.modal-subtitle { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; }
+.modal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.modal-stat {
+  text-align: center;
+  padding: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.modal-stat .s-val { font-size: 16px; font-weight: 700; }
+.modal-stat .s-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+.modal-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.modal-info-row .label { color: var(--text-dim); }
+.approve-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 16px;
+  border: 1px solid var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.approve-btn:hover { background: var(--accent); color: var(--bg); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="crt-overlay"></div>
+<div id="app">
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- AUTH -->
+  <div class="auth-screen active" id="loginScreen">
+    <div class="auth-brand">
+      <div class="auth-logo">L-PLATE.LOG</div>
+      <div class="ascii-divider">── ── ── ── ── ── ── ──</div>
+      <h1>NSW Learner Hours Tracker</h1>
+      <p>v1.0.0 — Terminal Mode</p>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input class="form-input" id="loginEmail" type="email" placeholder="user@domain.com" autocomplete="email">
+      <div class="form-error">Valid email required</div>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input class="form-input" id="loginPass" type="password" placeholder="********" autocomplete="current-password">
+      <div class="form-error">Min 8 characters</div>
+    </div>
+    <button class="btn btn-primary" onclick="handleLogin()">Sign in</button>
+    <button class="btn btn-demo" onclick="demoLogin('learner')">Demo — Learner (demo@lplate.app)</button>
+    <button class="btn btn-demo" style="margin-top:6px" onclick="demoLogin('parent')">Demo — Parent</button>
+    <div class="auth-footer">No account? <button class="btn-link" onclick="showScreen('registerScreen','auth')">Register</button></div>
+  </div>
+
+  <div class="auth-screen" id="registerScreen">
+    <div class="auth-brand">
+      <div class="auth-logo">CREATE.ACCT</div>
+      <div class="ascii-divider">── ── ── ── ── ──</div>
+      <h1>New User</h1>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>First</label><input class="form-input" id="regFirst" placeholder="Alex"><div class="form-error">Required</div></div>
+      <div class="form-group"><label>Last</label><input class="form-input" id="regLast" placeholder="Smith"><div class="form-error">Required</div></div>
+    </div>
+    <div class="form-group"><label>Email</label><input class="form-input" id="regEmail" type="email" placeholder="you@email.com"><div class="form-error">Invalid</div></div>
+    <div class="form-group"><label>Password</label><input class="form-input" id="regPass" type="password" placeholder="Min 8 chars"><div class="form-error">Min 8</div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Type</label><select class="form-input" id="regType"><option value="learner">Learner</option><option value="parent">Parent</option></select></div>
+      <div class="form-group"><label>State</label><select class="form-input" id="regState"><option value="NSW">NSW</option><option value="VIC">VIC</option><option value="QLD">QLD</option><option value="SA">SA</option><option value="WA">WA</option><option value="TAS">TAS</option><option value="NT">NT</option><option value="ACT">ACT</option></select></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:6px" onclick="handleRegister()">Create account</button>
+    <div class="auth-footer">Have account? <button class="btn-link" onclick="showScreen('loginScreen','auth')">Sign in</button></div>
+  </div>
+
+  <!-- LOGGER -->
+  <div class="screen" id="loggerScreen">
+    <div class="logger-screen">
+      <div class="term-header">
+        <span>L-PLATE.LOG > DRIVE</span>
+        <span id="plateBatt">Plate: 85%</span>
+      </div>
+      <div class="ascii-divider">── ── ── ── ── ── ── ──</div>
+
+      <div class="brb-block">
+        <div class="brb-greeting" id="greetingText">Good morning</div>
+        <div class="brb-name" id="userName">Alex</div>
+        <button class="brb-btn" id="brbBtn" onclick="toggleTrip()">
+          [ START DRIVE ]
+        </button>
+        <div class="brb-config">
+          <select class="term-select" id="vehicleSelect"><option>Mum's Corolla</option><option>Dad's Ranger</option></select>
+          <select class="term-select" id="supervisorSelect"><option>Sarah M.</option><option>David M.</option></select>
+        </div>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-panel">
+          <div class="progress-label">Total</div>
+          <div class="progress-val" id="totalHrsText">58h</div>
+          <div class="progress-sub">of 120h</div>
+        </div>
+        <div class="progress-panel">
+          <div class="progress-label">Night</div>
+          <div class="progress-val" id="nightHrsText">12h</div>
+          <div class="progress-sub">of 20h</div>
+        </div>
+      </div>
+
+      <div class="ascii-divider">── Conditions ──</div>
+      <div class="cond-row" id="condRow">
+        <span class="cond-tag" data-cond="rain">Rain</span>
+        <span class="cond-tag" data-cond="night">Night</span>
+        <span class="cond-tag" data-cond="city">City</span>
+        <span class="cond-tag" data-cond="highway">Highway</span>
+        <span class="cond-tag" data-cond="school">School</span>
+        <span class="cond-tag" data-cond="rural">Rural</span>
+      </div>
+    </div>
+
+    <div class="live-overlay" id="livePanel">
+      <div class="live-header">
+        <span class="live-dot"></span>
+        <span class="live-title">RECORDING</span>
+      </div>
+      <div class="ascii-divider">── Live data ──</div>
+      <div class="live-gauges">
+        <div class="live-gauge"><div class="g-val" id="liveSpeed">0</div><div class="g-unit">km/h</div><div class="g-label">Speed</div></div>
+        <div class="live-gauge"><div class="g-val" id="liveDist">0.0</div><div class="g-unit">km</div><div class="g-label">Distance</div></div>
+        <div class="live-gauge"><div class="g-val" id="liveTime">00:00</div><div class="g-unit">—</div><div class="g-label">Elapsed</div></div>
+        <div class="live-gauge"><div class="g-val" id="liveBrakes">0</div><div class="g-unit">—</div><div class="g-label">Harsh brake</div></div>
+      </div>
+      <div class="gps-line">GPS: <span id="gpsCoords">-33.8688, 151.2093</span> | Acc: <span id="gpsAcc">3.2</span>m</div>
+      <button class="stop-btn" onclick="toggleTrip()">[ STOP DRIVE ]</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="screen" id="historyScreen">
+    <div class="screen-scroll">
+      <div class="term-header">L-PLATE.LOG > HISTORY</div>
+      <div class="ascii-divider">── ── ── ── ── ── ── ──</div>
+
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchHistoryTab('list', this)">Trips</button>
+        <button class="tab-btn" onclick="switchHistoryTab('charts', this)">Charts</button>
+        <button class="tab-btn" onclick="switchHistoryTab('logbook', this)">Logbook</button>
+      </div>
+
+      <div id="historyList">
+        <div class="history-filter">
+          <span class="filter-tag active" data-filter="all" onclick="filterTrips(this)">All</span>
+          <span class="filter-tag" data-filter="approved" onclick="filterTrips(this)">Approved</span>
+          <span class="filter-tag" data-filter="pending" onclick="filterTrips(this)">Pending</span>
+          <span class="filter-tag" data-filter="night" onclick="filterTrips(this)">Night</span>
+        </div>
+        <div class="charts-row">
+          <div class="chart-panel"><div class="title">Day / Night</div><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="46 54" stroke-dashoffset="25"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--night)" stroke-width="4" stroke-dasharray="60 40" stroke-dashoffset="-25"/></svg><div class="val">46d / 12n</div><div class="sub">of 100d / 20n</div></div>
+          <div class="chart-panel"><div class="title">Approval</div><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--success)" stroke-width="4" stroke-dasharray="70 30" stroke-dashoffset="25"/></svg><div class="val">5 appr</div><div class="sub">2 pending</div></div>
+        </div>
+        <div class="trip-list" id="tripList"></div>
+      </div>
+
+      <div id="chartsView" class="hidden">
+        <div class="charts-row" style="grid-template-columns:1fr">
+          <div class="chart-panel"><div class="title">Day vs Night</div><svg viewBox="0 0 42 42" width="80" height="80"><circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="46 54" stroke-dashoffset="25"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--night)" stroke-width="5" stroke-dasharray="60 40" stroke-dashoffset="-25"/></svg><div class="val">Day 46h / Night 12h</div></div>
+          <div class="chart-panel"><div class="title">Conditions</div><div class="val" style="font-size:11px">City 28h, Highway 22h, Rural 18h, Night 12h</div></div>
+          <div class="chart-panel"><div class="title">Supervisors</div><div class="val" style="font-size:11px">Sarah M. 32h, David M. 26h</div></div>
+          <div class="chart-panel"><div class="title">Vehicles</div><div class="val" style="font-size:11px">Mum's Corolla 35h, Dad's Ranger 23h</div></div>
+        </div>
+      </div>
+
+      <div id="logbookView" class="hidden">
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px; color:var(--text-dim); display:block; margin-bottom:6px">Select trip</label>
+          <select class="term-select" id="logbookTripSelect" onchange="updateLogbookView(parseInt(this.value))"></select>
+        </div>
+        <div class="logbook-panel">
+          <h3>Transcribe to physical logbook</h3>
+          <div class="logbook-line"><span class="k">Date</span><span class="v" id="lbDate">—</span></div>
+          <div class="logbook-line"><span class="k">Start / End</span><span class="v" id="lbTimes">—</span></div>
+          <div class="logbook-line"><span class="k">Duration</span><span class="v" id="lbDuration">—</span></div>
+          <div class="logbook-line"><span class="k">Odometer</span><span class="v" id="lbOdo">—</span></div>
+          <div class="logbook-line"><span class="k">Day / Night</span><span class="v" id="lbDayNight">—</span></div>
+          <div class="logbook-line"><span class="k">Supervisor</span><span class="v" id="lbSupervisor">—</span></div>
+          <div class="logbook-line"><span class="k">Conditions</span><span class="v" id="lbConditions">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHATBOT -->
+  <div class="screen" id="chatScreen">
+    <div class="chat-header">
+      <div class="term-header">L-PLATE.LOG > RULES</div>
+      <div class="ascii-divider">── ── ── ── ──</div>
+      <h2>NSW Road Rules AI</h2>
+      <p>Ask about learner laws, hours, speed limits</p>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">> Ready. Ask about NSW learner rules, hours, speed limits, or logbook requirements.</div>
+      <div class="chat-typing" id="chatTyping"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    </div>
+    <div class="chat-suggestions" id="chatSuggestions">
+      <button class="suggest-tag" onclick="askQuestion(this.textContent)">Hours for P1?</button>
+      <button class="suggest-tag" onclick="askQuestion(this.textContent)">Night driving?</button>
+      <button class="suggest-tag" onclick="askQuestion(this.textContent)">Speed limits?</button>
+      <button class="suggest-tag" onclick="askQuestion(this.textContent)">Logbook requirements?</button>
+      <button class="suggest-tag" onclick="askQuestion(this.textContent)">L-plate rules?</button>
+      <button class="suggest-tag" onclick="askQuestion(this.textContent)">Supervisor rules?</button>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="> Ask..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" onclick="sendChat()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="settingsScreen">
+    <div class="screen-scroll">
+      <div class="term-header">L-PLATE.LOG > CONFIG</div>
+      <div class="ascii-divider">── ── ── ── ──</div>
+      <div class="settings-profile">
+        <div class="avatar" id="settingsAvatar">A</div>
+        <div class="name" id="settingsName">Alex Mitchell</div>
+        <div class="role" id="settingsRole">Learner Driver</div>
+        <div class="state-badge" id="settingsState">NSW</div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Appearance</div>
+        <div class="settings-list">
+          <div class="settings-item" onclick="toggleTheme()"><div class="item-left"><span>Dark Mode</span></div><div class="toggle" id="themeToggle"></div></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Account</div>
+        <div class="settings-list">
+          <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><span>Profile</span></div><span>></span></div>
+          <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><span>Supervisors</span></div><span>></span></div>
+          <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><span>Parent Access</span></div><span>></span></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Logger</div>
+        <div class="settings-list">
+          <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><span>Phone GPS</span></div><span>></span></div>
+          <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><span>Location Accuracy</span></div><span>></span></div>
+          <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><span>Logger Defaults</span></div><span>></span></div>
+          <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><span>Export Logbook</span></div><span>></span></div>
+        </div>
+      </div>
+      <button class="signout-btn" onclick="signOut()">[ SIGN OUT ]</button>
+    </div>
+  </div>
+
+  <!-- TRIP MODAL -->
+  <div class="modal-overlay" id="tripModal" onclick="if(event.target===this)closeTripModal()">
+    <div class="modal-sheet" id="tripModalContent"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav hidden" id="bottomNav">
+    <button class="nav-item active" data-screen="loggerScreen" onclick="navigateTo('loggerScreen',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Drive</button>
+    <button class="nav-item" data-screen="historyScreen" onclick="navigateTo('historyScreen',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>History</button>
+    <button class="nav-item" data-screen="chatScreen" onclick="navigateTo('chatScreen',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Rules</button>
+    <button class="nav-item" data-screen="settingsScreen" onclick="navigateTo('settingsScreen',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Config</button>
+  </nav>
+</div>
+
+<script>
+const USERS = [
+  { email: 'demo@lplate.app', password: 'password123', first: 'Alex', last: 'Mitchell', type: 'learner', state: 'NSW' },
+  { email: 'parent@lplate.app', password: 'password123', first: 'Sarah', last: 'Mitchell', type: 'parent', state: 'NSW' },
+];
+
+const TRIPS = [
+  { id: 1, date: '2026-02-24', startTime: '08:15', endTime: '09:30', duration: 75, distance: 42.3, odoStart: 45230, odoEnd: 45272, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['city', 'school'], status: 'approved', night: false },
+  { id: 2, date: '2026-02-22', startTime: '18:45', endTime: '20:15', duration: 90, distance: 58.1, odoStart: 45172, odoEnd: 45230, supervisor: 'David M.', vehicle: "Dad's Ranger", conditions: ['night', 'highway'], status: 'approved', night: true },
+  { id: 3, date: '2026-02-20', startTime: '10:30', endTime: '11:30', duration: 60, distance: 35.7, odoStart: 45136, odoEnd: 45172, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['rain', 'city'], status: 'approved', night: false },
+  { id: 4, date: '2026-02-18', startTime: '19:00', endTime: '19:45', duration: 45, distance: 28.9, odoStart: 45107, odoEnd: 45136, supervisor: 'David M.', vehicle: "Dad's Ranger", conditions: ['night', 'rural'], status: 'pending', night: true },
+  { id: 5, date: '2026-02-15', startTime: '14:00', endTime: '16:00', duration: 120, distance: 85.2, odoStart: 45022, odoEnd: 45107, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['highway', 'rural'], status: 'approved', night: false },
+  { id: 6, date: '2026-02-12', startTime: '20:30', endTime: '21:25', duration: 55, distance: 31.4, odoStart: 44976, odoEnd: 45007, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['night', 'city', 'rain'], status: 'approved', night: true },
+  { id: 7, date: '2026-02-10', startTime: '09:00', endTime: '10:35', duration: 95, distance: 62.8, odoStart: 44913, odoEnd: 44976, supervisor: 'David M.', vehicle: "Dad's Ranger", conditions: ['city', 'highway'], status: 'pending', night: false },
+  { id: 8, date: '2026-02-08', startTime: '17:00', endTime: '18:20', duration: 80, distance: 48.5, odoStart: 44865, odoEnd: 44913, supervisor: 'Sarah M.', vehicle: "Mum's Corolla", conditions: ['night', 'city'], status: 'approved', night: true },
+];
+
+const TOTAL_HRS = 58;
+const NIGHT_HRS = 12;
+const TOTAL_REQ = 120;
+const NIGHT_REQ = 20;
+
+const CHATBOT_RESPONSES = {
+  hours: `To get your P1 licence in NSW, you need <b>120 hours</b> of supervised driving, with at least <b>20 at night</b>. You must hold your learner licence for <b>12 months minimum</b> before the driving test.`,
+  night: `Night driving in NSW:\n\n• <b>20 hours</b> of your 120 must be at night\n• Night = sunset to sunrise\n• Must be supervised by a fully licensed driver\n• Record night trips accurately in your logbook`,
+  speed: `Learner drivers in NSW must <b>not exceed 90 km/h</b> regardless of posted limit. This applies on 100 or 110 km/h roads too. <b>Zero BAC</b> at all times.`,
+  logbook: `NSW logbook must record:\n\n• <b>Date</b>, <b>start/end times</b>, <b>duration</b>\n• <b>Odometer readings</b> (start and finish)\n• <b>Day or night</b>\n• <b>Supervisor name and signature</b>\n• <b>Road and weather conditions</b>`,
+  lplate: `In NSW, learners must:\n\n• Display <b>L-plates front and rear</b> at all times\n• L-plates must be clearly visible\n• Remove when learner is not driving\n• Use <b>yellow L-plates</b> (red P = provisional)`,
+  supervisor: `Supervising driver must:\n\n• Hold <b>full unrestricted Australian licence</b>\n• Have held it for <b>at least 1 year</b>\n• Sit in front passenger seat\n• <b>BAC under 0.05</b> while supervising\n• Be awake and able to take control`,
+  default: `Check the <b>NSW Transport website</b> (transport.nsw.gov.au) or call <b>13 22 13</b> for up-to-date learner driver rules.`,
+};
+
+let currentUser = null;
+let tripRecording = false;
+let tripTimer = null;
+let tripSeconds = 0;
+let tripDistance = 0;
+let tripBrakes = 0;
+let currentFilter = 'all';
+let isDark = true;
+let selectedTripForLogbook = null;
+
+(function initSession() {
+  const theme = localStorage.getItem('lplate_theme');
+  if (theme === 'light') { isDark = false; document.documentElement.setAttribute('data-theme', 'light'); }
+  const saved = sessionStorage.getItem('lplate_user');
+  if (saved) { currentUser = JSON.parse(saved); enterApp(); }
+})();
+
+function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const emailInput = document.getElementById('loginEmail');
+  const passInput = document.getElementById('loginPass');
+  emailInput.classList.remove('error');
+  passInput.classList.remove('error');
+  if (!email || !email.includes('@')) { emailInput.classList.add('error'); return; }
+  if (!pass || pass.length < 8) { passInput.classList.add('error'); return; }
+  const user = USERS.find(u => u.email === email && u.password === pass);
+  if (!user) { toast('Invalid. Try demo@lplate.app / password123'); return; }
+  currentUser = user;
+  sessionStorage.setItem('lplate_user', JSON.stringify(user));
+  enterApp();
+}
+
+function handleRegister() {
+  const fields = ['regFirst', 'regLast', 'regEmail', 'regPass'];
+  let valid = true;
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('error');
+    if (!el.value.trim()) { el.classList.add('error'); valid = false; }
+  });
+  const email = document.getElementById('regEmail');
+  const pass = document.getElementById('regPass');
+  if (email.value && !email.value.includes('@')) { email.classList.add('error'); valid = false; }
+  if (pass.value && pass.value.length < 8) { pass.classList.add('error'); valid = false; }
+  if (!valid) return;
+  const newUser = { email: email.value, password: pass.value, first: document.getElementById('regFirst').value, last: document.getElementById('regLast').value, type: document.getElementById('regType').value, state: document.getElementById('regState').value };
+  USERS.push(newUser);
+  currentUser = newUser;
+  sessionStorage.setItem('lplate_user', JSON.stringify(newUser));
+  toast('Account created');
+  enterApp();
+}
+
+function demoLogin(type) {
+  currentUser = type === 'learner' ? USERS[0] : USERS[1];
+  sessionStorage.setItem('lplate_user', JSON.stringify(currentUser));
+  enterApp();
+}
+
+function signOut() {
+  currentUser = null;
+  sessionStorage.removeItem('lplate_user');
+  if (tripRecording) toggleTrip();
+  document.getElementById('bottomNav').classList.add('hidden');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  showScreen('loginScreen', 'auth');
+  toast('Signed out');
+}
+
+function enterApp() {
+  document.querySelectorAll('.auth-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('bottomNav').classList.remove('hidden');
+  updateUserUI();
+  navigateTo('loggerScreen', document.querySelector('[data-screen="loggerScreen"]'));
+  updateProgress();
+  renderTrips();
+  document.getElementById('themeToggle').classList.toggle('on', isDark);
+}
+
+function updateUserUI() {
+  if (!currentUser) return;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greetingText').textContent = greeting;
+  document.getElementById('userName').textContent = currentUser.first;
+  document.getElementById('settingsAvatar').textContent = currentUser.first[0];
+  document.getElementById('settingsName').textContent = currentUser.first + ' ' + currentUser.last;
+  document.getElementById('settingsRole').textContent = currentUser.type === 'learner' ? 'Learner Driver' : 'Parent / Supervisor';
+  document.getElementById('settingsState').textContent = currentUser.state;
+}
+
+function showScreen(id, type) {
+  const cls = type === 'auth' ? '.auth-screen' : '.screen';
+  document.querySelectorAll(cls).forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function navigateTo(screenId, navEl) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+}
+
+function updateProgress() {
+  document.getElementById('totalHrsText').textContent = TOTAL_HRS + 'h';
+  document.getElementById('nightHrsText').textContent = NIGHT_HRS + 'h';
+}
+
+document.getElementById('condRow').addEventListener('click', e => {
+  if (e.target.classList.contains('cond-tag')) e.target.classList.toggle('active');
+});
+
+function toggleTrip() {
+  const btn = document.getElementById('brbBtn');
+  const panel = document.getElementById('livePanel');
+  const batt = document.getElementById('plateBatt');
+  if (!tripRecording) {
+    tripRecording = true;
+    tripSeconds = 0; tripDistance = 0; tripBrakes = 0;
+    btn.textContent = '[ STOP DRIVE ]';
+    btn.classList.add('recording');
+    panel.classList.add('show');
+    batt.textContent = 'Plate: 78%';
+    toast('Recording started');
+    tripTimer = setInterval(updateLiveData, 1000);
+  } else {
+    tripRecording = false;
+    clearInterval(tripTimer);
+    btn.textContent = '[ START DRIVE ]';
+    btn.classList.remove('recording');
+    panel.classList.remove('show');
+    batt.textContent = 'Plate: 85%';
+    toast('Trip saved — ' + formatTime(tripSeconds));
+  }
+}
+
+function updateLiveData() {
+  tripSeconds++;
+  const speed = Math.floor(40 + Math.random() * 50);
+  tripDistance += speed / 3600;
+  if (Math.random() < 0.01) tripBrakes++;
+  document.getElementById('liveSpeed').textContent = speed;
+  document.getElementById('liveDist').textContent = tripDistance.toFixed(1);
+  document.getElementById('liveTime').textContent = formatTime(tripSeconds);
+  document.getElementById('liveBrakes').textContent = tripBrakes;
+  document.getElementById('gpsCoords').textContent = (-33.8688 + (Math.random() - 0.5) * 0.01).toFixed(4) + ', ' + (151.2093 + (Math.random() - 0.5) * 0.01).toFixed(4);
+  document.getElementById('gpsAcc').textContent = (2 + Math.random() * 4).toFixed(1);
+  if (tripSeconds % 30 === 0 && tripSeconds > 0) {
+    const pct = Math.max(20, 78 - Math.floor(tripSeconds / 30) * 5);
+    document.getElementById('plateBatt').textContent = 'Plate: ' + pct + '%';
+  }
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60).toString().padStart(2, '0');
+  const s = (secs % 60).toString().padStart(2, '0');
+  return m + ':' + s;
+}
+
+function renderTrips() {
+  const container = document.getElementById('tripList');
+  const filtered = TRIPS.filter(t => {
+    if (currentFilter === 'approved') return t.status === 'approved';
+    if (currentFilter === 'pending') return t.status === 'pending';
+    if (currentFilter === 'night') return t.night;
+    return true;
+  });
+  container.innerHTML = filtered.map(t => {
+    const d = new Date(t.date);
+    const dateStr = d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
+    const durStr = t.duration >= 60 ? Math.floor(t.duration/60) + 'h ' + (t.duration%60) + 'm' : t.duration + 'm';
+    return '<div class="trip-card" onclick="openTrip(' + t.id + '); updateLogbookView(' + t.id + ')">' +
+      '<div class="trip-card-top"><div class="trip-date">' + dateStr + '</div><span class="trip-status ' + t.status + '">' + t.status + '</span></div>' +
+      '<div class="trip-meta"><span>' + t.startTime + ' · ' + durStr + '</span><span>' + t.distance + ' km</span></div>' +
+      '<div class="trip-tags">' + t.conditions.map(c => '<span class="trip-tag' + (c==='night'?' night':'') + '">' + c + '</span>').join('') + '</div>' +
+      '<div class="trip-meta" style="margin-top:8px"><span>' + t.vehicle + '</span><span>' + t.supervisor + '</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+function updateLogbookView(id) {
+  const t = TRIPS.find(tr => tr.id === id);
+  if (!t) return;
+  selectedTripForLogbook = t;
+  document.getElementById('lbDate').textContent = new Date(t.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('lbTimes').textContent = t.startTime + ' – ' + t.endTime;
+  document.getElementById('lbDuration').textContent = (t.duration >= 60 ? Math.floor(t.duration/60) + 'h ' : '') + (t.duration % 60) + 'm';
+  document.getElementById('lbOdo').textContent = t.odoStart + ' → ' + t.odoEnd;
+  document.getElementById('lbDayNight').textContent = t.night ? 'Night' : 'Day';
+  document.getElementById('lbSupervisor').textContent = t.supervisor;
+  document.getElementById('lbConditions').textContent = t.conditions.join(', ');
+}
+
+function filterTrips(el) {
+  document.querySelectorAll('.filter-tag').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = el.dataset.filter;
+  renderTrips();
+}
+
+function switchHistoryTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('historyList').classList.toggle('hidden', tab !== 'list');
+  document.getElementById('chartsView').classList.toggle('hidden', tab !== 'charts');
+  document.getElementById('logbookView').classList.toggle('hidden', tab !== 'logbook');
+  if (tab === 'logbook') {
+    const sel = document.getElementById('logbookTripSelect');
+    sel.innerHTML = TRIPS.map(t => '<option value="' + t.id + '">' + new Date(t.date).toLocaleDateString('en-AU') + ' – ' + t.startTime + '</option>').join('');
+    const id = selectedTripForLogbook ? selectedTripForLogbook.id : TRIPS[0].id;
+    sel.value = id;
+    updateLogbookView(id);
+  }
+}
+
+function openTrip(id) {
+  const t = TRIPS.find(tr => tr.id === id);
+  if (!t) return;
+  const d = new Date(t.date);
+  const dateStr = d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const durStr = t.duration >= 60 ? Math.floor(t.duration/60) + 'h ' + (t.duration%60) + 'm' : t.duration + 'm';
+  const isParent = currentUser && currentUser.type === 'parent';
+  document.getElementById('tripModalContent').innerHTML =
+    '<div class="modal-handle"></div>' +
+    '<div class="modal-title">' + dateStr + '</div>' +
+    '<div class="modal-subtitle">' + t.startTime + ' – ' + t.endTime + '</div>' +
+    '<div class="modal-stats">' +
+      '<div class="modal-stat"><div class="s-val">' + t.distance + '</div><div class="s-label">km</div></div>' +
+      '<div class="modal-stat"><div class="s-val">' + durStr + '</div><div class="s-label">Duration</div></div>' +
+      '<div class="modal-stat"><div class="s-val" style="text-transform:capitalize">' + t.status + '</div><div class="s-label">Status</div></div>' +
+    '</div>' +
+    '<div class="modal-info-row"><span class="label">Vehicle</span><span>' + t.vehicle + '</span></div>' +
+    '<div class="modal-info-row"><span class="label">Supervisor</span><span>' + t.supervisor + '</span></div>' +
+    '<div class="modal-info-row"><span class="label">Day/Night</span><span>' + (t.night ? 'Night' : 'Day') + '</span></div>' +
+    '<div class="modal-info-row"><span class="label">Conditions</span><span>' + t.conditions.join(', ') + '</span></div>' +
+    (isParent && t.status === 'pending' ? '<button class="approve-btn" onclick="approveTrip(' + t.id + '); closeTripModal()">Approve drive</button>' : '');
+  document.getElementById('tripModal').classList.add('show');
+}
+
+function approveTrip(id) {
+  const t = TRIPS.find(tr => tr.id === id);
+  if (t) t.status = 'approved';
+  toast('Drive approved');
+  renderTrips();
+}
+
+function closeTripModal() {
+  document.getElementById('tripModal').classList.remove('show');
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  askQuestion(msg);
+}
+
+function askQuestion(q) {
+  const messages = document.getElementById('chatMessages');
+  const typing = document.getElementById('chatTyping');
+  const userMsg = document.createElement('div');
+  userMsg.className = 'chat-msg user';
+  userMsg.textContent = q;
+  messages.insertBefore(userMsg, typing);
+  document.getElementById('chatSuggestions').style.display = 'none';
+  typing.classList.add('show');
+  messages.scrollTop = messages.scrollHeight;
+
+  const lower = q.toLowerCase();
+  let response = CHATBOT_RESPONSES.default;
+  if (lower.includes('hour') || lower.includes('p1') || lower.includes('120') || lower.includes('how many')) response = CHATBOT_RESPONSES.hours;
+  else if (lower.includes('night')) response = CHATBOT_RESPONSES.night;
+  else if (lower.includes('speed') || lower.includes('limit') || lower.includes('90')) response = CHATBOT_RESPONSES.speed;
+  else if (lower.includes('logbook') || lower.includes('log book') || lower.includes('record')) response = CHATBOT_RESPONSES.logbook;
+  else if (lower.includes('l-plate') || lower.includes('l plate') || lower.includes('display')) response = CHATBOT_RESPONSES.lplate;
+  else if (lower.includes('supervis') || lower.includes('accompan') || lower.includes('parent')) response = CHATBOT_RESPONSES.supervisor;
+
+  setTimeout(function() {
+    typing.classList.remove('show');
+    const botMsg = document.createElement('div');
+    botMsg.className = 'chat-msg bot';
+    botMsg.innerHTML = response.replace(/\n/g, '<br>');
+    messages.insertBefore(botMsg, typing);
+    messages.scrollTop = messages.scrollHeight;
+  }, 800 + Math.random() * 800);
+}
+
+function toggleTheme() {
+  isDark = !isDark;
+  const toggle = document.getElementById('themeToggle');
+  if (isDark) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    toggle.classList.add('on');
+    localStorage.setItem('lplate_theme', 'dark');
+    localStorage.setItem('lplate-theme', 'dark');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    toggle.classList.remove('on');
+    localStorage.setItem('lplate_theme', 'light');
+    localStorage.setItem('lplate-theme', 'light');
+  }
+}
+
+function showDemoMsg() {
+  toast('This feature has not been implemented as it is a demo');
+}
+
+function toast(msg) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3000);
+}
+
+(function(){
+  var params = new URLSearchParams(location.search);
+  var theme = params.get('theme');
+  if (theme === 'light' || theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem('lplate_theme', theme); localStorage.setItem('lplate-theme', theme); } catch(e){}
+  }
+  var h = (location.hash || '').slice(1);
+  var map = { logger: 'loggerScreen', history: 'historyScreen', chat: 'chatScreen', settings: 'settingsScreen' };
+  if (map[h] && typeof demoLogin === 'function') {
+    demoLogin('learner');
+    setTimeout(function() {
+      var el = document.querySelector('[data-screen="' + map[h] + '"]');
+      if (el && typeof navigateTo === 'function') navigateTo(map[h], el);
+    }, 600);
+  }
+})();
+</script>
+</body>
+</html>
