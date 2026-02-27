@@ -8,6 +8,8 @@
 <title>L-Plate Logger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root, [data-theme="dark"] {
   --bg: #0c0e14;
@@ -382,6 +384,27 @@ html, body {
 .quick-select-item .label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
 .quick-select-item .val { font-weight: 600; font-size: 14px; }
 
+.vehicle-more-options {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.vehicle-more-options.expanded { display: grid; }
+.more-options-trigger {
+  margin-top: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+  background: var(--surface2);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all var(--transition);
+}
+.more-options-trigger:hover { border-color: var(--accent); color: var(--accent); }
+
 .add-vehicle-btn {
   display: inline-flex;
   align-items: center;
@@ -724,6 +747,109 @@ html, body {
   font-size: 20px;
   font-weight: 700;
 }
+
+.screen-header-with-back {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.screen-header-with-back .back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.screen-header-with-back .back-btn:hover { background: var(--surface3); }
+.screen-header-with-back h2 { font-size: 20px; font-weight: 700; flex: 1; }
+
+.vehicle-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.vehicle-card .vehicle-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+.vehicle-card .vehicle-details { font-size: 13px; color: var(--text-dim); }
+.vehicle-card .vehicle-details span { margin-right: 12px; }
+.vehicle-card .esp-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  margin-top: 8px;
+}
+.vehicle-card .vehicle-esp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.vehicle-form-section {
+  padding: 0 16px 24px;
+  margin-top: 8px;
+}
+#vehiclesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+/* ===== ESP PAIRING SCREEN ===== */
+.esp-pairing-car-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 16px;
+  text-align: center;
+}
+.esp-pairing-car-summary .car-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.esp-pairing-car-summary .car-details { font-size: 14px; color: var(--text-dim); }
+.esp-pairing-status {
+  text-align: center;
+  padding: 32px 16px;
+}
+.esp-pairing-status p { font-size: 15px; color: var(--text-dim); margin-top: 16px; }
+.esp-spinner {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: espSpin 0.8s linear infinite;
+}
+.esp-pairing-status.success .esp-spinner {
+  border: none;
+  background: var(--accent);
+  animation: none;
+  position: relative;
+}
+.esp-pairing-status.success .esp-spinner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E") center/60% no-repeat;
+}
+@keyframes espSpin { to { transform: rotate(360deg); } }
+.esp-pairing-actions { padding: 0 16px 24px; }
+
 .settings-profile {
   display: flex;
   flex-direction: column;
@@ -835,6 +961,60 @@ html, body {
 .nav-item.active { color: var(--accent); }
 .nav-item svg { width: 22px; height: 22px; }
 
+/* ===== ACTIVE TRIP (Map + dedicated page) ===== */
+.active-trip-screen {
+  flex-direction: column;
+  position: relative;
+}
+.active-trip-map {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  z-index: 0;
+}
+.active-trip-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 16px calc(16px + var(--safe-bottom));
+  background: linear-gradient(transparent, rgba(12, 14, 20, 0.98));
+  z-index: 10;
+}
+.active-trip-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  flex-shrink: 0;
+}
+.active-trip-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.active-trip-stat .val { display: block; font-family: var(--mono); font-size: 18px; font-weight: 700; line-height: 1.2; }
+.active-trip-stat .lbl { display: block; font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+.active-trip-overlay .gps-bar {
+  flex-shrink: 0;
+  margin: 0;
+}
+.active-trip-overlay .brb {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  display: block;
+  flex-shrink: 0;
+}
+
 .hidden { display: none !important; }
 </style>
 </head>
@@ -928,7 +1108,7 @@ html, body {
         <div class="brb-sub" id="brbSub">Tap to begin a drive</div>
         <div class="brb-quick-actions">
           <button class="brb-quick-btn" onclick="openPreTripModal()">Vehicle & Supervisor</button>
-          <button class="brb-quick-btn" onclick="navigateTo('historyScreen')">View Trips</button>
+          <button class="brb-quick-btn" onclick="navigateTo('historyScreen', document.querySelector('[data-screen=historyScreen]'))">View Trips</button>
         </div>
         <div class="offline-badge" id="offlineBadge">📡 Offline mode</div>
       </div>
@@ -949,6 +1129,24 @@ html, body {
           <span>Acc: <span id="gpsAcc">3.2</span>m</span>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ACTIVE TRIP (Map + dedicated page when recording) -->
+  <div class="screen active-trip-screen" id="activeTripScreen">
+    <div class="active-trip-map" id="activeTripMap"></div>
+    <div class="active-trip-overlay">
+      <div class="active-trip-stats">
+        <div class="active-trip-stat"><div class="val" id="activeSpeed">0</div><div class="lbl">km/h</div></div>
+        <div class="active-trip-stat"><div class="val" id="activeDist">0.0</div><div class="lbl">km</div></div>
+        <div class="active-trip-stat"><div class="val" id="activeTime">00:00</div><div class="lbl">Time</div></div>
+        <div class="active-trip-stat"><div class="val" id="activeBrakes">0</div><div class="lbl">Harsh</div></div>
+      </div>
+      <div class="gps-bar">
+        <span><span class="gps-dot"></span><span id="activeGpsCoords">-33.8688, 151.2093</span></span>
+        <span>Acc: <span id="activeGpsAcc">3.2</span>m</span>
+      </div>
+      <button class="brb recording" onclick="toggleTrip()">STOP</button>
     </div>
   </div>
 
@@ -1026,10 +1224,81 @@ html, body {
         </div>
         <div class="settings-item" onclick="toast('Demo only')"><span>Profile</span><span>›</span></div>
         <div class="settings-item" onclick="toast('Demo only')"><span>Supervisors</span><span>›</span></div>
-        <div class="settings-item" onclick="openPreTripModal()"><span>Vehicles</span><span>›</span></div>
+        <div class="settings-item" onclick="navigateTo('vehiclesScreen', null)"><span>Cars & Vehicles</span><span>›</span></div>
         <div class="settings-item" onclick="toast('Demo only')"><span>Export Logbook</span><span>›</span></div>
       </div>
       <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- CARS & VEHICLES SCREEN -->
+  <div class="screen" id="vehiclesScreen">
+    <div class="screen-header-with-back">
+      <button class="back-btn" onclick="navigateTo('settingsScreen', document.querySelector('[data-screen=settingsScreen]'))" aria-label="Back">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h2>Cars & Vehicles</h2>
+    </div>
+    <div class="screen-scroll">
+      <p style="color:var(--text-dim);font-size:14px;margin:0 16px 16px">Manage your cars and pair ESP (OBD) sensors for speed tracking.</p>
+      <div id="vehiclesList"></div>
+      <div style="padding:0 16px 16px">
+        <button class="btn btn-primary" onclick="scanForEsp()" style="margin-bottom:8px">
+          <span style="display:inline-flex;align-items:center;gap:8px">📡 Scan for ESP devices</span>
+        </button>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px">Or use the Pair ESP toggle on each car above.</p>
+      </div>
+      <div class="vehicle-form-section">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">Add car</h3>
+        <div class="form-group">
+          <label>Licence plate</label>
+          <input class="form-input" id="vehiclePlate" placeholder="e.g. ABC-123">
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <select class="form-input" id="vehicleState">
+            <option value="NSW">NSW</option>
+            <option value="VIC">VIC</option>
+            <option value="QLD">QLD</option>
+            <option value="SA">SA</option>
+            <option value="WA">WA</option>
+            <option value="TAS">TAS</option>
+            <option value="NT">NT</option>
+            <option value="ACT">ACT</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nickname</label>
+          <input class="form-input" id="vehicleName" placeholder="e.g. Mum's Corolla">
+        </div>
+        <button class="btn btn-primary" onclick="saveVehicleFromForm()">Add car</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESP PAIRING SCREEN (after adding a car) -->
+  <div class="screen" id="espPairingScreen">
+    <div class="screen-header-with-back">
+      <button class="back-btn" onclick="finishEspPairing()" aria-label="Back">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h2>Pair ESP</h2>
+    </div>
+    <div class="screen-scroll">
+      <div id="espPairingContent">
+        <div class="esp-pairing-car-summary" id="espPairingCarSummary"></div>
+        <div class="esp-pairing-status" id="espPairingStatus">
+          <div class="esp-spinner" id="espSpinner"></div>
+          <p id="espStatusText">Searching for ESP devices...</p>
+        </div>
+        <div class="esp-pairing-actions" id="espPairingActions" style="display:none">
+          <div class="vehicle-esp-row" style="margin:0 0 20px 0;padding:16px;background:var(--surface2);border-radius:var(--radius-sm)">
+            <span style="font-size:14px">Pair ESP</span>
+            <div class="toggle" id="espPairingToggle" onclick="toggleEspPairingFromScreen()"></div>
+          </div>
+          <button class="btn btn-primary" onclick="finishEspPairing()">Done</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1041,7 +1310,9 @@ html, body {
       <div class="form-group">
         <label>Vehicle</label>
         <div class="quick-select-grid" id="vehicleSelect"></div>
-        <button type="button" class="add-vehicle-btn" onclick="addVehicle()">+ Add vehicle</button>
+        <div class="more-options-trigger" id="vehicleMoreTrigger" onclick="toggleVehicleMoreOptions()" style="display:none">More options</div>
+        <div class="vehicle-more-options" id="vehicleMoreOptions"></div>
+        <button type="button" class="add-vehicle-btn" onclick="closePreTripModal();navigateTo('vehiclesScreen',null)">+ Add car</button>
       </div>
       <div class="form-group">
         <label>Supervising Driver</label>
@@ -1140,7 +1411,11 @@ let currentFilter = 'all';
 let isDark = true;
 let selectedVehicle = "Mum's Corolla";
 let selectedSupervisor = 'Sarah M.';
-let VEHICLES = ["Mum's Corolla", "Dad's Ranger"];
+let VEHICLES = [
+  { name: "Mum's Corolla", plate: "ABC-123", state: "NSW", rego: "ABC123", espPaired: false },
+  { name: "Dad's Ranger", plate: "XYZ-456", state: "NSW", rego: "XYZ456", espPaired: true },
+];
+let espPairingVehicleIndex = -1;
 
 // ===== SESSION =====
 (function init() {
@@ -1152,7 +1427,11 @@ let VEHICLES = ["Mum's Corolla", "Dad's Ranger"];
   const theme = localStorage.getItem('lplate_theme');
   if (theme === 'light') { isDark = false; document.documentElement.setAttribute('data-theme', 'light'); const t = document.getElementById('themeToggle'); if (t) t.classList.add('on'); }
   const savedVehicles = localStorage.getItem('lplate_vehicles');
-  if (savedVehicles) { VEHICLES = JSON.parse(savedVehicles); if (!VEHICLES.includes(selectedVehicle)) selectedVehicle = VEHICLES[0] || ''; }
+  if (savedVehicles) {
+    const parsed = JSON.parse(savedVehicles);
+    VEHICLES = parsed.map(v => typeof v === 'string' ? { name: v, plate: '', state: 'NSW', rego: '', espPaired: false } : v);
+    if (!VEHICLES.some(v => v.name === selectedVehicle)) selectedVehicle = VEHICLES[0]?.name || '';
+  }
 })();
 
 // ===== AUTH =====
@@ -1238,10 +1517,33 @@ function applyRoleUI() {
 
 // ===== NAVIGATION =====
 function navigateTo(screenId, navEl) {
+  if (screenId === 'activeTripScreen' && !tripRecording) {
+    screenId = 'loggerScreen';
+    navEl = document.querySelector('[data-screen="loggerScreen"]');
+  }
+  if (tripRecording && screenId !== 'activeTripScreen') {
+    stopTripWithoutNavigate();
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
+  const target = document.getElementById(screenId);
+  if (!target) return;
+  target.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (navEl) navEl.classList.add('active');
+  const nav = document.getElementById('bottomNav');
+  if (screenId === 'vehiclesScreen') {
+    nav.classList.add('hidden');
+    renderVehiclesList();
+    const stateSelect = document.getElementById('vehicleState');
+    if (stateSelect && currentUser && currentUser.state) stateSelect.value = currentUser.state;
+  } else if (screenId === 'espPairingScreen') {
+    nav.classList.add('hidden');
+  } else if (screenId === 'activeTripScreen') {
+    nav.classList.add('hidden');
+    initActiveTripMap();
+  } else {
+    nav.classList.remove('hidden');
+  }
 }
 
 // ===== BRB (Big Red Button - README) =====
@@ -1258,25 +1560,150 @@ function openPreTripModal() {
   document.getElementById('preTripModal').classList.add('show');
 }
 
+function getVehicleName(v) { return typeof v === 'string' ? v : v.name; }
+
 function renderVehicleSelect() {
   const grid = document.getElementById('vehicleSelect');
+  const moreTrigger = document.getElementById('vehicleMoreTrigger');
+  const moreOptions = document.getElementById('vehicleMoreOptions');
   if (!grid) return;
-  grid.innerHTML = VEHICLES.map(v => {
-    const sel = v === selectedVehicle ? ' selected' : '';
-    return `<div class="quick-select-item${sel}" data-v="${v.replace(/"/g, '&quot;')}" onclick="selectQuick(this,'vehicle')"><div class="label">Vehicle</div><div class="val">${v}</div></div>`;
+  const recent = VEHICLES.slice(0, 2);
+  const rest = VEHICLES.slice(2);
+  grid.innerHTML = recent.map(v => {
+    const name = getVehicleName(v);
+    const sel = name === selectedVehicle ? ' selected' : '';
+    return `<div class="quick-select-item${sel}" data-v="${name.replace(/"/g, '&quot;')}" onclick="selectQuick(this,'vehicle')"><div class="label">Vehicle</div><div class="val">${name}</div></div>`;
+  }).join('');
+  if (moreTrigger) {
+    moreTrigger.style.display = rest.length > 0 ? '' : 'none';
+    moreTrigger.textContent = rest.length > 0 ? 'More options (' + rest.length + ')' : 'More options';
+  }
+  if (moreOptions) {
+    moreOptions.classList.remove('expanded');
+    moreOptions.innerHTML = rest.map(v => {
+      const name = getVehicleName(v);
+      const sel = name === selectedVehicle ? ' selected' : '';
+      return `<div class="quick-select-item${sel}" data-v="${name.replace(/"/g, '&quot;')}" onclick="selectQuick(this,'vehicle')"><div class="label">Vehicle</div><div class="val">${name}</div></div>`;
+    }).join('');
+  }
+}
+
+function toggleVehicleMoreOptions() {
+  const el = document.getElementById('vehicleMoreOptions');
+  if (el) el.classList.toggle('expanded');
+}
+
+function toggleVehicleEspPairing(index) {
+  const v = VEHICLES[index];
+  if (!v) return;
+  v.espPaired = !v.espPaired;
+  localStorage.setItem('lplate_vehicles', JSON.stringify(VEHICLES));
+  renderVehiclesList();
+  toast(v.espPaired ? 'ESP paired with ' + getVehicleName(v) : 'ESP unpaired');
+}
+
+function scanForEsp() {
+  toast('Scanning for ESP devices...');
+  setTimeout(() => toast('Demo: No new devices found. Use the Pair ESP toggle on each car above.'), 1500);
+}
+
+// ===== ESP PAIRING (after add car) =====
+function showEspPairingForVehicle(index) {
+  const v = VEHICLES[index];
+  if (!v) return;
+  const summary = document.getElementById('espPairingCarSummary');
+  const status = document.getElementById('espPairingStatus');
+  const actions = document.getElementById('espPairingActions');
+  const statusText = document.getElementById('espStatusText');
+  const spinner = document.getElementById('espSpinner');
+  const toggle = document.getElementById('espPairingToggle');
+  if (summary) summary.innerHTML = `<div class="car-name">Pair ESP with ${getVehicleName(v)}</div><div class="car-details">${v.plate || '—'} · ${v.state || '—'}</div>`;
+  if (status) { status.style.display = ''; status.classList.remove('success'); }
+  if (actions) actions.style.display = 'none';
+  if (statusText) statusText.textContent = 'Searching for ESP devices...';
+  if (spinner) spinner.className = 'esp-spinner';
+  runMockEspConnect(index);
+}
+
+function runMockEspConnect(index) {
+  const v = VEHICLES[index];
+  if (!v) return;
+  const status = document.getElementById('espPairingStatus');
+  const statusText = document.getElementById('espStatusText');
+  const spinner = document.getElementById('espSpinner');
+  const actions = document.getElementById('espPairingActions');
+  const toggle = document.getElementById('espPairingToggle');
+  setTimeout(() => {
+    if (statusText) statusText.textContent = 'Connecting to ESP-' + (v.plate || 'XXXX').replace(/-/g, '') + '...';
+  }, 1000);
+  setTimeout(() => {
+    if (status) status.classList.add('success');
+    if (statusText) statusText.textContent = 'Paired successfully!';
+    v.espPaired = true;
+    localStorage.setItem('lplate_vehicles', JSON.stringify(VEHICLES));
+    if (actions) actions.style.display = 'block';
+    if (toggle) toggle.classList.add('on');
+  }, 2500);
+}
+
+function finishEspPairing() {
+  espPairingVehicleIndex = -1;
+  navigateTo('vehiclesScreen', null);
+  renderVehiclesList();
+}
+
+function toggleEspPairingFromScreen() {
+  if (espPairingVehicleIndex < 0) return;
+  const v = VEHICLES[espPairingVehicleIndex];
+  if (!v) return;
+  v.espPaired = !v.espPaired;
+  localStorage.setItem('lplate_vehicles', JSON.stringify(VEHICLES));
+  const toggle = document.getElementById('espPairingToggle');
+  if (toggle) toggle.classList.toggle('on', v.espPaired);
+  toast(v.espPaired ? 'ESP paired' : 'ESP unpaired');
+}
+
+function renderVehiclesList() {
+  const list = document.getElementById('vehiclesList');
+  if (!list) return;
+  if (VEHICLES.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-dim);font-size:14px;margin:0 16px 24px">No cars yet. Add one below.</p>';
+    return;
+  }
+  list.innerHTML = VEHICLES.map((v, i) => {
+    const name = getVehicleName(v);
+    const plate = v.plate || '—';
+    const state = v.state || '—';
+    const toggleClass = v.espPaired ? 'toggle on' : 'toggle';
+    return `<div class="vehicle-card">
+      <div class="vehicle-name">${name}</div>
+      <div class="vehicle-details"><span>${plate}</span><span>${state}</span></div>
+      <div class="vehicle-esp-row">
+        <span style="font-size:13px;color:var(--text-dim)">Pair ESP</span>
+        <div class="${toggleClass}" onclick="toggleVehicleEspPairing(${i})"></div>
+      </div>
+    </div>`;
   }).join('');
 }
 
-function addVehicle() {
-  const name = prompt('Enter vehicle name (e.g. Mum\'s Corolla)');
-  if (!name || !name.trim()) return;
-  const trimmed = name.trim();
-  if (VEHICLES.includes(trimmed)) { toast('Vehicle already added'); return; }
-  VEHICLES.push(trimmed);
-  selectedVehicle = trimmed;
+function saveVehicleFromForm() {
+  const name = document.getElementById('vehicleName').value.trim();
+  const plate = document.getElementById('vehiclePlate').value.trim();
+  const state = document.getElementById('vehicleState').value;
+  if (!name) { toast('Enter a nickname'); return; }
+  if (VEHICLES.some(v => getVehicleName(v) === name)) { toast('Nickname already exists'); return; }
+  const rego = plate.replace(/-/g, '');
+  VEHICLES.push({ name, plate, state, rego, espPaired: false });
+  selectedVehicle = name;
   localStorage.setItem('lplate_vehicles', JSON.stringify(VEHICLES));
+  document.getElementById('vehicleName').value = '';
+  document.getElementById('vehiclePlate').value = '';
+  renderVehiclesList();
   renderVehicleSelect();
-  toast('Vehicle added');
+  toast('Car added. Pair ESP to track speed?');
+  espPairingVehicleIndex = VEHICLES.length - 1;
+  navigateTo('espPairingScreen', null);
+  showEspPairingForVehicle(espPairingVehicleIndex);
 }
 
 function closePreTripModal() {
@@ -1285,10 +1712,16 @@ function closePreTripModal() {
 }
 
 function selectQuick(el, type) {
-  el.parentElement.querySelectorAll('.quick-select-item').forEach(i => i.classList.remove('selected'));
-  el.classList.add('selected');
-  if (type === 'vehicle') selectedVehicle = el.dataset.v;
-  if (type === 'supervisor') selectedSupervisor = el.dataset.v;
+  if (type === 'vehicle') {
+    selectedVehicle = el.dataset.v;
+    document.querySelectorAll('#vehicleSelect .quick-select-item, #vehicleMoreOptions .quick-select-item').forEach(i => {
+      i.classList.toggle('selected', i.dataset.v === selectedVehicle);
+    });
+  } else {
+    el.parentElement.querySelectorAll('.quick-select-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    if (type === 'supervisor') selectedSupervisor = el.dataset.v;
+  }
 }
 
 function toggleCondition(el) {
@@ -1301,21 +1734,38 @@ function startDriveFromModal() {
 }
 
 // ===== TRIP RECORDING =====
+let activeTripMap = null;
+let activeTripMarker = null;
+let activeTripPolyline = null;
+let tripRoutePoints = [];
+
+function stopTripWithoutNavigate() {
+  if (!tripRecording) return;
+  tripRecording = false;
+  clearInterval(tripTimer);
+  const btn = document.getElementById('brb');
+  const sub = document.getElementById('brbSub');
+  if (btn) { btn.textContent = 'START'; btn.classList.remove('recording'); btn.classList.add('idle'); }
+  if (sub) sub.textContent = 'Tap to begin a drive';
+  toast('Trip saved — ' + formatTime(tripSeconds));
+}
+
 function toggleTrip() {
   const btn = document.getElementById('brb');
-  const panel = document.getElementById('liveTripPanel');
   const sub = document.getElementById('brbSub');
   if (!tripRecording) {
     tripRecording = true;
     tripSeconds = 0;
     tripDistance = 0;
     tripBrakes = 0;
+    tripRoutePoints = [];
+    if (activeTripPolyline) activeTripPolyline.setLatLngs([]);
     btn.textContent = 'STOP';
     btn.classList.remove('idle');
     btn.classList.add('recording');
-    panel.classList.add('active');
     sub.textContent = 'Recording — tap STOP when done';
     toast('Trip started');
+    navigateTo('activeTripScreen', null);
     tripTimer = setInterval(updateLiveData, 1000);
   } else {
     tripRecording = false;
@@ -1323,10 +1773,34 @@ function toggleTrip() {
     btn.textContent = 'START';
     btn.classList.remove('recording');
     btn.classList.add('idle');
-    panel.classList.remove('active');
     sub.textContent = 'Tap to begin a drive';
     toast('Trip saved — ' + formatTime(tripSeconds));
+    navigateTo('loggerScreen', document.querySelector('[data-screen="loggerScreen"]'));
   }
+}
+
+function initActiveTripMap() {
+  const container = document.getElementById('activeTripMap');
+  if (!container || !window.L) return;
+  if (activeTripMap) {
+    activeTripMap.invalidateSize();
+    return;
+  }
+  activeTripMap = L.map('activeTripMap').setView([-33.8688, 151.2093], 15);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(activeTripMap);
+  activeTripMarker = L.marker([-33.8688, 151.2093]).addTo(activeTripMap);
+  activeTripPolyline = L.polyline([], { color: '#00d4aa', weight: 4 }).addTo(activeTripMap);
+  setTimeout(() => activeTripMap.invalidateSize(), 100);
+}
+
+function updateMapPosition(lat, lng) {
+  if (!activeTripMarker || !activeTripMap) return;
+  activeTripMarker.setLatLng([lat, lng]);
+  tripRoutePoints.push([lat, lng]);
+  if (activeTripPolyline) activeTripPolyline.setLatLngs(tripRoutePoints);
+  activeTripMap.setView([lat, lng], activeTripMap.getZoom());
 }
 
 function updateLiveData() {
@@ -1334,14 +1808,16 @@ function updateLiveData() {
   const speed = Math.floor(40 + Math.random() * 50);
   tripDistance += speed / 3600;
   if (Math.random() < 0.01) tripBrakes++;
-  document.getElementById('liveSpeed').textContent = speed;
-  document.getElementById('liveDist').textContent = tripDistance.toFixed(1);
-  document.getElementById('liveTime').textContent = formatTime(tripSeconds);
-  document.getElementById('liveBrakes').textContent = tripBrakes;
-  const lat = (-33.8688 + (Math.random() - 0.5) * 0.01).toFixed(4);
-  const lng = (151.2093 + (Math.random() - 0.5) * 0.01).toFixed(4);
-  document.getElementById('gpsCoords').textContent = lat + ', ' + lng;
-  document.getElementById('gpsAcc').textContent = (2 + Math.random() * 4).toFixed(1);
+  const lat = parseFloat((-33.8688 + (Math.random() - 0.5) * 0.01).toFixed(4));
+  const lng = parseFloat((151.2093 + (Math.random() - 0.5) * 0.01).toFixed(4));
+  const el = id => document.getElementById(id);
+  if (el('activeSpeed')) el('activeSpeed').textContent = speed;
+  if (el('activeDist')) el('activeDist').textContent = tripDistance.toFixed(1);
+  if (el('activeTime')) el('activeTime').textContent = formatTime(tripSeconds);
+  if (el('activeBrakes')) el('activeBrakes').textContent = tripBrakes;
+  if (el('activeGpsCoords')) el('activeGpsCoords').textContent = lat.toFixed(4) + ', ' + lng.toFixed(4);
+  if (el('activeGpsAcc')) el('activeGpsAcc').textContent = (2 + Math.random() * 4).toFixed(1);
+  updateMapPosition(lat, lng);
 }
 
 function formatTime(secs) {

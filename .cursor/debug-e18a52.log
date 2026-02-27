@@ -1,0 +1,22 @@
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"loggerScreen","tripRecording":false,"navHidden":false},"timestamp":1772166090436}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"loggerScreen","activeScreenId":"loggerScreen","match":true},"timestamp":1772166090437}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"loggerScreen","tripRecording":false,"navHidden":false},"timestamp":1772166103468}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"loggerScreen","activeScreenId":"loggerScreen","match":true},"timestamp":1772166103469}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"approvalsScreen","tripRecording":false,"navHidden":false},"timestamp":1772166145959}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"approvalsScreen","activeScreenId":"approvalsScreen","match":true},"timestamp":1772166145960}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"approvalsScreen","tripRecording":false,"navHidden":false},"timestamp":1772166198291}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"approvalsScreen","activeScreenId":"approvalsScreen","match":true},"timestamp":1772166198291}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"approvalsScreen","tripRecording":false,"navHidden":false},"timestamp":1772166198931}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"approvalsScreen","activeScreenId":"approvalsScreen","match":true},"timestamp":1772166198932}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"approvalsScreen","tripRecording":false,"navHidden":false},"timestamp":1772166199128}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"approvalsScreen","activeScreenId":"approvalsScreen","match":true},"timestamp":1772166199129}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"approvalsScreen","tripRecording":false,"navHidden":false},"timestamp":1772166199266}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"approvalsScreen","activeScreenId":"approvalsScreen","match":true},"timestamp":1772166199266}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"settingsScreen","tripRecording":false,"navHidden":false},"timestamp":1772166200205}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"settingsScreen","activeScreenId":"settingsScreen","match":true},"timestamp":1772166200206}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"chatScreen","tripRecording":false,"navHidden":false},"timestamp":1772166200901}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"chatScreen","activeScreenId":"chatScreen","match":true},"timestamp":1772166200902}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"historyScreen","tripRecording":false,"navHidden":false},"timestamp":1772166202020}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"historyScreen","activeScreenId":"historyScreen","match":true},"timestamp":1772166202021}
+{"sessionId":"e18a52","location":"nav:entry","message":"navigateTo","data":{"requested":"approvalsScreen","tripRecording":false,"navHidden":false},"timestamp":1772166202731}
+{"sessionId":"e18a52","location":"nav:done","message":"After nav","data":{"requested":"approvalsScreen","activeScreenId":"approvalsScreen","match":true},"timestamp":1772166202731}

@@ -7,6 +7,13 @@ from pathlib import Path
 from flask import Flask, send_from_directory, render_template_string
 
 app = Flask(__name__)
+
+# MIME types for ES modules - browsers reject module scripts without correct type
+MIME_OVERRIDES = {
+    ".js": "application/javascript",
+    ".mjs": "application/javascript",
+    ".css": "text/css",
+}
 ROOT = Path(__file__).parent
 PROTOTYPES_DIR = ROOT / "app_ui_prototypes"
 
@@ -223,7 +230,13 @@ def index():
 
 @app.route("/prototypes/<path:filename>")
 def serve_prototype(filename):
-    return send_from_directory(PROTOTYPES_DIR, filename)
+    path = Path(filename)
+    mimetype = MIME_OVERRIDES.get(path.suffix.lower())
+    return send_from_directory(
+        PROTOTYPES_DIR,
+        filename,
+        mimetype=mimetype,
+    )
 
 
 if __name__ == "__main__":

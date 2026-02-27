@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c0e14">
+<title>L-Plate Logger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+<div id="app">
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- AUTH -->
+  <div class="auth-screen active" id="loginScreen">
+    <div class="auth-brand">
+      <div class="l-badge">L</div>
+      <h1>L-Plate Logger</h1>
+      <p>Log hours. Get your P's. Faster.</p>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input class="form-input" id="loginEmail" type="email" placeholder="you@email.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input class="form-input" id="loginPass" type="password" placeholder="Min 8 characters">
+    </div>
+    <button class="btn btn-primary" data-action="login">Sign In</button>
+    <button class="btn btn-ghost" data-action="demo-login" data-type="learner">Quick Demo — Learner</button>
+    <button class="btn btn-ghost" data-action="demo-login" data-type="parent">Quick Demo — Parent</button>
+    <div class="auth-footer">
+      No account? <button class="btn-link" data-action="show-auth" data-screen="registerScreen">Register</button>
+    </div>
+  </div>
+
+  <div class="auth-screen" id="registerScreen">
+    <div class="auth-brand">
+      <div class="l-badge">L</div>
+      <h1>Create Account</h1>
+      <p>Start tracking your 120 hours</p>
+    </div>
+    <div class="form-group">
+      <label>First Name</label>
+      <input class="form-input" id="regFirst" placeholder="Alex">
+    </div>
+    <div class="form-group">
+      <label>Last Name</label>
+      <input class="form-input" id="regLast" placeholder="Smith">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input class="form-input" id="regEmail" type="email" placeholder="you@email.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input class="form-input" id="regPass" type="password" placeholder="Min 8 characters">
+    </div>
+    <div class="form-group">
+      <label>Account Type</label>
+      <select class="form-input" id="regType">
+        <option value="learner">Learner Driver</option>
+        <option value="parent">Parent / Supervisor</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>State</label>
+      <select class="form-input" id="regState">
+        <option value="NSW">NSW</option>
+        <option value="VIC">VIC</option>
+        <option value="QLD">QLD</option>
+        <option value="SA">SA</option>
+        <option value="WA">WA</option>
+        <option value="TAS">TAS</option>
+        <option value="NT">NT</option>
+        <option value="ACT">ACT</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" data-action="register">Create Account</button>
+    <div class="auth-footer">
+      Have an account? <button class="btn-link" data-action="show-auth" data-screen="loginScreen">Sign In</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="screen" id="loggerScreen">
+    <div class="screen-scroll">
+      <div class="brb-landing">
+        <div class="brb-hero">
+          <div class="greeting" id="greeting">Good morning</div>
+          <div class="name" id="userName">Alex</div>
+        </div>
+        <div class="brb-progress-mini" id="progressMini"></div>
+        <div class="brb-wrapper">
+          <button class="brb idle" id="brb" data-action="brb">START</button>
+        </div>
+        <div class="brb-sub" id="brbSub">Tap to begin a drive</div>
+        <div class="brb-quick-actions">
+          <button class="brb-quick-btn" data-action="open-pre-trip">Vehicle & Supervisor</button>
+          <button class="brb-quick-btn" data-action="navigate" data-screen="historyScreen">View Trips</button>
+        </div>
+        <div class="offline-badge" id="offlineBadge">📡 Offline mode</div>
+      </div>
+
+      <div class="live-trip-panel" id="liveTripPanel">
+        <div class="speedometer">
+          <div><span class="speed-val" id="liveSpeed">0</span><span class="speed-unit">km/h</span></div>
+          <div class="speed-label">Current Speed</div>
+        </div>
+        <div class="live-stats-grid">
+          <div class="live-stat"><div class="val" id="liveDist">0.0</div><div class="lbl">km</div></div>
+          <div class="live-stat"><div class="val" id="liveTime">00:00</div><div class="lbl">Time</div></div>
+          <div class="live-stat"><div class="val" id="liveBrakes">0</div><div class="lbl">Harsh</div></div>
+          <div class="live-stat"><div class="val" id="liveGps">●</div><div class="lbl">GPS</div></div>
+        </div>
+        <div class="gps-bar">
+          <span><span class="gps-dot"></span><span id="gpsCoords">-33.8688, 151.2093</span></span>
+          <span>Acc: <span id="gpsAcc">3.2</span>m</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVE TRIP (Map + dedicated page when recording) -->
+  <div class="screen active-trip-screen" id="activeTripScreen">
+    <div class="active-trip-map" id="activeTripMap"></div>
+    <div class="active-trip-overlay">
+      <div class="active-trip-stats">
+        <div class="active-trip-stat"><div class="val" id="activeSpeed">0</div><div class="lbl">km/h</div></div>
+        <div class="active-trip-stat"><div class="val" id="activeDist">0.0</div><div class="lbl">km</div></div>
+        <div class="active-trip-stat"><div class="val" id="activeTime">00:00</div><div class="lbl">Time</div></div>
+        <div class="active-trip-stat"><div class="val" id="activeBrakes">0</div><div class="lbl">Harsh</div></div>
+      </div>
+      <div class="gps-bar">
+        <span><span class="gps-dot"></span><span id="activeGpsCoords">-33.8688, 151.2093</span></span>
+        <span>Acc: <span id="activeGpsAcc">3.2</span>m</span>
+      </div>
+      <button class="brb recording" data-action="toggle-trip">STOP</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="screen" id="historyScreen">
+    <div class="history-header">
+      <h2>Trip History</h2>
+    </div>
+    <div class="filter-row">
+      <span class="filter-pill active" data-action="filter-trips" data-f="all">All</span>
+      <span class="filter-pill" data-action="filter-trips" data-f="approved">Approved</span>
+      <span class="filter-pill" data-action="filter-trips" data-f="pending">Pending</span>
+      <span class="filter-pill" data-action="filter-trips" data-f="night">Night</span>
+    </div>
+    <div class="screen-scroll">
+      <div class="progress-section">
+        <h2>Progress to P1</h2>
+        <div class="pie-row" id="pieCharts"></div>
+      </div>
+      <div class="trip-list" id="tripList"></div>
+    </div>
+  </div>
+
+  <!-- APPROVALS (Parent RBA) -->
+  <div class="screen" id="approvalsScreen">
+    <div class="approvals-section">
+      <h2>Approve Drives</h2>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:16px">Review and approve learner trips</p>
+      <div id="approvalsList"></div>
+    </div>
+  </div>
+
+  <!-- CHATBOT -->
+  <div class="screen chat-screen" id="chatScreen">
+    <div class="chat-header">
+      <h2>Road Rules AI</h2>
+      <p>Ask about NSW learner driving laws</p>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">G'day! Ask me anything about NSW learner driver rules, hours, or licence conditions.</div>
+      <div class="chat-typing" id="chatTyping"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    </div>
+    <div class="chat-suggestions" id="chatSuggestions">
+      <button class="suggest-btn" data-action="ask-question">Hours for P1?</button>
+      <button class="suggest-btn" data-action="ask-question">Night driving rules?</button>
+      <button class="suggest-btn" data-action="ask-question">Speed limits?</button>
+      <button class="suggest-btn" data-action="ask-question">Logbook requirements?</button>
+      <button class="suggest-btn" data-action="ask-question">L-plate rules?</button>
+      <button class="suggest-btn" data-action="ask-question">Supervisor requirements?</button>
+    </div>
+    <div class="chat-input-bar">
+      <input class="chat-input" id="chatInput" placeholder="Ask about NSW road rules...">
+      <button class="chat-send" data-action="send-chat">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="settingsScreen">
+    <div class="settings-header">
+      <h2>Settings</h2>
+    </div>
+    <div class="screen-scroll">
+      <div class="settings-profile">
+        <div class="avatar" id="settingsAvatar">A</div>
+        <div class="name" id="settingsName">Alex Mitchell</div>
+        <div class="role" id="settingsRole">Learner Driver</div>
+      </div>
+      <div class="settings-list">
+        <div class="settings-item" data-action="toggle-theme">
+          <span>Dark Mode</span>
+          <div class="toggle" id="themeToggle"></div>
+        </div>
+        <div class="settings-item" data-action="toast-demo"><span>Profile</span><span>›</span></div>
+        <div class="settings-item" data-action="toast-demo"><span>Supervisors</span><span>›</span></div>
+        <div class="settings-item" data-action="navigate" data-screen="vehiclesScreen"><span>Cars & Vehicles</span><span>›</span></div>
+        <div class="settings-item" data-action="toast-demo"><span>Export Logbook</span><span>›</span></div>
+      </div>
+      <button class="signout-btn" data-action="sign-out">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- CARS & VEHICLES SCREEN -->
+  <div class="screen" id="vehiclesScreen">
+    <div class="screen-header-with-back">
+      <button class="back-btn" data-action="navigate" data-screen="settingsScreen" aria-label="Back">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h2>Cars & Vehicles</h2>
+    </div>
+    <div class="screen-scroll">
+      <p style="color:var(--text-dim);font-size:14px;margin:0 16px 16px">Manage your cars and pair ESP (OBD) sensors for speed tracking.</p>
+      <div id="vehiclesList"></div>
+      <div style="padding:0 16px 16px">
+        <button class="btn btn-primary" data-action="scan-esp" style="margin-bottom:8px">
+          <span style="display:inline-flex;align-items:center;gap:8px">📡 Scan for ESP devices</span>
+        </button>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px">Or use the Pair ESP toggle on each car above.</p>
+      </div>
+      <div class="vehicle-form-section">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">Add car</h3>
+        <div class="form-group">
+          <label>Licence plate</label>
+          <input class="form-input" id="vehiclePlate" placeholder="e.g. ABC-123">
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <select class="form-input" id="vehicleState">
+            <option value="NSW">NSW</option>
+            <option value="VIC">VIC</option>
+            <option value="QLD">QLD</option>
+            <option value="SA">SA</option>
+            <option value="WA">WA</option>
+            <option value="TAS">TAS</option>
+            <option value="NT">NT</option>
+            <option value="ACT">ACT</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nickname</label>
+          <input class="form-input" id="vehicleName" placeholder="e.g. Mum's Corolla">
+        </div>
+        <button class="btn btn-primary" data-action="save-vehicle">Add car</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESP PAIRING SCREEN -->
+  <div class="screen" id="espPairingScreen">
+    <div class="screen-header-with-back">
+      <button class="back-btn" data-action="finish-esp-pairing" aria-label="Back">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h2>Pair ESP</h2>
+    </div>
+    <div class="screen-scroll">
+      <div id="espPairingContent">
+        <div class="esp-pairing-car-summary" id="espPairingCarSummary"></div>
+        <div class="esp-pairing-status" id="espPairingStatus">
+          <div class="esp-spinner" id="espSpinner"></div>
+          <p id="espStatusText">Searching for ESP devices...</p>
+        </div>
+        <div class="esp-pairing-actions" id="espPairingActions" style="display:none">
+          <div class="vehicle-esp-row" style="margin:0 0 20px 0;padding:16px;background:var(--surface2);border-radius:var(--radius-sm)">
+            <span style="font-size:14px">Pair ESP</span>
+            <div class="toggle" id="espPairingToggle" data-action="toggle-esp-pairing-screen"></div>
+          </div>
+          <button class="btn btn-primary" data-action="finish-esp-pairing">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRE-TRIP MODAL -->
+  <div class="modal-overlay" id="preTripModal" data-action="close-modal" data-modal-id="preTripModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Quick setup before drive</div>
+      <div class="form-group">
+        <label>Vehicle</label>
+        <div class="quick-select-grid" id="vehicleSelect"></div>
+        <div class="more-options-trigger" id="vehicleMoreTrigger" data-action="toggle-vehicle-more" style="display:none">More options</div>
+        <div class="vehicle-more-options" id="vehicleMoreOptions"></div>
+        <button type="button" class="add-vehicle-btn" data-action="add-vehicle">+ Add car</button>
+      </div>
+      <div class="form-group">
+        <label>Supervising Driver</label>
+        <div class="quick-select-grid" id="supervisorSelect">
+          <div class="quick-select-item selected" data-action="select-quick" data-type="supervisor" data-v="Sarah M."><div class="label">Supervisor</div><div class="val">Sarah M.</div></div>
+          <div class="quick-select-item" data-action="select-quick" data-type="supervisor" data-v="David M."><div class="label">Supervisor</div><div class="val">David M.</div></div>
+          <div class="quick-select-item" data-action="select-quick" data-type="supervisor" data-v="__manual_supervisor__"><div class="label">Guest</div><div class="val">Type name</div></div>
+          <div class="manual-odo-row hidden" id="manualSupervisorRow">
+            <div class="form-group" style="margin:0">
+              <label>Supervisor name</label>
+              <input class="form-input" id="manualSupervisorName" placeholder="e.g. Jane Citizen">
+            </div>
+            <div class="form-group" style="margin:12px 0 0 0">
+              <label>Licence number</label>
+              <input class="form-input" id="manualSupervisorLicenceNo" placeholder="e.g. NSW 12345678">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Conditions (optional)</label>
+        <div class="condition-pills" id="conditionPills">
+          <span class="condition-pill" data-action="toggle-condition" data-c="rain">Rain</span>
+          <span class="condition-pill" data-action="toggle-condition" data-c="night">Night</span>
+          <span class="condition-pill" data-action="toggle-condition" data-c="city">City</span>
+          <span class="condition-pill" data-action="toggle-condition" data-c="highway">Highway</span>
+          <span class="condition-pill" data-action="toggle-condition" data-c="school">School Zone</span>
+          <span class="condition-pill" data-action="toggle-condition" data-c="rural">Rural</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" data-action="start-drive">Start Drive</button>
+      <button class="btn btn-ghost" data-action="close-pre-trip">Cancel</button>
+    </div>
+  </div>
+
+  <!-- TRIP DETAIL + LOGBOOK MODAL -->
+  <div class="modal-overlay" id="tripModal" data-action="close-modal" data-modal-id="tripModal">
+    <div class="modal-sheet" id="tripModalContent"></div>
+  </div>
+
+  <!-- MANUAL ODOMETER STOP MODAL -->
+  <div class="modal-overlay" id="odoStopModal" data-action="close-modal" data-modal-id="odoStopModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Finish drive</div>
+      <div class="form-group">
+        <label>Odometer end (km)</label>
+        <input class="form-input" id="manualOdoEnd" inputmode="numeric" placeholder="e.g. 123789">
+        <div class="manual-odo-hint">We’ll calculate distance from your start/end odometer.</div>
+      </div>
+      <button class="btn btn-primary" data-action="confirm-odo-stop">Save drive</button>
+      <button class="btn btn-ghost" data-action="cancel-odo-stop">Cancel</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav hidden" id="bottomNav">
+    <button class="nav-item active" data-action="navigate" data-screen="loggerScreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Drive
+    </button>
+    <button class="nav-item" data-action="navigate" data-screen="historyScreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      History
+    </button>
+    <button class="nav-item" id="navApprovals" data-action="navigate" data-screen="approvalsScreen" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Approve
+    </button>
+    <button class="nav-item" data-action="navigate" data-screen="chatScreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Rules
+    </button>
+    <button class="nav-item" data-action="navigate" data-screen="settingsScreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

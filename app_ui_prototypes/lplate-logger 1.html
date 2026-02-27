@@ -952,6 +952,14 @@ select.form-input {
 }
 
 /* ===== SETTINGS ===== */
+.settings-header {
+  padding: 20px 20px 16px;
+  flex-shrink: 0;
+}
+.settings-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+}
 .settings-profile {
   display: flex;
   flex-direction: column;
@@ -1029,6 +1037,23 @@ select.form-input {
 .settings-item .chevron {
   color: var(--text-muted);
 }
+
+.add-vehicle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--accent);
+  background: none;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all var(--transition);
+}
+.add-vehicle-btn:hover { background: var(--accent-glow); }
 
 /* Toggle switch */
 .toggle {
@@ -1200,10 +1225,8 @@ select.form-input {
         <div class="trip-selectors">
           <div class="form-group">
             <label>Vehicle</label>
-            <select class="form-input" id="vehicleSelect">
-              <option>Mum's Corolla</option>
-              <option>Dad's Ranger</option>
-            </select>
+            <select class="form-input" id="vehicleSelect"></select>
+            <button type="button" class="add-vehicle-btn" onclick="addVehicle()">+ Add vehicle</button>
           </div>
           <div class="form-group">
             <label>Supervisor</label>
@@ -1304,6 +1327,9 @@ select.form-input {
 
   <!-- SETTINGS -->
   <div class="screen" id="settingsScreen">
+    <div class="settings-header">
+      <h2>Settings</h2>
+    </div>
     <div class="screen-scroll">
       <div class="settings-profile">
         <div class="avatar" id="settingsAvatar">A</div>
@@ -1337,6 +1363,7 @@ select.form-input {
       <div class="settings-section">
         <div class="settings-section-title">Logger</div>
         <div class="settings-list">
+          <div class="settings-item" onclick="navigateTo('loggerScreen', document.querySelector('[data-screen=loggerScreen]'))"><div class="item-left"><div class="item-icon">🚗</div><span>Vehicles</span></div><span class="chevron">›</span></div>
           <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><div class="item-icon">📍</div><span>Phone GPS</span></div><span class="chevron">›</span></div>
           <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><div class="item-icon">🎯</div><span>Location Accuracy</span></div><span class="chevron">›</span></div>
           <div class="settings-item" onclick="showDemoMsg()"><div class="item-left"><div class="item-icon">⚙️</div><span>Logger Defaults</span></div><span class="chevron">›</span></div>
@@ -1417,6 +1444,7 @@ let tripDistance = 0;
 let tripBrakes = 0;
 let currentFilter = 'all';
 let isDark = true;
+let VEHICLES = ["Mum's Corolla", "Dad's Ranger"];
 
 // ===== SESSION PERSISTENCE =====
 (function initSession() {
@@ -1426,7 +1454,19 @@ let isDark = true;
     enterApp();
   }
   const theme = localStorage.getItem('lplate_theme');
-  if (theme === 'light') { isDark = false; document.documentElement.setAttribute('data-theme', 'light'); }
+  if (theme === 'light') {
+    isDark = false;
+    document.documentElement.setAttribute('data-theme', 'light');
+    const t = document.getElementById('themeToggle');
+    if (t) t.classList.add('on');
+  } else if (theme === 'dark') {
+    isDark = true;
+    document.documentElement.removeAttribute('data-theme');
+    const t = document.getElementById('themeToggle');
+    if (t) t.classList.remove('on');
+  }
+  const savedVehicles = localStorage.getItem('lplate_vehicles');
+  if (savedVehicles) VEHICLES = JSON.parse(savedVehicles);
 })();
 
 // ===== AUTH =====
@@ -1498,10 +1538,32 @@ function enterApp() {
   document.querySelectorAll('.auth-screen').forEach(s => s.classList.remove('active'));
   document.getElementById('bottomNav').classList.remove('hidden');
   updateUserUI();
+  renderVehicleSelect();
   navigateTo('loggerScreen', document.querySelector('[data-screen="loggerScreen"]'));
   updateProgressRings();
   renderTrips();
   renderCharts();
+}
+
+function renderVehicleSelect() {
+  const sel = document.getElementById('vehicleSelect');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = VEHICLES.map(v => `<option value="${v.replace(/"/g, '&quot;')}">${v}</option>`).join('');
+  if (VEHICLES.includes(current)) sel.value = current;
+  else if (VEHICLES.length) sel.value = VEHICLES[0];
+}
+
+function addVehicle() {
+  const name = prompt('Enter vehicle name (e.g. Mum\'s Corolla)');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if (VEHICLES.includes(trimmed)) { toast('Vehicle already added'); return; }
+  VEHICLES.push(trimmed);
+  localStorage.setItem('lplate_vehicles', JSON.stringify(VEHICLES));
+  renderVehicleSelect();
+  document.getElementById('vehicleSelect').value = trimmed;
+  toast('Vehicle added');
 }
 
 function updateUserUI() {
@@ -1816,9 +1878,6 @@ function toggleTheme() {
   }
 }
 
-// Init theme toggle state
-if (!isDark) document.getElementById('themeToggle').classList.add('on');
-
 function showDemoMsg() {
   toast('This feature has not been implemented as it is a demo');
 }
@@ -1838,8 +1897,15 @@ function toast(msg) {
   const params = new URLSearchParams(location.search);
   const theme = params.get('theme');
   if (theme === 'light' || theme === 'dark') {
-    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
     localStorage.setItem('lplate_theme', theme);
+    isDark = (theme === 'dark');
+    const t = document.getElementById('themeToggle');
+    if (t) t.classList.toggle('on', theme === 'light');
   }
   const h = (location.hash || '').slice(1);
   const map = { logger: 'loggerScreen', history: 'historyScreen', chat: 'chatScreen', settings: 'settingsScreen' };
