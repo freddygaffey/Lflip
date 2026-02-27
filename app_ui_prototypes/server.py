@@ -4,20 +4,36 @@ Only depends on Flask.
 """
 from pathlib import Path
 
-from flask import Flask, send_from_directory, render_template_string
+from flask import Flask, send_from_directory, render_template_string, redirect, url_for
 
 app = Flask(__name__)
 PROTOTYPES_DIR = Path(__file__).parent
 
 
 def get_html_files():
-    """List all HTML files in app_ui_prototypes."""
+    """List all HTML files in app_ui_prototypes (root and subdirs).
+    Prefers final/index.html over final.html when both exist (refactored canonical entry).
+    Excludes backup/junk files (e.g. ignore*.html).
+    """
     if not PROTOTYPES_DIR.exists():
         return []
-    return sorted(
-        f.name for f in PROTOTYPES_DIR.iterdir()
-        if f.suffix.lower() == ".html"
-    )
+    files = []
+    for f in PROTOTYPES_DIR.rglob("*.html"):
+        if f.suffix.lower() == ".html":
+            rel = f.relative_to(PROTOTYPES_DIR)
+            path_str = str(rel).replace("\\", "/")
+            # Skip backup/junk and wrapper files
+            if "ignore" in path_str.lower() or path_str == "iframe.html":
+                continue
+            files.append(path_str)
+    files = sorted(files)
+    # Prefer final/index.html over final.html when both exist
+    if "final/index.html" in files and "final.html" in files:
+        files = [f for f in files if f != "final.html"]
+    # Pin final at the top so it's always visible
+    if "final/index.html" in files:
+        files = ["final/index.html"] + [f for f in files if f != "final/index.html"]
+    return files
 
 
 PREVIEW_SCREENS = [
@@ -32,12 +48,21 @@ PREVIEW_SCREENS_CONFIG = {
     "lplate-logger.html": [("Log", "logger"), ("Trips", "trips"), ("AI", "chat"), ("More", "more")],
     "lplate-logger-orbit.html": [("Log", "logger"), ("Map", "map"), ("History", "history"), ("AI", "chat"), ("Settings", "settings")],
     "lplate-logger-synthwave.html": [("Log", "logger"), ("Map", "map"), ("History", "history"), ("AI", "chat"), ("Settings", "settings")],
+    "final.html": [("Drive", "logger"), ("History", "history"), ("Rules", "chat"), ("Settings", "settings"), ("Approvals", "approvals")],
+    "final/index.html": [("Drive", "logger"), ("History", "history"), ("Rules", "chat"), ("Settings", "settings"), ("Approvals", "approvals")],
 }
 
 
 def get_preview_screens(filename):
     """Return (label, hash) for each preview. Uses PREVIEW_SCREENS_CONFIG or default."""
     return PREVIEW_SCREENS_CONFIG.get(filename, PREVIEW_SCREENS)
+
+
+def get_display_name(filename):
+    """Return a friendly display name for the prototype (e.g. final/index.html -> final)."""
+    if filename == "final/index.html":
+        return "final"
+    return filename
 
 
 INDEX_HTML = """
@@ -169,7 +194,7 @@ INDEX_HTML = """
                 {% endfor %}
             </div>
             <div class="card-body">
-                <div class="card-title">{{ file }}</div>
+                <div class="card-title">{{ get_display_name(file) }}</div>
                 <span class="card-link">Open prototype →</span>
             </div>
         </a>
@@ -211,12 +236,33 @@ def index():
         INDEX_HTML,
         files=get_html_files(),
         get_preview_screens=get_preview_screens,
+        get_display_name=get_display_name,
     )
+
+
+@app.route("/prototypes/final/")
+def serve_final_index():
+    """Redirect /prototypes/final/ to /prototypes/final/index.html for the refactored app."""
+    return redirect(url_for("serve_prototype", filename="final/index.html"))
+
+
+# MIME types for ES modules - browsers reject module scripts without correct type
+MIME_OVERRIDES = {
+    ".js": "application/javascript",
+    ".mjs": "application/javascript",
+    ".css": "text/css",
+}
 
 
 @app.route("/prototypes/<path:filename>")
 def serve_prototype(filename):
-    return send_from_directory(PROTOTYPES_DIR, filename)
+    path = Path(filename)
+    mimetype = MIME_OVERRIDES.get(path.suffix.lower())
+    return send_from_directory(
+        PROTOTYPES_DIR,
+        filename,
+        mimetype=mimetype,
+    )
 
 
 if __name__ == "__main__":
