@@ -1,41 +1,34 @@
 """
-Simple Flask server for app_ui_prototypes HTML files.
+Simple Flask server for project HTML files and images.
 Only depends on Flask.
 """
 from pathlib import Path
 
-from flask import Flask, send_from_directory, render_template_string, redirect, url_for
+from flask import Flask, send_from_directory, render_template_string
 
 app = Flask(__name__)
-PROTOTYPES_DIR = Path(__file__).parent
+
+# MIME types for ES modules - browsers reject module scripts without correct type
+MIME_OVERRIDES = {
+    ".js": "application/javascript",
+    ".mjs": "application/javascript",
+    ".css": "text/css",
+}
+ROOT = Path(__file__).parent
+PROTOTYPES_DIR = ROOT / "app_ui_prototypes"
 
 
 def get_html_files():
-    """List all HTML files in app_ui_prototypes (root and subdirs).
-    Prefers final/index.html over final.html when both exist (refactored canonical entry).
-    Excludes backup/junk files (e.g. ignore*.html).
-    """
+    """List all HTML files in app_ui_prototypes."""
     if not PROTOTYPES_DIR.exists():
         return []
-    files = []
-    for f in PROTOTYPES_DIR.rglob("*.html"):
-        if f.suffix.lower() == ".html":
-            rel = f.relative_to(PROTOTYPES_DIR)
-            path_str = str(rel).replace("\\", "/")
-            # Skip backup/junk and wrapper files
-            if "ignore" in path_str.lower() or path_str == "iframe.html":
-                continue
-            files.append(path_str)
-    files = sorted(files)
-    # Prefer final/index.html over final.html when both exist
-    if "final/index.html" in files and "final.html" in files:
-        files = [f for f in files if f != "final.html"]
-    # Pin final at the top so it's always visible
-    if "final/index.html" in files:
-        files = ["final/index.html"] + [f for f in files if f != "final/index.html"]
-    return files
+    return sorted(
+        f.name for f in PROTOTYPES_DIR.iterdir()
+        if f.suffix.lower() == ".html"
+    )
 
 
+# Preview screens per prototype: (label, hash). Add custom mappings for new prototypes.
 PREVIEW_SCREENS = [
     ("Log", "logger"),
     ("History", "history"),
@@ -46,23 +39,16 @@ PREVIEW_SCREENS = [
 # Custom screen configs for specific prototypes. Add entries for new apps.
 PREVIEW_SCREENS_CONFIG = {
     "lplate-logger.html": [("Log", "logger"), ("Trips", "trips"), ("AI", "chat"), ("More", "more")],
-    "lplate-logger-orbit.html": [("Log", "logger"), ("Map", "map"), ("History", "history"), ("AI", "chat"), ("Settings", "settings")],
     "lplate-logger-synthwave.html": [("Log", "logger"), ("Map", "map"), ("History", "history"), ("AI", "chat"), ("Settings", "settings")],
-    "final.html": [("Drive", "logger"), ("History", "history"), ("Rules", "chat"), ("Settings", "settings"), ("Approvals", "approvals")],
-    "final/index.html": [("Drive", "logger"), ("History", "history"), ("Rules", "chat"), ("Settings", "settings"), ("Approvals", "approvals")],
+    "lplate-logger-bento-pod.html": [("Drive", "logger"), ("Map", "map"), ("History", "history"), ("Settings", "settings")],
 }
 
 
 def get_preview_screens(filename):
     """Return (label, hash) for each preview. Uses PREVIEW_SCREENS_CONFIG or default."""
-    return PREVIEW_SCREENS_CONFIG.get(filename, PREVIEW_SCREENS)
-
-
-def get_display_name(filename):
-    """Return a friendly display name for the prototype (e.g. final/index.html -> final)."""
-    if filename == "final/index.html":
-        return "final"
-    return filename
+    if filename in PREVIEW_SCREENS_CONFIG:
+        return PREVIEW_SCREENS_CONFIG[filename]
+    return PREVIEW_SCREENS
 
 
 INDEX_HTML = """
@@ -71,7 +57,7 @@ INDEX_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>L-Plate Logger Prototypes</title>
+    <title>L-Plate Logger Project</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -128,7 +114,7 @@ INDEX_HTML = """
             bottom: 4px;
             left: 6px;
             font-size: 10px;
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.7);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -183,26 +169,29 @@ INDEX_HTML = """
         <button type="button" id="themeDark" class="active">Dark</button>
         <button type="button" id="themeLight">Light</button>
     </div>
-    <div class="grid">
-        {% for file in files %}
-        <a href="{{ url_for('serve_prototype', filename=file) }}" class="card" target="_blank">
-            <div class="thumbs-row">
-                {% for label, hash in get_preview_screens(file) %}
-                <div class="thumb-cell" data-label="{{ label }}">
-                    <iframe data-src-base="{{ url_for('serve_prototype', filename=file) }}" data-hash="{{ hash }}" title="{{ label }}"></iframe>
+
+    <section>
+        <div class="grid">
+            {% for file in prototypes %}
+            <a href="{{ url_for('serve_prototype', filename=file) }}" class="card" target="_blank">
+                <div class="thumbs-row">
+                    {% for label, hash in get_preview_screens(file) %}
+                    <div class="thumb-cell" data-label="{{ label }}">
+                        <iframe data-src-base="{{ url_for('serve_prototype', filename=file) }}" data-hash="{{ hash }}" title="{{ label }}"></iframe>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            <div class="card-body">
-                <div class="card-title">{{ get_display_name(file) }}</div>
-                <span class="card-link">Open prototype →</span>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-    {% if not files %}
-    <p style="color: #8888a0;">No HTML files found in app_ui_prototypes.</p>
-    {% endif %}
+                <div class="card-body">
+                    <div class="card-title">{{ file }}</div>
+                    <span class="card-link">Open prototype →</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% if not prototypes %}
+        <p style="color: #8888a0;">No HTML files in app_ui_prototypes.</p>
+        {% endif %}
+    </section>
     <script>
     (function(){
       let previewTheme = 'dark';
@@ -234,24 +223,9 @@ INDEX_HTML = """
 def index():
     return render_template_string(
         INDEX_HTML,
-        files=get_html_files(),
+        prototypes=get_html_files(),
         get_preview_screens=get_preview_screens,
-        get_display_name=get_display_name,
     )
-
-
-@app.route("/prototypes/final/")
-def serve_final_index():
-    """Redirect /prototypes/final/ to /prototypes/final/index.html for the refactored app."""
-    return redirect(url_for("serve_prototype", filename="final/index.html"))
-
-
-# MIME types for ES modules - browsers reject module scripts without correct type
-MIME_OVERRIDES = {
-    ".js": "application/javascript",
-    ".mjs": "application/javascript",
-    ".css": "text/css",
-}
 
 
 @app.route("/prototypes/<path:filename>")
