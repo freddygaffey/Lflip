@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
-from data import db, User
+from data import db, User, LicenseInfo, SupervisionPair, Trip, GpsPoint
 from config import states
 from utils import is_pwd_valid, is_username_valid
 from flask_cors import CORS
