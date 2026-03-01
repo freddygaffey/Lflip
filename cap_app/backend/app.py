@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
-from data import db, User, LicenseInfo, SupervisionPair, Trip, GpsPoint
+from data import db, User, LicenseInfo, Pair, Trip, GpsPoint
 from config import states
 from utils import is_pwd_valid
 from flask_cors import CORS
@@ -64,10 +64,11 @@ def register():
     # role = data.get("role")
     # licence_no = data.get("licence_no")
 
-    # if role not in ["learner","sd"]: return jsonify({"message": "not a valid role"}), 400
-    # if state not in states: return jsonify({"message": "not valid state"}), 400
     if not is_pwd_valid(pwd): return jsonify({"message": "enter a valid pwd"}), 400
     pwd_hash = generate_password_hash(pwd)
+    if User.query.filter_by(email=email).first():
+        return jsonify({"message": "email already registered"}), 400
+
     try:
         user = User(f_name=f_name, l_name=l_name, email=email, password_hash=pwd_hash, license_info=None)
     except ValueError as e:

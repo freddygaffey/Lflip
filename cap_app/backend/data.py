@@ -17,7 +17,7 @@ class User(db.Model, flask_login.UserMixin):
     f_name = db.Column(db.String(255), nullable=True)
     l_name = db.Column(db.String(255), nullable=True)
     nickname = db.Column(db.String(100), nullable=True)
-    email = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=False,unique=True)
     password_hash = db.Column(db.String(100), nullable=False)
     license_records = db.relationship("LicenseInfo", backref="account", lazy=True)
 
