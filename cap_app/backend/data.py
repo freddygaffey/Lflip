@@ -1,6 +1,7 @@
 import flask_sqlalchemy
+from sqlalchemy.orm import validates
 import flask_login
-from werkzeug.security import check_password_hash
+import utils
 
 db = flask_sqlalchemy.SQLAlchemy()
 
@@ -15,10 +16,48 @@ class User(db.Model, flask_login.UserMixin):
     f_name = db.Column(db.String(255), nullable=True)
     l_name = db.Column(db.String(255), nullable=True)
     nickname = db.Column(db.String(100), nullable=True)
+    @validates("f_name","l_name","nickname")
+    def name_validate(self,key,name):
+        if not utils.is_name_valid(name): raise(ValueError(f"{key} is not valid"))
+        return name
 
     email = db.Column(db.String(255), nullable=True)
+    @validates("email")
+    def email_validate(self, key, email):
+        if not utils.is_email_valid(email): raise ValueError(f"{key} is not valid")
+        return email
+
     username = db.Column(db.String(100), nullable=False)
+    @validates("username")
+    def username_validate(self, key, username):
+        if not utils.is_username_valid(username): raise ValueError(f"{key} is not valid")
+        return username
+
     password_hash = db.Column(db.String(100), nullable=False)
+    @validates("password_hash")
+    def password_validate(self, key, password_hash):
+        if not utils.is_pwd_valid(password_hash): raise ValueError(f"{key} is not valid")
+        return password_hash
+
+    license_records = db.relationship("LicenseInfo", backref="account", lazy=True)
+
+    def __init__(self, f_name, l_name, email, password_hash, license_info: "LicenseInfo", username=None, nickname=None):
+        self.f_name = f_name
+        self.l_name = l_name
+        self.email = email
+        self.password_hash = password_hash
+        self.username = username if username is not None else email
+        self.nickname = nickname if nickname is not None else f_name
+        self.license_records.append(license_info)
+              
+
+class LicenseInfo(db.Model):
+    """Stores license, license number and state per account with history via last_updated."""
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    account_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    # license = db.Column(db.String(100), nullable=True)  # license type (e.g. Learner, P1, Full)
+    license_number = db.Column(db.String(100), nullable=False)
     state = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(100), nullable=False) # parant leaner
     date_of_birth = db.Column(db.Date, nullable=True)
