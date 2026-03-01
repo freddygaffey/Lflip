@@ -2,10 +2,6 @@ def is_pwd_valid(pwd) -> str | None:
     print("implment pwd validation")
     return pwd
 
-def is_username_valid(username) -> str | None:
-    print("implment username validation")
-    return username
-
 def is_licence_no_valid(licence_no) -> str | None:
     print("impmnet a licence no valid")
     return licence_no
@@ -17,10 +13,6 @@ def is_email_valid(email) -> str | None:
 def is_name_valid(name) -> str | None:
     print("impmnet a licence no valid")
     return name
-
-def is_uname_valid(username) -> str | None:
-    print("impmnet a licence no valid")
-    return username
 
 def is_license_number_valid(license_number) -> str | None:
     print("impmnet a license number valid")
@@ -39,14 +31,23 @@ def is_date_of_birth_valid(date_of_birth) -> str | None:
 
 def is_role_valid(role) -> str | None:
     print("impmnet a role valid")
-    valid_roles = ["learner","parant"]
-    role = role.lower()
-    if role not in valid_roles: return None
+    valid_roles = ["learner","parent"]
+    if not role in valid_roles: return None
     return role
 
 def is_data_of_birth_valid(date_of_birth) -> str | None:
     print("impmnet a date of birth valid")
     return date_of_birth
+
+def is_lat_valid(lat: float) -> bool:
+    return -90 <= lat <= 90 if lat is not None else False
+
+def is_lon_valid(lon: float) -> bool:
+    return -180 <= lon <= 180 if lon is not None else False
+
+def is_date_not_future(date) -> bool:
+    from datetime import date as date_type
+    return date <= date_type.today() if date is not None else True
 
 
 

@@ -1,7 +1,7 @@
 <template>
     <ion-page>
       <ion-content>
-        <ion-input v-model="username" placeholder="username" type="text"></ion-input>
+        <ion-input v-model="email" placeholder="email" type="email"></ion-input>
         <ion-input v-model="password" placeholder="password" type="password"></ion-input>
         <ion-select v-model="state" placeholder="Select state" interface="popover">
             <select v-model="state" slot="lable">
@@ -27,14 +27,14 @@
     import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonSelect, IonSelectOption } from '@ionic/vue';
     import { ref } from 'vue'
   
-    const username = ref('')
+    const email = ref('')
     const password = ref('')
     const state = ref('')
     const role = ref('')
     const license_number = ref('')
   
     const signUp = async () => {
-    console.log("username", username.value)
+    console.log("email", email.value)
     console.log("password", password.value)
     console.log("state", state.value)
     console.log("role", role.value)
@@ -44,7 +44,7 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ username: username.value, pwd: password.value, state: state.value, role: role.value, licence_no: license_number.value }),
+        body: JSON.stringify({ email: email.value, pwd: password.value, f_name: '', l_name: '', state: state.value, role: role.value, licence_no: license_number.value }),
       })
       const data = await response.json()
       console.log(data)
