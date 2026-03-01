@@ -58,8 +58,25 @@ class LicenseInfo(db.Model):
 
     # license = db.Column(db.String(100), nullable=True)  # license type (e.g. Learner, P1, Full)
     license_number = db.Column(db.String(100), nullable=False)
+    @validates("license_number")
+    def license_number_validate(self,key,license_number):
+        if not utils.is_license_number_valid(license_number): raise ValueError(f"{key} is not valid")
+        return license_number
+
     state = db.Column(db.String(100), nullable=False)
+    @validates("state")
+    def state_validate(self,key,state):
+        if not utils.is_state_valid(state): raise ValueError(f"{key} is not valid")
+        return state
+        
     role = db.Column(db.String(100), nullable=False) # parant leaner
+    @validates("role")
+    def role_validate(self,key,role):
+        valid_roles = ["learner","parant"]
+        role = role.lower()
+        if role not in valid_roles: raise ValueError(f"{key} is not valid role")
+        return role
+
     date_of_birth = db.Column(db.Date, nullable=True)
     last_updated = db.Column(db.DateTime, nullable=False)
 
