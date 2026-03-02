@@ -11,6 +11,7 @@ it is  a project for my DT and IT hsc major work
 - Flask
 - SQLite
 - SQLAlchemy
+- jwt for auth
 
 ## Purpose
 

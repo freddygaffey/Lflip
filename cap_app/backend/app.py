@@ -1,15 +1,17 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from flask_login import LoginManager, UserMixin
 from data import db, User, LicenseInfo, Pair, Trip, GpsPoint
-from config import states
+from config import states, secret_key
 from utils import is_pwd_valid
 from flask_cors import CORS
+from my_auth import gen_token, require_auth
 
 app = Flask(__name__)
 CORS(app)
+
 # TODO: change on deployment
-app.config['SECRET_KEY'] = 'd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686fd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686f'
+app.config['SECRET_KEY'] = secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db.init_app(app)
 
@@ -36,20 +38,18 @@ def login():
     if not user:
         return jsonify({"message": "invalid credentials"}), 401
     if check_password_hash(user.password_hash, pwd):
-        login_user(user)
-
         return jsonify({
             "message": "ok",
             "account_id": user.id,
             "nickname": user.nickname,
-            "email": user.email}), 200
+            "email": user.email,
+            "jwt": f"{gen_token(user.id)}"}), 200
     else:
         return jsonify({"message": "invalid credentials"}), 401
 
 @app.post("/api/logout")
 def logout():
-    logout_user()
-    return jsonify({"message": "logged out"}), 200
+    return jsonify({"message": "log out is a front end only"}), 200
 
 @app.post("/api/register")
 def register():
@@ -76,13 +76,14 @@ def register():
 
     db.session.add(user)
     db.session.commit()
-    login_user(user)
-    return jsonify({"message": "ok"}) ,200
+    
+    return login()
 
 @app.post("/api/test")
-
+@require_auth
 def test():
     return "some string", 200
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
