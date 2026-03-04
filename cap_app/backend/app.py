@@ -43,7 +43,7 @@ def login():
             "account_id": user.id,
             "nickname": user.nickname,
             "email": user.email,
-            "jwt": f"{gen_token(user.id)}"}), 200
+            "jwt": str(gen_token(user.id))}), 200
     else:
         return jsonify({"message": "invalid credentials"}), 401
 
@@ -77,7 +77,12 @@ def register():
     db.session.add(user)
     db.session.commit()
     
-    return login()
+    return jsonify({"message":"ok",
+                    "jwt":gen_token(user.id)}),200
+@app.post("/api/is_tok_valid")
+@require_auth
+def is_tok_valid_route():
+    return jsonify({"id":request.user_id}), 200
 
 @app.post("/api/test")
 @require_auth

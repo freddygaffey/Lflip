@@ -1,12 +1,14 @@
 import jwt
 from datetime import timedelta, datetime
+import time
 from functools import wraps
+from flask import request, jsonify
 from config import secret_key
 
 def gen_token(user_id,time_exp_day=3):
     payload = {
-        'sub': user_id,
-        'exp': datetime.utcnow() + timedelta(days=time_exp_day)
+        'sub': str(user_id),
+        'exp': int(time.time()) + (time_exp_day * 24 * 60 * 60)
     }
     tok = jwt.encode(payload, secret_key, algorithm="HS256")
     return tok
@@ -19,7 +21,7 @@ def require_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         auth = request.headers.get('Authorization')
-        if not auth or not auth.startswith('Bearer '):
+        if not auth:
             return jsonify({"message": "unauthorized"}), 401
         try:
             payload = jwt.decode(
@@ -28,6 +30,6 @@ def require_auth(f):
             )
             request.user_id = payload['sub']
             return f(*args, **kwargs)
-        except jwt.InvalidTokenError:
+        except jwt.InvalidTokenError as e:
             return jsonify({"message": "invalid token"}), 401
     return decorated 

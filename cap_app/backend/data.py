@@ -12,7 +12,7 @@ db = flask_sqlalchemy.SQLAlchemy()
 
 class User(db.Model, flask_login.UserMixin):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    account_number = db.Column(db.String(50), unique=True, nullable=True)
+    account_number = db.Column(db.String(50), unique=True, nullable=True )
 
     f_name = db.Column(db.String(255), nullable=True)
     l_name = db.Column(db.String(255), nullable=True)

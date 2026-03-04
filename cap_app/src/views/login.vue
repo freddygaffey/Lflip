@@ -10,23 +10,19 @@
   </template>
   
   <script setup lang="ts">
-    import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
-    import { ref } from 'vue'
-  
-    const email = ref('')
-    const password = ref('')
-    console.log(password)
-    console.log(email)
+import { IonButton, IonInput, IonContent, IonPage } from '@ionic/vue';
+import { ref } from 'vue'
 
-    const signIn = async () => {
-      const response = await fetch('http://127.0.0.1:5000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: email.value, password: password.value }),
-      })
-      const data = await response.json()
-      console.log(data)
-    }
-  </script>
+const email = ref('')
+const password = ref('')
+
+const signIn = async () => {
+  const response = await fetch('http://127.0.0.1:5000/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.value, password: password.value }),
+  })
+  const data = await response.json()
+  if (data.jwt) localStorage.setItem('token', data.jwt)
+}
+</script>

@@ -1,6 +1,8 @@
 <template>
     <ion-page>
       <ion-content>
+        <ion-input v-model="f_name" placeholder="first name" type="text"></ion-input>
+        <ion-input v-model="l_name" placeholder="last name" type="text"></ion-input>
         <ion-input v-model="email" placeholder="email" type="email"></ion-input>
         <ion-input v-model="password" placeholder="password" type="password"></ion-input>
         <ion-select v-model="state" placeholder="Select state" interface="popover">
@@ -27,6 +29,8 @@
     import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonSelect, IonSelectOption } from '@ionic/vue';
     import { ref } from 'vue'
   
+    const f_name = ref('')
+    const l_name = ref('')
     const email = ref('')
     const password = ref('')
     const state = ref('')
@@ -39,14 +43,25 @@
     console.log("state", state.value)
     console.log("role", role.value)
     console.log("license_number", license_number.value)
+    console.log("f_name", f_name.value)
+    console.log("l_name", l_name.value)
       const response = await fetch('http://127.0.0.1:5000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email: email.value, pwd: password.value, f_name: '', l_name: '', state: state.value, role: role.value, licence_no: license_number.value }),
+        body: JSON.stringify({ email: email.value,
+                               pwd: password.value,
+                                f_name: f_name.value,
+                                l_name: l_name.value,
+                                state: state.value,
+                                role: role.value,
+                                licence_no: license_number.value }),
       })
       const data = await response.json()
       console.log(data)
+      if (data.jwt) {
+        localStorage.setItem('token', data.jwt)
+      }
     }
   </script>
