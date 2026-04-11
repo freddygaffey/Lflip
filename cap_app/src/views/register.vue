@@ -34,6 +34,7 @@
     import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonSelect, IonSelectOption } from '@ionic/vue';
     import { ref } from 'vue'
     import { useRouter } from 'vue-router'
+    import { CapacitorHttp } from '@capacitor/core'
 
     const router = useRouter()
   
@@ -46,44 +47,29 @@
     const license_number = ref('')
   
     const signIn = async () => {
-      const response = await fetch('http://localhost:5001/api/login', {
-        method: 'POST',
+      await CapacitorHttp.post({
+        url: 'http://localhost:5001/api/login',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.value, password: password.value }),
-        credentials: 'include'
+        data: { email: email.value, password: password.value }
       })
-      const data = await response.json()
     }
     const add_info = async () => {
-      const r = await fetch('http://localhost:5001/api/set_licence', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({  state: state.value,
-                                role: role.value,
-                                licence_no: license_number.value }),
-        credentials: 'include'
+      const r = await CapacitorHttp.post({
+        url: 'http://localhost:5001/api/set_licence',
+        headers: { 'Content-Type': 'application/json' },
+        data: { state: state.value, role: role.value, licence_no: license_number.value }
       })
-      const d = await r.json()
-      console.log(d)
+      console.log(r.data)
     }
     const signUp = async () => {
-      const response = await fetch('http://localhost:5001/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: email.value,
-                               pwd: password.value,
-                                f_name: f_name.value,
-                                l_name: l_name.value,
-                                state: state.value,
-                                role: role.value,
-                                licence_no: license_number.value }),
-        credentials: 'include'
+      const response = await CapacitorHttp.post({
+        url: 'http://localhost:5001/api/register',
+        headers: { 'Content-Type': 'application/json' },
+        data: { email: email.value, pwd: password.value, f_name: f_name.value,
+                l_name: l_name.value, state: state.value, role: role.value,
+                licence_no: license_number.value }
       })
-      if (!response.ok) { console.error('register failed', await response.json()); return; }
+      if (response.status !== 200) { console.error('register failed', response.data); return; }
       await signIn();
       await add_info();
       router.push('/tabs/dashboard')

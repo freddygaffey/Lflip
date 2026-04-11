@@ -20,21 +20,20 @@
 import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle } from '@ionic/vue';
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { CapacitorHttp } from '@capacitor/core'
 
 const router = useRouter()
 const email = ref('')
 const password = ref('')
 
 const signIn = async () => {
-  const response = await fetch('http://localhost:5001/api/login', {
-    method: 'POST',
+  const response = await CapacitorHttp.post({
+    url: 'http://localhost:5001/api/login',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email.value, password: password.value }),
-    credentials: 'include'
+    data: { email: email.value, password: password.value }
   })
-  const data = await response.json()
-  console.log('login response', response.status, data)
-  if (response.ok) {
+  console.log('login response', response.status, response.data)
+  if (response.status === 200) {
     router.push('/tabs/dashboard')
   }
 }
