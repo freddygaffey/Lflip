@@ -17,12 +17,12 @@ const email = ref('')
 const password = ref('')
 
 const signIn = async () => {
-  const response = await fetch('http://127.0.0.1:5000/api/login', {
+  const response = await fetch('http://localhost:5001/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: email.value, password: password.value }),
+    credentials: 'include'
   })
   const data = await response.json()
-  if (data.jwt) localStorage.setItem('token', data.jwt)
 }
 </script>

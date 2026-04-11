@@ -37,15 +37,31 @@
     const role = ref('')
     const license_number = ref('')
   
+    const signIn = async () => {
+      const response = await fetch('http://localhost:5001/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.value, password: password.value }),
+        credentials: 'include'
+      })
+      const data = await response.json()
+    }
+    const add_info = async () => {
+      const r = await fetch('http://localhost:5001/api/set_licence', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({  state: state.value,
+                                role: role.value,
+                                licence_no: license_number.value }),
+        credentials: 'include'
+      })
+      const d = await r.json()
+      console.log(d)
+    }
     const signUp = async () => {
-    console.log("email", email.value)
-    console.log("password", password.value)
-    console.log("state", state.value)
-    console.log("role", role.value)
-    console.log("license_number", license_number.value)
-    console.log("f_name", f_name.value)
-    console.log("l_name", l_name.value)
-      const response = await fetch('http://127.0.0.1:5000/api/register', {
+      const response = await fetch('http://localhost:5001/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -57,11 +73,10 @@
                                 state: state.value,
                                 role: role.value,
                                 licence_no: license_number.value }),
+        credentials: 'include'
       })
-      const data = await response.json()
-      console.log(data)
-      if (data.jwt) {
-        localStorage.setItem('token', data.jwt)
-      }
+      if (!response.ok) { console.error('register failed', await response.json()); return; }
+      await signIn();
+      await add_info();
     }
   </script>

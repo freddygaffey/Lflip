@@ -20,12 +20,12 @@ def gen_token(user_id,time_exp_day=3):
 def require_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth = request.headers.get('Authorization')
-        if not auth:
+        token = request.cookies.get('auth_token')
+        if not token:
             return jsonify({"message": "unauthorized"}), 401
         try:
             payload = jwt.decode(
-                auth[7:], secret_key,
+                token, secret_key,
                 algorithms=['HS256']
             )
             request.user_id = payload['sub']

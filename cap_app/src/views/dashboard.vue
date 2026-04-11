@@ -14,12 +14,12 @@ import { IonPage, IonContent } from '@ionic/vue'
 const displayData = ref('')
 
 onMounted(() => {
-  fetch('http://127.0.0.1:5000/api/test', {
+  fetch('http://localhost:5001/api/dashboard', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    }
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include'
   })
     .then(res => res.text())
     .then(data => { displayData.value = data })

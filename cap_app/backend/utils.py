@@ -31,7 +31,7 @@ def is_date_of_birth_valid(date_of_birth) -> str | None:
 
 def is_role_valid(role) -> str | None:
     print("impmnet a role valid")
-    valid_roles = ["learner","parent"]
+    valid_roles = ["learner","sd"]
     if not role in valid_roles: return None
     return role
 

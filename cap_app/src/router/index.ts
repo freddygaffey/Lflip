@@ -26,6 +26,33 @@ const routes: Array<RouteRecordRaw> = [
     component: Register
   },
   {
+    path: '/tabs/',
+    component: Tabs,
+    children: [
+      {
+        path: '',
+        redirect: 'startTrip'
+      },
+      {
+        path: 'startTrip',
+        component: startTrip,
+      },,
+      {
+        path: 'dashboard',
+        component: dashboard,
+      },
+      {
+        path: 'ai',
+        component: ai,
+      },
+      {
+        path: 'settings',
+        component: settings,
+      },
+      
+    ]
+  }
+  {
     path: "/dashboard",
     name: "Dashboard",
     component: Dashboard

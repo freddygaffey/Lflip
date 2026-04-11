@@ -2,15 +2,17 @@ import flask_sqlalchemy
 from sqlalchemy.orm import validates
 import flask_login
 import utils
+from datetime import datetime
 
 db = flask_sqlalchemy.SQLAlchemy()
 
 # the data classes were genrated by a llm after I provided spicific instruction
 # i wrote the first coupple of validation functions and got a llm to coppy that pattern
-# on the exact table and atributre format i wanted this is allowed in the Kings
+# i specified the exact table and atributre format i wanted this is allowed in the Kings
 # ai ploicis as I was using it to automate boring and repditve task 
 
 class User(db.Model, flask_login.UserMixin):
+    # TODO: move licene to this table
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     account_number = db.Column(db.String(50), unique=True, nullable=True )
 
@@ -55,7 +57,7 @@ class LicenseInfo(db.Model):
     state = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(100), nullable=False)  # parant leaner
     date_of_birth = db.Column(db.Date, nullable=True)
-    last_updated = db.Column(db.DateTime, nullable=False)
+    last_updated = db.Column(db.DateTime, default=datetime.now())
 
     __table_args__ = (db.Index("ix_license_info_account_updated", "account_id", "last_updated"),)
 
@@ -96,19 +98,27 @@ class PairCodes(db.Model):
     """this is the table will store the links to link parants and there users to make links"""
     key = db.Column(db.Integer, primary_key=True)
     time_made = db.Column(db.Time,nullable=False)
+    code = db.Column(db.Numeric, nullable=False)
+
     link_to_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     link_to = db.relationship("User", backref=db.backref("pair_codes", lazy=True))
 
 class Trip(db.Model):
+    # TODO: mabey add auto or manule
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     start_time = db.Column(db.Time, nullable=True)
+    # TODO: add day night
+    # TODO: add aproved state with time 
     end_time = db.Column(db.Time, nullable=True)
-    date = db.Column(db.Date, nullable=False)
+    day_night = db.Column(db.String,nullable=True)
+
     start_odometer = db.Column(db.Float, nullable=True)
     end_odometer = db.Column(db.Float, nullable=True)
-    notes = db.Column(db.JSON, nullable=True)  # structured blob: supervising_driver_name, license_number, supervising_driver_id
+    notes = db.Column(db.JSON, nullable=True)  # structured blob: supervising_driver_name, license_number
     supervising_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     learner_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+
+    aproved = db.Column(db.Boolean,default=False)
 
     supervising_driver = db.relationship("User", foreign_keys=[supervising_driver_id])
     learner_driver = db.relationship("User", foreign_keys=[learner_driver_id])
@@ -117,8 +127,16 @@ class Trip(db.Model):
     @validates("date")
     def date_validate(self, key, date):
         if not utils.is_date_not_future(date):
-            raise ValueError(f"{key} cannot be in the future")
+            raise valueerror(f"{key} cannot be in the future")
         return date
+
+    @validates("day_night")
+    def day_night_valadate(self, key, val):
+        val = val.lower()
+        arr = ["day","night"]
+        if val not in arr:
+            raise ValueError(f"{key = } is not {arr}")
+        return val
 
     @validates("start_odometer", "end_odometer")
     def odometer_validate(self, key, value):
