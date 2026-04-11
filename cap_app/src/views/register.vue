@@ -32,8 +32,10 @@
   
   <script setup lang="ts">
     import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonSelect, IonSelectOption } from '@ionic/vue';
-
     import { ref } from 'vue'
+    import { useRouter } from 'vue-router'
+
+    const router = useRouter()
   
     const f_name = ref('')
     const l_name = ref('')
@@ -84,5 +86,6 @@
       if (!response.ok) { console.error('register failed', await response.json()); return; }
       await signIn();
       await add_info();
+      router.push('/tabs/dashboard')
     }
   </script>

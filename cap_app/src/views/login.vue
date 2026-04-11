@@ -9,7 +9,9 @@
         <ion-input v-model="email" placeholder="email" type="email"></ion-input>
         <ion-input v-model="password" placeholder="password" type="password"></ion-input>
         <ion-button @click="signIn">sign in</ion-button>
-        <a href="/register">register</a>
+        <ion-button router-link="/register">Go to register</ion-button>
+
+
       </ion-content>
     </ion-page>
   </template>
@@ -31,6 +33,7 @@ const signIn = async () => {
     credentials: 'include'
   })
   const data = await response.json()
+  console.log('login response', response.status, data)
   if (response.ok) {
     router.push('/tabs/dashboard')
   }
