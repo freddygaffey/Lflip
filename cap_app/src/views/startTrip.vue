@@ -22,8 +22,9 @@
   }
   const posT = ref('')
   const getPos = async () => {
+    await Geolocation.requestPermissions()
     const pos = await Geolocation.getCurrentPosition()
-    console.log(pos.coords.latitude, pos.coords.longitude)                                                                   
-    posT.value = `${pos.coords.latitude}, ${pos.coords.longitude}`                                                                   
+    console.log(pos.coords.latitude, pos.coords.longitude)
+    posT.value = `${pos.coords.latitude}, ${pos.coords.longitude}`
   }
 </script>
