@@ -12,7 +12,9 @@
   <script setup lang="ts">
 import { IonButton, IonInput, IonContent, IonPage } from '@ionic/vue';
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const email = ref('')
 const password = ref('')
 
@@ -24,5 +26,8 @@ const signIn = async () => {
     credentials: 'include'
   })
   const data = await response.json()
+  if (response.ok) {
+    router.push('/tabs/dashboard')
+  }
 }
 </script>

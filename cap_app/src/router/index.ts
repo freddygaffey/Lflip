@@ -1,19 +1,17 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import HomePage from '../views/HomePage.vue'
 import Login from '../views/login.vue'
 import Register from '../views/register.vue'
-import Dashboard from '@/views/dashboard.vue';
+import Tabs from '../views/Tabs.vue'
+import StartTrip from '../views/startTrip.vue'
+import Dashboard from '../views/dashboard.vue'
+import Ai from '../views/ai.vue'
+import Settings from '../views/settings.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
-  },
-  {
-    path: '/home',
-    name: 'Home',
-    component: HomePage
+    redirect: '/login'
   },
   {
     path: '/login',
@@ -26,36 +24,30 @@ const routes: Array<RouteRecordRaw> = [
     component: Register
   },
   {
-    path: '/tabs/',
+    path: '/tabs',
     component: Tabs,
     children: [
       {
         path: '',
-        redirect: 'startTrip'
+        redirect: '/tabs/dashboard'
       },
       {
         path: 'startTrip',
-        component: startTrip,
-      },,
+        component: StartTrip,
+      },
       {
         path: 'dashboard',
-        component: dashboard,
+        component: Dashboard,
       },
       {
         path: 'ai',
-        component: ai,
+        component: Ai,
       },
       {
         path: 'settings',
-        component: settings,
+        component: Settings,
       },
-      
     ]
-  }
-  {
-    path: "/dashboard",
-    name: "Dashboard",
-    component: Dashboard
   }
 ]
 
