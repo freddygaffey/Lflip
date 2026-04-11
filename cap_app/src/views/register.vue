@@ -1,5 +1,10 @@
 <template>
     <ion-page>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Register</ion-title>
+        </ion-toolbar>
+      </ion-header>
       <ion-content>
         <ion-input v-model="f_name" placeholder="first name" type="text"></ion-input>
         <ion-input v-model="l_name" placeholder="last name" type="text"></ion-input>
@@ -27,6 +32,7 @@
   
   <script setup lang="ts">
     import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonSelect, IonSelectOption } from '@ionic/vue';
+
     import { ref } from 'vue'
   
     const f_name = ref('')

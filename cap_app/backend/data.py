@@ -34,17 +34,17 @@ class User(db.Model, flask_login.UserMixin):
 
     @validates("f_name", "l_name", "nickname")
     def name_validate(self, key, name):
-        if not utils.is_name_valid(name): raise ValueError(f"{key} is not valid")
+        if utils.is_name_valid(name) is None: raise ValueError(f"{key} is not valid")
         return name
 
     @validates("email")
     def email_validate(self, key, email):
-        if not utils.is_email_valid(email): raise ValueError(f"{key} is not valid")
+        if utils.is_email_valid(email) is None: raise ValueError(f"{key} is not valid")
         return email
 
     @validates("password_hash")
     def password_validate(self, key, password_hash):
-        if not utils.is_pwd_valid(password_hash): raise ValueError(f"{key} is not valid")
+        if utils.is_pwd_valid(password_hash) is None: raise ValueError(f"{key} is not valid")
         return password_hash
 
 class LicenseInfo(db.Model):
@@ -63,17 +63,17 @@ class LicenseInfo(db.Model):
 
     @validates("license_number")
     def license_number_validate(self, key, license_number):
-        if not utils.is_license_number_valid(license_number): raise ValueError(f"{key} is not valid")
+        if utils.is_license_number_valid(license_number) is None: raise ValueError(f"{key} is not valid")
         return license_number
 
     @validates("state")
     def state_validate(self, key, state):
-        if not utils.is_state_valid(state): raise ValueError(f"{key} is not valid")
+        if utils.is_state_valid(state) is None: raise ValueError(f"{key} is not valid")
         return state
 
     @validates("role")
     def role_validate(self, key, role):
-        if not utils.is_role_valid(role): raise ValueError(f"{key} is not valid role")
+        if utils.is_role_valid(role) is None: raise ValueError(f"{key} is not valid role")
         return role
 
     @validates("date_of_birth")

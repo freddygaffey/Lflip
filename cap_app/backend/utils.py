@@ -1,9 +1,9 @@
 def is_pwd_valid(pwd) -> str | None:
-    print("implment pwd validation")
+    # TODO: implement validation
     return pwd
 
 def is_licence_no_valid(licence_no) -> str | None:
-    print("impmnet a licence no valid")
+    # TODO: implement validation
     return licence_no
 
 def is_email_valid(email) -> str | None:
@@ -11,7 +11,8 @@ def is_email_valid(email) -> str | None:
     return email
 
 def is_name_valid(name) -> str | None:
-    print("impmnet a licence no valid")
+    # TODO: implement validation
+    if name is None: return None
     return name
 
 def is_license_number_valid(license_number) -> str | None:

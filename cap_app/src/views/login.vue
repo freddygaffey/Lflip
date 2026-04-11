@@ -1,5 +1,10 @@
 <template>
     <ion-page>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Sign In</ion-title>
+        </ion-toolbar>
+      </ion-header>
       <ion-content>
         <ion-input v-model="email" placeholder="email" type="email"></ion-input>
         <ion-input v-model="password" placeholder="password" type="password"></ion-input>
@@ -10,7 +15,7 @@
   </template>
   
   <script setup lang="ts">
-import { IonButton, IonInput, IonContent, IonPage } from '@ionic/vue';
+import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle } from '@ionic/vue';
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 

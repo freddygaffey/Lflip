@@ -1,11 +1,15 @@
 <template>
   <ion-page>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Settings</ion-title>
+      </ion-toolbar>
+    </ion-header>
     <ion-content>
-      <h1>Settings</h1>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle } from '@ionic/vue'
 </script>
