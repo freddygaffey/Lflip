@@ -6,7 +6,9 @@ import Tabs from '../views/Tabs.vue'
 import StartTrip from '../views/startTrip.vue'
 import Dashboard from '../views/dashboard.vue'
 import Ai from '../views/ai.vue'
+import Logger from '../views/logger.vue'
 import Settings from '../views/settings.vue'
+import EndTrip from '../views/endTrip.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -17,6 +19,16 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/log',
+    name: 'Log',
+    component: Logger
+  },
+  {
+    path: '/endTrip',
+    name: 'EndTrip',
+    component: EndTrip
   },
   {
     path: '/register',

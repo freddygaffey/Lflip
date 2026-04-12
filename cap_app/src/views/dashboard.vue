@@ -6,23 +6,30 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
+        <p>{{ displayData }}</p>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle } from '@ionic/vue'
+import { CapacitorHttp } from '@capacitor/core'
+import { Preferences } from '@capacitor/preferences'
 
-// onMounted(() => {
-//   fetch('http://localhost:5001/api/dashboard', {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json'
-//     },
-//     credentials: 'include'
-//   })
-//     .then(res => res.text())
-//     .then(data => { displayData.value = data })
-//     .catch(err => { displayData.value = 'Error: ' + err })
-// })
+const API_URL = import.meta.env.VITE_API_URL
+const displayData = ref('loading...')
+
+onMounted(async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const response = await CapacitorHttp.post({
+    url: `${API_URL}/api/dashboard`,
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+  })
+  if (response.status === 200) {
+    displayData.value = response.data
+  } else {
+    displayData.value = 'auth failed: ' + response.status
+  }
+})
 </script>

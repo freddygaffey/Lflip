@@ -35,7 +35,8 @@ def login():
             "message": "ok",
             "account_id": user.id,
             "nickname": user.nickname,
-            "email": user.email})
+            "email": user.email,
+            "token": token})
         response.set_cookie('auth_token', token, httponly=True, secure=False, samesite='Lax')
         return response, 200
     else:
@@ -108,6 +109,9 @@ def start_dashboard():
     return "top secret yay", 200
     request.user_id 
     query = db.select()
+@app.post("/api/is_auth")
+@require_auth
+def is_auth(): return "ok" , 200
 
 if __name__ == "__main__":
     with app.app_context():

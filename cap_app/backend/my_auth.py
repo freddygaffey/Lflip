@@ -21,6 +21,9 @@ def require_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.cookies.get('auth_token')
+        auth_header = request.headers.get('Authorization')
+        if not token and auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
         if not token:
             return jsonify({"message": "unauthorized"}), 401
         try:
