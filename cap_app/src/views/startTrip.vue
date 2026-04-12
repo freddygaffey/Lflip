@@ -6,7 +6,8 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-button @click="start">Start</ion-button>
+      <ion-button @click="start" :disabled="!start_odo">Start</ion-button>
+      <ion-input v-model="start_odo" placeholder="start odo (km)" type="text" inputmode="numeric"></ion-input>
       <!-- <ion-button @click="getPos">get poss</ion-button> -->
       <!-- <p>{{ posT }}</p> -->
     </ion-content>
@@ -19,19 +20,22 @@
   import { ref } from 'vue';
   import { Preferences } from '@capacitor/preferences'
   import { useRouter } from 'vue-router';
-  
+
+  const start_odo = ref('')
+
   const router = useRouter()
   const start = async () => {
-    const { value } = await Preferences.get({key: 'odo'})
-    const odo = parseFloat(value ?? "0")
-    await Preferences.set({
-    key: 'odo',
-    value: String(odo)})
+    // const { value } = await Preferences.get({key: 'odo'})
+    // const odo = parseFloat(value ?? "0")
+    // await Preferences.set({
+    // key: 'odo',
+    // value: String(odo)})
+
 
   const newTrip = {
         start_time: Date.now(),
         end_time: null,
-        start_odo: odo,
+        start_odo: parseFloat(start_odo.value),
         end_odo: null,
         gps: [],
         accel: [],
@@ -50,7 +54,7 @@
   getPos()
   router.push('/log')
   }
-  const posT = ref('')
+
   const getPos = async () => {
     await Geolocation.requestPermissions()
     const pos = await Geolocation.getCurrentPosition()
