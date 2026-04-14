@@ -83,33 +83,33 @@ class LicenseInfo(db.Model):
         return date_of_birth
 
 
-class Pair(db.Model):
-    """Glue table linking supervising drivers with learner drivers."""
-    __table_args__ = (db.UniqueConstraint("supervising_driver_id", "learner_driver_id", name="uq_supervision_pair"),)
+# class Pair(db.Model):
+#     """Glue table linking supervising drivers with learner drivers."""
+#     __table_args__ = (db.UniqueConstraint("supervising_driver_id", "learner_driver_id", name="uq_supervision_pair"),)
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    supervising_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    learner_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     supervising_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+#     learner_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
-    supervising_driver = db.relationship("User", foreign_keys=[supervising_driver_id])
-    learner_driver = db.relationship("User", foreign_keys=[learner_driver_id])
+#     supervising_driver = db.relationship("User", foreign_keys=[supervising_driver_id])
+#     learner_driver = db.relationship("User", foreign_keys=[learner_driver_id])
 
-class PairCodes(db.Model):
-    """this is the table will store the links to link parants and there users to make links"""
-    key = db.Column(db.Integer, primary_key=True)
-    time_made = db.Column(db.Time,nullable=False)
-    code = db.Column(db.Numeric, nullable=False)
+# class PairCodes(db.Model):
+#     """this is the table will store the links to link parants and there users to make links"""
+#     key = db.Column(db.Integer, primary_key=True)
+#     time_made = db.Column(db.Time,nullable=False)
+#     code = db.Column(db.Numeric, nullable=False)
 
-    link_to_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    link_to = db.relationship("User", backref=db.backref("pair_codes", lazy=True))
+#     link_to_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+#     link_to = db.relationship("User", backref=db.backref("pair_codes", lazy=True))
 
 class Trip(db.Model):
     # TODO: mabey add auto or manule
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    start_time = db.Column(db.Time, nullable=True)
+    start_time = db.Column(db.DateTime, nullable=True)
     # TODO: add day night
     # TODO: add aproved state with time 
-    end_time = db.Column(db.Time, nullable=True)
+    end_time = db.Column(db.DateTime, nullable=True)
     day_night = db.Column(db.String,nullable=True)
 
     start_odometer = db.Column(db.Float, nullable=True)
@@ -127,7 +127,7 @@ class Trip(db.Model):
     @validates("date")
     def date_validate(self, key, date):
         if not utils.is_date_not_future(date):
-            raise valueerror(f"{key} cannot be in the future")
+            raise ValueError(f"{key} cannot be in the future")
         return date
 
     @validates("day_night")

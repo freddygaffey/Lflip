@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from data import db, User, LicenseInfo, Pair, Trip, GpsPoint
+from data import db, User, LicenseInfo, Trip, GpsPoint
 from config import states, secret_key
 from utils import is_pwd_valid
 from flask_cors import CORS
 from my_auth import gen_token, require_auth
 import time
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -109,10 +110,47 @@ def start_dashboard():
     return "top secret yay", 200
     request.user_id 
     query = db.select()
+
 @app.post("/api/is_auth")
 @require_auth
 def is_auth(): return "ok" , 200
 
+@app.post("/api/trips/sync")
+@require_auth
+def sync_trips():
+    data = request.json
+    print(data)
+    trips = data.get("trips", [])
+    for t in trips:
+        trip = Trip(
+            learner_driver_id=request.user_id,
+            start_time=datetime.fromtimestamp(t.get("start_time") / 1000),
+            end_time=datetime.fromtimestamp(t.get("end_time") / 1000),
+            start_odometer=t.get("start_odo"),
+            end_odometer=t.get("end_odo"),
+            day_night="day" if t.get("day") else "night",
+            notes={"weather": t.get("weather")}
+        )
+        db.session.add(trip)
+    db.session.commit()
+    return jsonify({"message": "ok"}), 200
+
+
+@app.get("/api/trips")
+@require_auth
+def pull_trips():
+    trips = Trip.query.filter_by(learner_driver_id=request.user_id).all()
+    return jsonify([{
+        "id": t.id,
+        "start_time": str(t.start_time),
+        "end_time": str(t.end_time),
+        "start_odometer": t.start_odometer,
+        "end_odometer": t.end_odometer,
+        "day_night": t.day_night,
+        "weather": t.notes.get("weather") if t.notes else None
+    } for t in trips]), 200
+    
+ 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()

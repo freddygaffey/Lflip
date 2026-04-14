@@ -22,8 +22,8 @@ const displayData = ref('loading...')
 
 onMounted(async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const response = await CapacitorHttp.post({
-    url: `${API_URL}/api/dashboard`,
+  const response = await CapacitorHttp.get({
+    url: `${API_URL}/api/trips`,
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
   })
   if (response.status === 200) {

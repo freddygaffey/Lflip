@@ -41,6 +41,9 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { Geolocation } from '@capacitor/geolocation'
+import { CapacitorHttp } from '@capacitor/core'
+
+const API_URL = import.meta.env.VITE_API_URL
 
 const router = useRouter()
 const endOdo = ref('')
@@ -79,14 +82,29 @@ const detectWeather = async () => {
 onMounted(detectWeather)
 
 const save = async () => {
-  const { value } = await Preferences.get({ key: 'trips' })
-  const trips = JSON.parse(value ?? '[]')
+  const { value: tripsRaw } = await Preferences.get({ key: 'trips' })
+  const trips = JSON.parse(tripsRaw ?? '[]')
   const current = trips[trips.length - 1]
+  const start_odo = current.start_odo
+  if (start_odo > parseFloat(endOdo.value)) {
+    alert("the start odo is > endOdo please enter a valid odo")
+    return
+  }
   current.end_odo = parseFloat(endOdo.value)
   current.day = isDay.value
   current.weather = weather.value
   await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
-  // TODO: send to backend
-  router.push('/tabs/dashboard')
+  router.replace('/tabs/dashboard')
+
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const { value: tripsValue } = await Preferences.get({ key: 'trips' })
+  await CapacitorHttp.post({
+    url: `${API_URL}/api/trips/sync`,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    data: { trips: JSON.parse(tripsValue ?? '[]') }
+  })
 }
 </script>
