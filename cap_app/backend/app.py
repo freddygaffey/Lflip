@@ -115,23 +115,86 @@ def start_dashboard():
 @require_auth
 def is_auth(): return "ok" , 200
 
-@app.post("/api/trips/sync")
+@app.post("/api/state")
+@require_auth
+def license_state():
+    info = LicenseInfo.query.filter_by(account_id=int(request.user_id)).first()
+    if not info:
+        return jsonify({"message": "no licence on file"}), 404
+    r = jsonify({
+        "state": info.state,
+        "total": states[info.state].total_hours,
+        "night": states[info.state].night_hours
+    })
+    return r, 200
+
+# @app.post("/api/state/total")
+# @require_auth
+# def is_auth():
+#     info = LicenseInfo.query.filter_by(acount_id=int(request.user_id)).first()
+#     return str(states[info.state].total_hours), 200
+
+# @app.post("/api/state/night")
+# @require_auth
+# def is_auth():
+#     info = LicenseInfo.query.filter_by(acount_id=int(request.user_id)).first()
+#     return str(states[info.state].night_hours), 200
+
+@app.post("/api/trips/push_trip")
 @require_auth
 def sync_trips():
-    data = request.json
-    print(data)
-    trips = data.get("trips", [])
-    for t in trips:
+    data = request.json or {}
+    trip_data = data.get("trip")
+    # One trip = JSON object `{ "start_time": ... }`, not `[...]` and not missing.
+    if trip_data is None or type(trip_data) is not dict:
+        return jsonify({"message": "trip must be one object in body, e.g. {\"trip\": {...}}"}), 400
+    try:
+        start_time_ms = trip_data.get("start_time")
+        end_time_ms = trip_data.get("end_time")
+        if start_time_ms is None or end_time_ms is None:
+            return jsonify({"message": "trip start_time and end_time required"}), 400
         trip = Trip(
-            learner_driver_id=request.user_id,
-            start_time=datetime.fromtimestamp(t.get("start_time") / 1000),
-            end_time=datetime.fromtimestamp(t.get("end_time") / 1000),
-            start_odometer=t.get("start_odo"),
-            end_odometer=t.get("end_odo"),
-            day_night="day" if t.get("day") else "night",
-            notes={"weather": t.get("weather")}
+            learner_driver_id=int(request.user_id),
+            start_time=datetime.fromtimestamp(start_time_ms / 1000),
+            end_time=datetime.fromtimestamp(end_time_ms / 1000),
+            start_odometer=trip_data.get("start_odo"),
+            end_odometer=trip_data.get("end_odo"),
+            day_night="night" if trip_data.get("day") is False else "day",
+            weather=trip_data.get("weather"),
+            notes=None,
         )
         db.session.add(trip)
+        db.session.commit()
+    except (TypeError, ValueError) as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 400
+    return jsonify({"message": "ok"}), 200
+
+# @app.post("/api/trips/sync")
+# @require_auth
+# def sync_trips():
+#     data = request.json
+#     print(data)
+#     trips = data.get("trips", [])
+#     for t in trips:
+#         trip = Trip(
+#             learner_driver_id=request.user_id,
+#             start_time=datetime.fromtimestamp(t.get("start_time") / 1000),
+#             end_time=datetime.fromtimestamp(t.get("end_time") / 1000),
+#             start_odometer=t.get("start_odo"),
+#             end_odometer=t.get("end_odo"),
+#             day_night="day" if t.get("day") else "night",
+#             notes={"weather": t.get("weather")}
+#         )
+#         db.session.add(trip)
+#     db.session.commit()
+#     return jsonify({"message": "ok"}), 200
+
+
+@app.delete("/api/trips")
+@require_auth
+def delete_trips():
+    Trip.query.filter_by(learner_driver_id=int(request.user_id)).delete()
     db.session.commit()
     return jsonify({"message": "ok"}), 200
 
@@ -142,12 +205,12 @@ def pull_trips():
     trips = Trip.query.filter_by(learner_driver_id=request.user_id).all()
     return jsonify([{
         "id": t.id,
-        "start_time": str(t.start_time),
-        "end_time": str(t.end_time),
+        "start_time": t.start_time.timestamp() * 1000,
+        "end_time": t.end_time.timestamp() * 1000,
         "start_odometer": t.start_odometer,
         "end_odometer": t.end_odometer,
         "day_night": t.day_night,
-        "weather": t.notes.get("weather") if t.notes else None
+        "weather": t.weather,
     } for t in trips]), 200
     
  

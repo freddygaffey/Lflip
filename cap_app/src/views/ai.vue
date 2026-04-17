@@ -24,7 +24,10 @@
 
 <script setup lang="ts">
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonSpinner } from '@ionic/vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const loading = ref(true)
+onMounted(async () => {
+  alert("This is an AI: it can make mistakes. Always fact-check road rules on your state or territory's official websites.")
+  })
 </script>

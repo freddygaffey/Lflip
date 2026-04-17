@@ -42,7 +42,8 @@
         parent_id: 0,
         car_id: 0,
         weather: null,
-        day: null}
+        day: null,
+        synced: false}
 
   const { value: tripsValue } = await Preferences.get({key:'trips'})
   const trips = tripsValue ? JSON.parse(tripsValue) : []

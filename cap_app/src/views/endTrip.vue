@@ -92,19 +92,31 @@ const save = async () => {
   }
   current.end_odo = parseFloat(endOdo.value)
   current.day = isDay.value
+  current.day_night = isDay.value ? 'day' : 'night'
   current.weather = weather.value
+  if (current.end_time == null) {
+    current.end_time = Date.now()
+  }
   await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
-  router.replace('/tabs/dashboard')
 
   const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const { value: tripsValue } = await Preferences.get({ key: 'trips' })
-  await CapacitorHttp.post({
-    url: `${API_URL}/api/trips/sync`,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    data: { trips: JSON.parse(tripsValue ?? '[]') }
-  })
+  if (token) {
+    type LocalTrip = { synced?: boolean }
+    const unsynced = (trips as LocalTrip[]).filter((trip) => !trip.synced)
+    for (const trip of unsynced) {
+      const response = await CapacitorHttp.post({
+        url: `${API_URL}/api/trips/push_trip`,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        data: { trip },
+      })
+      if (response.status === 200) trip.synced = true
+    }
+    await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
+  }
+
+  router.replace('/tabs/startTrip')
 }
 </script>

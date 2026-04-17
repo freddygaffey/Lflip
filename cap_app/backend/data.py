@@ -1,4 +1,5 @@
 import flask_sqlalchemy
+from sqlalchemy import Index
 from sqlalchemy.orm import validates
 import flask_login
 import utils
@@ -14,7 +15,7 @@ db = flask_sqlalchemy.SQLAlchemy()
 class User(db.Model, flask_login.UserMixin):
     # TODO: move licene to this table
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    account_number = db.Column(db.String(50), unique=True, nullable=True )
+    # account_number = db.Column(db.String(50), unique=True, nullable=True )
 
     f_name = db.Column(db.String(255), nullable=True)
     l_name = db.Column(db.String(255), nullable=True)
@@ -59,7 +60,7 @@ class LicenseInfo(db.Model):
     date_of_birth = db.Column(db.Date, nullable=True)
     last_updated = db.Column(db.DateTime, default=datetime.now())
 
-    __table_args__ = (db.Index("ix_license_info_account_updated", "account_id", "last_updated"),)
+    __table_args__ = (Index("ix_license_info_account_updated", "account_id", "last_updated"),)
 
     @validates("license_number")
     def license_number_validate(self, key, license_number):
@@ -114,6 +115,7 @@ class Trip(db.Model):
 
     start_odometer = db.Column(db.Float, nullable=True)
     end_odometer = db.Column(db.Float, nullable=True)
+    weather = db.Column(db.String(50), nullable=True)
     notes = db.Column(db.JSON, nullable=True)  # structured blob: supervising_driver_name, license_number
     supervising_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     learner_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
@@ -136,6 +138,14 @@ class Trip(db.Model):
         arr = ["day","night"]
         if val not in arr:
             raise ValueError(f"{key = } is not {arr}")
+        return val
+
+    @validates("weather")
+    def weather_validate(self, key, val):
+        if val is None or val == "":
+            return None
+        if len(val) > 50:
+            raise ValueError("weather must be at most 50 characters")
         return val
 
     @validates("start_odometer", "end_odometer")
