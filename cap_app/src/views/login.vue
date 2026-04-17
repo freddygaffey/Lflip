@@ -26,6 +26,7 @@ const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 const email = ref('')
 const password = ref('')
+
 const isAuth = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
   const response = await CapacitorHttp.post({
@@ -33,14 +34,28 @@ const isAuth = async () => {
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
   })
  console.log('login response', response.status, response.data)
- console.log("found token will redrect you");
+ console.log("found token will redirect you");
  
   if (response.status === 200) {
+    fetchState()
     router.push('/tabs/dashboard')
   }
 }
-
+const fetchState = async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  if (!token) return
+  const response = await CapacitorHttp.get({
+    url: `${API_URL}/api/state`,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+  })
+  console.log('stats response', response.status, response.data)
+  if (response.status !== 200) return
+  const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data
+  await Preferences.set({ key: 'total', value: String(data.total) })
+  await Preferences.set({ key: 'night', value: String(data.night) })
+}
 onMounted(isAuth)
+
 const signIn = async () => {
   const response = await CapacitorHttp.post({
     url: `${API_URL}/api/login`,
@@ -50,6 +65,7 @@ const signIn = async () => {
   console.log('login response', response.status, response.data)
   if (response.status === 200) {
     await Preferences.set({ key: 'auth_token', value: response.data.token })
+    await fetchState()
     router.push('/tabs/dashboard')
   }
 }

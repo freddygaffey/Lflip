@@ -115,7 +115,7 @@ def start_dashboard():
 @require_auth
 def is_auth(): return "ok" , 200
 
-@app.post("/api/state")
+@app.get("/api/state")
 @require_auth
 def license_state():
     info = LicenseInfo.query.filter_by(account_id=int(request.user_id)).first()
@@ -127,7 +127,6 @@ def license_state():
         "night": states[info.state].night_hours
     })
     return r, 200
-
 # @app.post("/api/state/total")
 # @require_auth
 # def is_auth():
