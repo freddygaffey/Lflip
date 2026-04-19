@@ -7,6 +7,7 @@ import StartTrip from '../views/startTrip.vue'
 import Dashboard from '../views/dashboard.vue'
 import Ai from '../views/ai.vue'
 import Logger from '../views/logger.vue'
+import Debug from '../views/debug.vue'
 import Settings from '../views/settings.vue'
 import EndTrip from '../views/endTrip.vue'
 
@@ -54,6 +55,10 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'ai',
         component: Ai,
+      },
+      {
+        path: 'debug',
+        component: Debug,
       },
       {
         path: 'settings',

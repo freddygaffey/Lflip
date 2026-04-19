@@ -15,6 +15,9 @@
         <ion-tab-button tab="settings" href="/tabs/settings">
           <ion-label>Settings</ion-label>
         </ion-tab-button>
+        <ion-tab-button tab="debug" href="/tabs/debug">
+          <ion-label>Debug</ion-label>
+        </ion-tab-button>
       </ion-tab-bar>
     </ion-tabs>
   </ion-page>

@@ -213,7 +213,7 @@ def pull_trips():
         "weather": t.weather,
     } for t in trips]), 200
     
- 
+
 @app.get("/api/cars")
 @require_auth
 def list_cars():
