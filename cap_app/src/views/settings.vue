@@ -10,6 +10,7 @@
       <ion-button @click="seedTrips" color="warning">Seed Test Data</ion-button>
       <ion-button @click="deleteTrips" color="danger">Delete All Trips</ion-button>
       <ion-button @click="showRawTrips" color="medium">Show raw trips</ion-button>
+      <ion-button @click="setServerToTrue" color="medium">overite trips</ion-button>
       <pre v-if="rawTripsText" class="raw-trips">{{ rawTripsText }}</pre>
     </ion-content>
   </ion-page>
@@ -58,7 +59,36 @@ const seedTrips = async () => {
   await Preferences.set({ key: 'trips', value: JSON.stringify(fakeTrips) })
   alert('Seeded locally (synced: false). Unsynced trips upload via Save Trip when online, same as end-trip flow.')
 }
-
+const setServerToTrue = async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const r = await CapacitorHttp.get({
+    url: `${API_URL}/api/trips`,
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  type ServerTrip = {
+    id: number
+    start_time: number
+    end_time: number
+    start_odometer: number
+    end_odometer: number
+    day_night: string
+    weather: string
+  }
+  const serverTrips = (r.data as ServerTrip[]) ?? []
+  const localTrips = serverTrips.map((t) => ({
+    start_time: t.start_time,
+    end_time: t.end_time,
+    start_odo: t.start_odometer,
+    end_odo: t.end_odometer,
+    day: t.day_night === 'day',
+    day_night: t.day_night,
+    weather: t.weather,
+    gps: [],
+    synced: true,
+  }))
+  await Preferences.set({ key: 'trips', value: JSON.stringify(localTrips) })
+  alert(`Overwrote local trips with ${localTrips.length} from server.`)
+}
 const deleteTrips = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
   await Preferences.remove({ key: 'trips' })

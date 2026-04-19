@@ -104,6 +104,19 @@ class LicenseInfo(db.Model):
 #     link_to_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 #     link_to = db.relationship("User", backref=db.backref("pair_codes", lazy=True))
 
+class Car(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    nickname = db.Column(db.String(100), nullable=False)
+    plate = db.Column(db.String(20), nullable=True)
+    ble_device_name = db.Column(db.String(64), nullable=True)
+    ble_service_uuid = db.Column(db.String(36), nullable=True)
+    pairing_secret = db.Column(db.String(64), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+    owner = db.relationship("User", foreign_keys=[owner_id])
+
+
 class Trip(db.Model):
     # TODO: mabey add auto or manule
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

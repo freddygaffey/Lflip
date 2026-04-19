@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from data import db, User, LicenseInfo, Trip, GpsPoint
+from data import db, User, LicenseInfo, Trip, GpsPoint, Car
+import secrets
 from config import states, secret_key
 from utils import is_pwd_valid
 from flask_cors import CORS
@@ -213,6 +214,62 @@ def pull_trips():
     } for t in trips]), 200
     
  
+@app.get("/api/cars")
+@require_auth
+def list_cars():
+    cars = Car.query.filter_by(owner_id=int(request.user_id)).all()
+    return jsonify([{
+        "id": c.id,
+        "nickname": c.nickname,
+        "plate": c.plate,
+        "ble_device_name": c.ble_device_name,
+        "ble_service_uuid": c.ble_service_uuid,
+        "has_pairing_secret": bool(c.pairing_secret),
+    } for c in cars]), 200
+
+
+@app.post("/api/cars")
+@require_auth
+def create_car():
+    data = request.json or {}
+    nickname = data.get("nickname")
+    if not nickname:
+        return jsonify({"message": "nickname required"}), 400
+    try:
+        car = Car(
+            owner_id=int(request.user_id),
+            nickname=nickname,
+            plate=data.get("plate"),
+            ble_device_name=data.get("ble_device_name"),
+            ble_service_uuid=data.get("ble_service_uuid"),
+            pairing_secret=secrets.token_hex(32),
+        )
+        db.session.add(car)
+        db.session.commit()
+    except (TypeError, ValueError) as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 400
+    return jsonify({
+        "id": car.id,
+        "nickname": car.nickname,
+        "plate": car.plate,
+        "ble_device_name": car.ble_device_name,
+        "ble_service_uuid": car.ble_service_uuid,
+        "pairing_secret": car.pairing_secret,
+    }), 200
+
+
+@app.delete("/api/cars/<int:car_id>")
+@require_auth
+def delete_car(car_id):
+    car = Car.query.filter_by(id=car_id, owner_id=int(request.user_id)).first()
+    if not car:
+        return jsonify({"message": "not found"}), 404
+    db.session.delete(car)
+    db.session.commit()
+    return jsonify({"message": "ok"}), 200
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
