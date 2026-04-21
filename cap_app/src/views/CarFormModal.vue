@@ -4,6 +4,9 @@
 <template>
   <ion-header>
     <ion-toolbar>
+      <ion-buttons slot="start" v-if="form.id">
+        <ion-button color="danger" @click="del">Delete</ion-button>
+      </ion-buttons>
       <ion-title>{{ form.id ? 'Edit car' : 'Add car' }}</ion-title>
       <ion-buttons slot="end">
         <ion-button @click="dismiss('cancel')">Cancel</ion-button>
@@ -60,6 +63,7 @@
 import { ref } from 'vue'
 import {
   modalController,
+  alertController,
   IonHeader,
   IonToolbar,
   IonTitle,
@@ -126,6 +130,36 @@ const pick = (d: Found) => {
 const dismiss = (role: string, data?: any) =>
   modalController.dismiss(data, role)
 
+const del = async () => {
+  console.log('del tapped, id=', form.value.id)
+  if (!form.value.id) return
+  const alert = await alertController.create({
+    header: 'Delete car?',
+    message: form.value.nickname,
+    buttons: [
+      { text: 'Cancel', role: 'cancel' },
+      { text: 'Delete', role: 'destructive', handler: doDelete },
+    ],
+  })
+  await alert.present()
+}
+
+const doDelete = async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const res = await CapacitorHttp.delete({
+    url: `${API_URL}/api/cars/${form.value.id}`,
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  console.log('delete resp', res.status, res.data)
+  if (res.status === 200) {
+    const { value: cached } = await Preferences.get({ key: 'cars' })
+    const list = cached ? JSON.parse(cached) : []
+    const next = list.filter((c: any) => c.id !== form.value.id)
+    await Preferences.set({ key: 'cars', value: JSON.stringify(next) })
+    dismiss('delete', { id: form.value.id })
+  } else console.error('delete failed', res.status, res.data)
+}
+
 const save = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
   const headers = {
@@ -138,11 +172,27 @@ const save = async () => {
     ? `${API_URL}/api/cars/${form.value.id}`
     : `${API_URL}/api/cars`
 
-  const res = isEdit
-    ? await CapacitorHttp.patch({ url, headers, data: form.value })
-    : await CapacitorHttp.post({ url, headers, data: form.value })
+  const payload = {
+    nickname: form.value.nickname,
+    plate: form.value.plate || null,
+    ble_device_name: form.value.ble_device_name || null,
+  }
+  console.log('POST', url, payload)
 
-  if (res.status === 200) dismiss('save', res.data)
-  else console.error('save failed', res.status, res.data)
+  const res = isEdit
+    ? await CapacitorHttp.patch({ url, headers, data: payload })
+    : await CapacitorHttp.post({ url, headers, data: payload })
+
+  console.log('save resp', res.status, res.data)
+  if (res.status === 200) {
+    const saved = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+    const { value: cached } = await Preferences.get({ key: 'cars' })
+    const list = cached ? JSON.parse(cached) : []
+    const idx = list.findIndex((c: any) => c.id === saved.id)
+    if (idx >= 0) list[idx] = saved
+    else list.push(saved)
+    await Preferences.set({ key: 'cars', value: JSON.stringify(list) })
+    dismiss('save', saved)
+  } else console.error('save failed', res.status, res.data)
 }
 </script>

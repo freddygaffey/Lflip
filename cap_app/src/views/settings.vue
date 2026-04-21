@@ -6,7 +6,6 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <!-- TODO: cars section -->
       <!-- TODO: supervisors section -->
        <h2>Add Car</h2>
        <ion-list>
@@ -72,6 +71,9 @@ async function onCarClick(car: Car | null) {
   if (role == 'save') {
     if (car) Object.assign(car,data)
     else cars.value.push(data)
+  }
+  else if (role == 'delete' && car) {
+    cars.value = cars.value.filter(c => c.id != car.id)
   }
 }
 

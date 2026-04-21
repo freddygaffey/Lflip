@@ -24,6 +24,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Pair with your car's odometer device.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Pair with your car's odometer device.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app uses your location to track driving trips in the background.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
