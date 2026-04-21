@@ -6,6 +6,7 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
+        <h1>{{ passOk }}</h1>
         <ion-input v-model="email" placeholder="email" type="email"></ion-input>
         <ion-input v-model="password" placeholder="password" type="password"></ion-input>
         <ion-button @click="signIn">sign in</ion-button>
@@ -16,7 +17,7 @@
   
   <script setup lang="ts">
 import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle } from '@ionic/vue';
-import { ref } from 'vue'
+import { ref, warn } from 'vue'
 import { useRouter } from 'vue-router'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
@@ -26,6 +27,7 @@ const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 const email = ref('')
 const password = ref('')
+let passOk = ref('')
 
 const isAuth = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })

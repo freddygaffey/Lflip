@@ -1,0 +1,17 @@
+Category,Part,Supplier,Unit Price (AUD),Qty,Total (AUD),Link,Notes
+OBD Master Unit,ESP32 Dev Board,Core Electronics,$20.00,1,$20.00,https://core-electronics.com.au/espressif-esp32-development-board-developer-edition.html,Main microcontroller for OBD unit
+OBD Master Unit,CAN Bus Breakout Board (SN65HVD230),Core Electronics,$15.00,1,$15.00,https://core-electronics.com.au/seeed-studio-can-bus-breakout-board-for-xiao-and-qt-py-mcp2515-controller-sn65hvd230-transceiver-chip.html,Reads odometer via CAN bus from OBD port
+OBD Master Unit,OBD-II Male Connector,Core Electronics,$5.00,1,$5.00,https://core-electronics.com.au/obd-ii-connector.html,Plugs into car OBD port
+OBD Master Unit,LM2596S Buck Converter (12V to 3.3V),Core Electronics,$8.00,1,$8.00,https://core-electronics.com.au/adjustable-switching-power-supply-module-in-4v-35v-out-1-5v-30v-lm2596s.html,Steps down car 12V to 3.3V for ESP32
+OBD Master Unit Subtotal,,,$48.00,,,,
+L Plate Node (Front),XIAO ESP32-C3,Core Electronics,$15.00,1,$15.00,https://core-electronics.com.au/seeed-studio-xiao-esp32c3-tiny-mcu-board-with-wi-fi-and-ble-battery-charge-supported-power-efficiency-and-rich-interface.html,Tiny microcontroller for plate node
+L Plate Node (Front),MG90D Metal Gear Micro Servo,Core Electronics,$14.00,1,$14.00,https://core-electronics.com.au/micro-servo-high-torque-metal-gear.html,Opens and closes L plate
+L Plate Node (Front),LiPo Battery 3.7V 400mAh,Core Electronics,$10.00,1,$10.00,https://core-electronics.com.au/polymer-lithium-ion-battery-400mah-38456.html,Powers plate node
+L Plate Node (Front),TP4056 LiPo Charger Module,Core Electronics,$3.00,1,$3.00,https://core-electronics.com.au/lithium-battery-charging-module-tp4056-1a.html,USB charging for plate battery
+L Plate Node (Front) Subtotal,,,$42.00,,,,
+L Plate Node (Rear),XIAO ESP32-C3,Core Electronics,$15.00,1,$15.00,https://core-electronics.com.au/seeed-studio-xiao-esp32c3-tiny-mcu-board-with-wi-fi-and-ble-battery-charge-supported-power-efficiency-and-rich-interface.html,Tiny microcontroller for plate node
+L Plate Node (Rear),MG90D Metal Gear Micro Servo,Core Electronics,$14.00,1,$14.00,https://core-electronics.com.au/micro-servo-high-torque-metal-gear.html,Opens and closes L plate
+L Plate Node (Rear),LiPo Battery 3.7V 400mAh,Core Electronics,$10.00,1,$10.00,https://core-electronics.com.au/polymer-lithium-ion-battery-400mah-38456.html,Powers plate node
+L Plate Node (Rear),TP4056 LiPo Charger Module,Core Electronics,$3.00,1,$3.00,https://core-electronics.com.au/lithium-battery-charging-module-tp4056-1a.html,USB charging for plate battery
+L Plate Node (Rear) Subtotal,,,$42.00,,,,
+TOTAL,,,$105.00 AUD,,,,Excludes enclosures and wiring

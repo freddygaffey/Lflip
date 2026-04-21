@@ -9,6 +9,7 @@
       <ion-button @click="signOut" color="danger">Sign out</ion-button>
       <ion-button @click="seedTrips" color="warning">Seed Test Data</ion-button>
       <ion-button @click="deleteTrips" color="danger">Delete All Trips</ion-button>
+      <ion-button @click="deleteCars" color="danger">Delete All Cars</ion-button>
       <ion-button @click="showRawTrips" color="medium">Show raw trips</ion-button>
       <ion-button @click="setServerToTrue" color="medium">overite trips</ion-button>
       <pre v-if="rawTripsText" class="raw-trips">{{ rawTripsText }}</pre>
@@ -89,6 +90,15 @@ const setServerToTrue = async () => {
   await Preferences.set({ key: 'trips', value: JSON.stringify(localTrips) })
   alert(`Overwrote local trips with ${localTrips.length} from server.`)
 }
+const deleteCars = async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  await CapacitorHttp.delete({
+    url: `${API_URL}/api/cars`,
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  alert('All cars deleted!')
+}
+
 const deleteTrips = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
   await Preferences.remove({ key: 'trips' })

@@ -8,6 +8,20 @@
     <ion-content>
       <!-- TODO: cars section -->
       <!-- TODO: supervisors section -->
+       <h2>Add Car</h2>
+       <ion-list>
+        <ion-item
+          v-for="car in cars"
+          :key="car.id"
+          button
+          @click="onCarClick(car)"
+        >
+          <ion-label>{{ car.nickname }}</ion-label>
+        </ion-item>
+        <ion-item button @click="onCarClick(null)">
+          <ion-label>Click to add car</ion-label>
+        </ion-item>
+       </ion-list>
     </ion-content>
   </ion-page>
 </template>
@@ -26,10 +40,12 @@ import {
   IonItem,
   IonLabel,
   IonInput,
+  modalController,
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { CapacitorHttp } from '@capacitor/core'
+import CarFormModal from './CarFormModal.vue'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -45,6 +61,19 @@ type Car = {
 
 const cars = ref<Car[]>([])
 const newCar = ref({ nickname: '', plate: '', ble_device_name: '' })
+
+async function onCarClick(car: Car | null) {
+  const model = await modalController.create({
+    component: CarFormModal,
+    componentProps: { car }
+  })
+  await model.present()
+  const { data, role } = await model.onWillDismiss()
+  if (role == 'save') {
+    if (car) Object.assign(car,data)
+    else cars.value.push(data)
+  }
+}
 
 const authHeaders = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })

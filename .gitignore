@@ -1,3 +1,5 @@
+.env.local
+
 # PlatformIO build directory
 L_plate_server/.pio/
 

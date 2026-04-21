@@ -20,6 +20,10 @@ db.init_app(app)
 ########################################################
 # api routes
 ########################################################
+@app.get("/")
+def root():
+    return "you are connected to the pyton server", 200
+
 @app.post("/api/login")
 def login():
     data = request.json
@@ -257,6 +261,14 @@ def create_car():
         "ble_service_uuid": car.ble_service_uuid,
         "pairing_secret": car.pairing_secret,
     }), 200
+
+
+@app.delete("/api/cars")
+@require_auth
+def delete_all_cars():
+    Car.query.filter_by(owner_id=int(request.user_id)).delete()
+    db.session.commit()
+    return jsonify({"message": "ok"}), 200
 
 
 @app.delete("/api/cars/<int:car_id>")
