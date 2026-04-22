@@ -130,7 +130,20 @@ const load_dasbord = async () => {
   ] as [Ref<PieData>, number][])
     setRing(ch, 0, cap)
   await uploadTrips()
+  await pullTrips()
   await updateHours()
+}
+
+const pullTrips = async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const res = await CapacitorHttp.get({
+    url: `${API_URL}/api/trips`,
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (res.status !== 200) return
+  const remote = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+  const synced = remote.map((t: any) => ({ ...t, synced: true }))
+  await Preferences.set({ key: 'trips', value: JSON.stringify(synced) })
 }
 
 onIonViewDidEnter(load_dasbord)

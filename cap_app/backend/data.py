@@ -84,25 +84,14 @@ class LicenseInfo(db.Model):
         return date_of_birth
 
 
-# class Pair(db.Model):
-#     """Glue table linking supervising drivers with learner drivers."""
-#     __table_args__ = (db.UniqueConstraint("supervising_driver_id", "learner_driver_id", name="uq_supervision_pair"),)
+class Sv(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    nickname = db.Column(db.String(100), nullable=False)
+    licence_no = db.Column(db.String(100),nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
-#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     supervising_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-#     learner_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-
-#     supervising_driver = db.relationship("User", foreign_keys=[supervising_driver_id])
-#     learner_driver = db.relationship("User", foreign_keys=[learner_driver_id])
-
-# class PairCodes(db.Model):
-#     """this is the table will store the links to link parants and there users to make links"""
-#     key = db.Column(db.Integer, primary_key=True)
-#     time_made = db.Column(db.Time,nullable=False)
-#     code = db.Column(db.Numeric, nullable=False)
-
-#     link_to_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-#     link_to = db.relationship("User", backref=db.backref("pair_codes", lazy=True))
+    owner = db.relationship("User", foreign_keys=[owner_id])
 
 class Car(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -197,3 +186,23 @@ class GpsPoint(db.Model):
         if not utils.is_lon_valid(lon):
             raise ValueError(f"{key} must be between -180 and 180")
         return lon
+
+# class Pair(db.Model):
+#     """Glue table linking supervising drivers with learner drivers."""
+#     __table_args__ = (db.UniqueConstraint("supervising_driver_id", "learner_driver_id", name="uq_supervision_pair"),)
+
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     supervising_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+#     learner_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+#     supervising_driver = db.relationship("User", foreign_keys=[supervising_driver_id])
+#     learner_driver = db.relationship("User", foreign_keys=[learner_driver_id])
+
+# class PairCodes(db.Model):
+#     """this is the table will store the links to link parants and there users to make links"""
+#     key = db.Column(db.Integer, primary_key=True)
+#     time_made = db.Column(db.Time,nullable=False)
+#     code = db.Column(db.Numeric, nullable=False)
+
+#     link_to_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+#     link_to = db.relationship("User", backref=db.backref("pair_codes", lazy=True))

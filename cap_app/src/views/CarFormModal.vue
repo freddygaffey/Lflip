@@ -77,7 +77,7 @@ import {
   IonLabel,
 } from '@ionic/vue'
 import { Preferences } from '@capacitor/preferences'
-import { CapacitorHttp } from '@capacitor/core'
+import { CapacitorHttp, Capacitor } from '@capacitor/core'
 
 type Car = {
   id?: number
@@ -131,9 +131,13 @@ const dismiss = (role: string, data?: any) =>
   modalController.dismiss(data, role)
 
 const del = async () => {
+  if (!Capacitor.isNativePlatform()) {
+    alert("sorry you cant delete cars you need to be on a phone")
+    return
+  }
   console.log('del tapped, id=', form.value.id)
   if (!form.value.id) return
-  const alert = await alertController.create({
+  const confirm = await alertController.create({
     header: 'Delete car?',
     message: form.value.nickname,
     buttons: [
@@ -141,7 +145,7 @@ const del = async () => {
       { text: 'Delete', role: 'destructive', handler: doDelete },
     ],
   })
-  await alert.present()
+  await confirm.present()
 }
 
 const doDelete = async () => {
@@ -161,6 +165,10 @@ const doDelete = async () => {
 }
 
 const save = async () => {
+  if (!Capacitor.isNativePlatform()) {
+    alert("sorry you cant edit cars you need to be on a phone")
+    return
+  }
   const { value: token } = await Preferences.get({ key: 'auth_token' })
   const headers = {
     'Content-Type': 'application/json',

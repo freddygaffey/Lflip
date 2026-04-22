@@ -21,6 +21,20 @@
           <ion-label>Click to add car</ion-label>
         </ion-item>
        </ion-list>
+       <h2>Add licenced driver</h2>
+       <ion-list>
+        <ion-item
+          v-for="sv in svs"
+          :key="sv.id"
+          button
+          @click="onSvClick(sv)"
+        >
+          <ion-label>{{ sv.nickname }}</ion-label>
+        </ion-item>
+        <ion-item button @click="onSvClick(null)">
+          <ion-label>Click to add supervisor</ion-label>
+        </ion-item>
+       </ion-list>
     </ion-content>
   </ion-page>
 </template>
@@ -45,6 +59,8 @@ import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { CapacitorHttp } from '@capacitor/core'
 import CarFormModal from './CarFormModal.vue'
+import SvFormModal from './SvFormModal.vue'
+import { Capacitor } from '@capacitor/core'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -61,7 +77,12 @@ type Car = {
 const cars = ref<Car[]>([])
 const newCar = ref({ nickname: '', plate: '', ble_device_name: '' })
 
+
 async function onCarClick(car: Car | null) {
+  if (!Capacitor.isNativePlatform() && car === null) {
+    alert("sorry you cant make a car you need to be on a phone");
+    return;
+  }
   const model = await modalController.create({
     component: CarFormModal,
     componentProps: { car }
@@ -77,18 +98,47 @@ async function onCarClick(car: Car | null) {
   }
 }
 
-const authHeaders = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  return { Authorization: `Bearer ${token}` }
+type Sv = {
+  id: number
+  nickname: string
+  licence_no: number
 }
+const svs = ref<Sv[]>([])
+const newSv = ref({ nickname: '', licence_no: ''})
 
-// TODO: loadCars — GET /api/cars
-// TODO: addCar    — POST /api/cars
-// TODO: removeCar — DELETE /api/cars/:id
+onMounted(async () => {
+  // this function is ai genarated
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const headers = { Authorization: `Bearer ${token}` }
 
-onMounted(() => {
-  // TODO: loadCars()
+  const carsRes = await CapacitorHttp.get({ url: `${API_URL}/api/cars`, headers })
+  if (carsRes.status === 200) {
+    cars.value = typeof carsRes.data === 'string' ? JSON.parse(carsRes.data) : carsRes.data
+    await Preferences.set({ key: 'cars', value: JSON.stringify(cars.value) })
+  }
+
+  const svRes = await CapacitorHttp.get({ url: `${API_URL}/api/sv`, headers })
+  if (svRes.status === 200) {
+    svs.value = typeof svRes.data === 'string' ? JSON.parse(svRes.data) : svRes.data
+    await Preferences.set({ key: 'svs', value: JSON.stringify(svs.value) })
+  }
 })
+
+async function onSvClick(sv: Sv | null) {
+  const model = await modalController.create({
+    component: SvFormModal,
+    componentProps: { sv }
+  })
+  await model.present()
+  const { data, role } = await model.onWillDismiss()
+  if (role == 'save') {
+    if (sv) Object.assign(sv,data)
+    else svs.value.push(data)
+  }
+  else if (role == 'delete' && sv) {
+    svs.value = svs.value.filter(s => s.id != sv.id)
+  }
+}
 </script>
 
 <style scoped>

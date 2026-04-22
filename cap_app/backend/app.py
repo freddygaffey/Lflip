@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
-from data import db, User, LicenseInfo, Trip, GpsPoint, Car
+from data import db, User, LicenseInfo, Trip, GpsPoint, Car, Sv
 import secrets
 from config import states, secret_key
 from utils import is_pwd_valid
@@ -149,7 +149,6 @@ def license_state():
 def sync_trips():
     data = request.json or {}
     trip_data = data.get("trip")
-    # One trip = JSON object `{ "start_time": ... }`, not `[...]` and not missing.
     if trip_data is None or type(trip_data) is not dict:
         return jsonify({"message": "trip must be one object in body, e.g. {\"trip\": {...}}"}), 400
     try:
@@ -206,7 +205,7 @@ def delete_trips():
 @app.get("/api/trips")
 @require_auth
 def pull_trips():
-    trips = Trip.query.filter_by(learner_driver_id=request.user_id).all()
+    trips = Trip.query.filter_by(learner_driver_id=int(request.user_id)).all()
     return jsonify([{
         "id": t.id,
         "start_time": t.start_time.timestamp() * 1000,
@@ -216,7 +215,59 @@ def pull_trips():
         "day_night": t.day_night,
         "weather": t.weather,
     } for t in trips]), 200
-    
+
+# i copied the car routes and just renamed  
+@app.get("/api/sv")
+@require_auth
+def list_sv():
+    sv = Sv.query.filter_by(owner_id=int(request.user_id)).all()
+    return jsonify([{
+        "id": c.id,
+        "nickname": c.nickname,
+        "licence_no": c.licence_no
+    } for c in sv]), 200
+
+@app.post("/api/sv")
+@require_auth
+def create_sv():
+    data = request.json or {}
+    nickname = data.get("nickname")
+    licence_no = data.get("licence_no")
+    if not nickname:
+        return jsonify({"message": "nickname required"}), 400
+    try:
+        sv = Sv(
+            owner_id=int(request.user_id),
+            nickname=nickname,
+            licence_no=licence_no
+        )
+        db.session.add(sv)
+        db.session.commit()
+    except (TypeError, ValueError) as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 400
+    return jsonify({
+        "id": sv.id,
+        "nickname": sv.nickname,
+        "licence_no": sv.licence_no,
+    }), 200
+
+@app.delete("/api/sv")
+@require_auth
+def delete_all_sv():
+    Sv.query.filter_by(owner_id=int(request.user_id)).delete()
+    db.session.commit()
+    return jsonify({"message": "ok"}), 200
+
+@app.delete("/api/sv/<int:sv_id>")
+@require_auth
+def delete_sv(sv_id):
+    sv = Sv.query.filter_by(id=sv_id, owner_id=int(request.user_id)).first()
+    if not sv:
+        return jsonify({"message": "not found"}), 404
+    db.session.delete(sv)
+    db.session.commit()
+    return jsonify({"message": "ok"}), 200
 
 @app.get("/api/cars")
 @require_auth
@@ -230,7 +281,6 @@ def list_cars():
         "ble_service_uuid": c.ble_service_uuid,
         "has_pairing_secret": bool(c.pairing_secret),
     } for c in cars]), 200
-
 
 @app.post("/api/cars")
 @require_auth
@@ -269,7 +319,6 @@ def delete_all_cars():
     Car.query.filter_by(owner_id=int(request.user_id)).delete()
     db.session.commit()
     return jsonify({"message": "ok"}), 200
-
 
 @app.delete("/api/cars/<int:car_id>")
 @require_auth
