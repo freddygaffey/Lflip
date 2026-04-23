@@ -12,6 +12,7 @@
       <ion-button @click="deleteCars" color="danger">Delete All Cars</ion-button>
       <ion-button @click="showRawTrips" color="medium">Show raw trips</ion-button>
       <ion-button @click="setServerToTrue" color="medium">overite trips</ion-button>
+      <ion-button @click="showAllPrefs" color="medium">Show all preferences</ion-button>
       <pre v-if="rawTripsText" class="raw-trips">{{ rawTripsText }}</pre>
     </ion-content>
   </ion-page>
@@ -27,6 +28,21 @@ import { CapacitorHttp } from '@capacitor/core'
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 const rawTripsText = ref('')
+
+const showAllPrefs = async () => {
+  const { keys } = await Preferences.keys()
+  const all: Record<string, unknown> = {}
+  for (const k of keys) {
+    const { value } = await Preferences.get({ key: k })
+    try {
+      all[k] = value ? JSON.parse(value) : value
+    } catch {
+      all[k] = value
+    }
+  }
+  console.log('preferences', all)
+  rawTripsText.value = JSON.stringify(all, null, 2)
+}
 
 const showRawTrips = async () => {
   const { value } = await Preferences.get({ key: 'trips' })
@@ -48,17 +64,36 @@ const signOut = async () => {
 }
 
 const seedTrips = async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+
+  const svRes = await CapacitorHttp.post({
+    url: `${API_URL}/api/sv`,
+    headers,
+    data: { nickname: 'Test Supervisor', licence_no: '1234567' },
+  })
+  const sv = svRes.data
+  const carRes = await CapacitorHttp.post({
+    url: `${API_URL}/api/cars`,
+    headers,
+    data: { nickname: 'Test Car', plate: 'TEST-01' },
+  })
+  const car = carRes.data
+
+  await Preferences.set({ key: 'svs', value: JSON.stringify([sv]) })
+  await Preferences.set({ key: 'cars', value: JSON.stringify([car]) })
+
   const now = Date.now()
   const hr = 3600000
   const fakeTrips = [
-    { start_time: now - 10 * hr, end_time: now - 7 * hr, start_odo: 100, end_odo: 250, day: true, day_night: 'day', weather: 'sunny', gps: [{ lat: -35.3136, lon: 149.1166, time: now - 10 * hr }], synced: false },
-    { start_time: now - 20 * hr, end_time: now - 18 * hr, start_odo: 250, end_odo: 370, day: false, day_night: 'night', weather: 'cloudy', gps: [{ lat: -35.3136, lon: 149.1166, time: now - 20 * hr }], synced: false },
-    { start_time: now - 30 * hr, end_time: now - 27 * hr, start_odo: 370, end_odo: 520, day: true, day_night: 'day', weather: 'rain', gps: [{ lat: -35.3136, lon: 149.1166, time: now - 30 * hr }], synced: false },
-    { start_time: now - 40 * hr, end_time: now - 38 * hr, start_odo: 520, end_odo: 630, day: true, day_night: 'day', weather: 'sunny', gps: [{ lat: -35.3136, lon: 149.1166, time: now - 40 * hr }], synced: false },
-    { start_time: now - 50 * hr, end_time: now - 48 * hr, start_odo: 630, end_odo: 740, day: false, day_night: 'night', weather: 'fog', gps: [{ lat: -35.3136, lon: 149.1166, time: now - 50 * hr }], synced: false },
+    { start_time: now - 10 * hr, end_time: now - 7 * hr, start_odo: 100, end_odo: 250, day: true, day_night: 'day', weather: 'sunny', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 10 * hr }], synced: false },
+    { start_time: now - 20 * hr, end_time: now - 18 * hr, start_odo: 250, end_odo: 370, day: false, day_night: 'night', weather: 'cloudy', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 20 * hr }], synced: false },
+    { start_time: now - 30 * hr, end_time: now - 27 * hr, start_odo: 370, end_odo: 520, day: true, day_night: 'day', weather: 'rain', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 30 * hr }], synced: false },
+    { start_time: now - 40 * hr, end_time: now - 38 * hr, start_odo: 520, end_odo: 630, day: true, day_night: 'day', weather: 'sunny', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 40 * hr }], synced: false },
+    { start_time: now - 50 * hr, end_time: now - 48 * hr, start_odo: 630, end_odo: 740, day: false, day_night: 'night', weather: 'fog', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 50 * hr }], synced: false },
   ]
   await Preferences.set({ key: 'trips', value: JSON.stringify(fakeTrips) })
-  alert('Seeded locally (synced: false). Unsynced trips upload via Save Trip when online, same as end-trip flow.')
+  alert(`Seeded SV id=${sv.id}, Car id=${car.id}, and 5 trips (local only, synced: false).`)
 }
 const setServerToTrue = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })

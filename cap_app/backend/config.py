@@ -7,7 +7,7 @@ class State(object):
 
 states = {
     "act": State(total_hours=100, night_hours=10),
-    "nsw": State(total_hours=120, night_hours=20),
+    "nsw": State(total_hours=120, night_hours=25),
     "vic": State(total_hours=120, night_hours=20),
     "qld": State(total_hours=100, night_hours=10),
     "sa": State(total_hours=75,  night_hours=15),

@@ -54,7 +54,7 @@ class LicenseInfo(db.Model):
     account_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     # license = db.Column(db.String(100), nullable=True)  # license type (e.g. Learner, P1, Full)
-    license_number = db.Column(db.String(100), nullable=False)
+    licence_no = db.Column(db.String(100), nullable=False)
     state = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(100), nullable=False)  # parant leaner
     date_of_birth = db.Column(db.Date, nullable=True)
@@ -62,10 +62,10 @@ class LicenseInfo(db.Model):
 
     __table_args__ = (Index("ix_license_info_account_updated", "account_id", "last_updated"),)
 
-    @validates("license_number")
-    def license_number_validate(self, key, license_number):
-        if utils.is_license_number_valid(license_number) is None: raise ValueError(f"{key} is not valid")
-        return license_number
+    @validates("licence_no")
+    def licence_no_validate(self, key, licence_no):
+        if utils.is_licence_no_valid(licence_no) is None: raise ValueError(f"{key} is not valid")
+        return licence_no
 
     @validates("state")
     def state_validate(self, key, state):
@@ -107,25 +107,24 @@ class Car(db.Model):
 
 
 class Trip(db.Model):
-    # TODO: mabey add auto or manule
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    learner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     start_time = db.Column(db.DateTime, nullable=True)
-    # TODO: add day night
-    # TODO: add aproved state with time 
     end_time = db.Column(db.DateTime, nullable=True)
+
     day_night = db.Column(db.String,nullable=True)
 
-    start_odometer = db.Column(db.Float, nullable=True)
-    end_odometer = db.Column(db.Float, nullable=True)
+    start_odo = db.Column(db.Float, nullable=True)
+    end_odo = db.Column(db.Float, nullable=True)
     weather = db.Column(db.String(50), nullable=True)
+    sv_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    car_id = db.Column(db.Integer, db.ForeignKey("car.id"), nullable=True)
     notes = db.Column(db.JSON, nullable=True)  # structured blob: supervising_driver_name, license_number
-    supervising_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
-    learner_driver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
 
     aproved = db.Column(db.Boolean,default=False)
 
-    supervising_driver = db.relationship("User", foreign_keys=[supervising_driver_id])
-    learner_driver = db.relationship("User", foreign_keys=[learner_driver_id])
+    supervising_driver = db.relationship("User", foreign_keys=[sv_id])
+    learner_driver = db.relationship("User", foreign_keys=[learner_id])
     gps_points = db.relationship("GpsPoint", backref="trip", lazy=True)
 
     @validates("date")
@@ -150,12 +149,12 @@ class Trip(db.Model):
             raise ValueError("weather must be at most 50 characters")
         return val
 
-    @validates("start_odometer", "end_odometer")
+    @validates("start_odo", "end_odo")
     def odometer_validate(self, key, value):
-        start = value if key == "start_odometer" else self.start_odometer
-        end = value if key == "end_odometer" else self.end_odometer
+        start = value if key == "start_odo" else self.start_odo
+        end = value if key == "end_odo" else self.end_odo
         if start is not None and end is not None and end < start:
-            raise ValueError("end_odometer must be >= start_odometer")
+            raise ValueError("end_odo must be >= start_odo")
         return value
 
     @validates("start_time", "end_time")

@@ -39,7 +39,7 @@
         end_odo: null,
         gps: [],
         accel: [],
-        parent_id: 0,
+        sv_id: 0,
         car_id: 0,
         weather: null,
         day: null,
@@ -47,6 +47,7 @@
 
   const { value: tripsValue } = await Preferences.get({key:'trips'})
   const trips = tripsValue ? JSON.parse(tripsValue) : []
+  
   trips.push(newTrip)
   await Preferences.set({
     key:'trips',

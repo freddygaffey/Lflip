@@ -92,7 +92,7 @@ def set_licence():
         licence_info = LicenseInfo(
             account_id=request.user_id,
             state=state,
-            license_number=licence_no,
+            licence_no=licence_no,
             role=role)
         db.session.add(licence_info)
         db.session.commit()
@@ -157,11 +157,11 @@ def sync_trips():
         if start_time_ms is None or end_time_ms is None:
             return jsonify({"message": "trip start_time and end_time required"}), 400
         trip = Trip(
-            learner_driver_id=int(request.user_id),
+            learner_id=int(request.user_id),
             start_time=datetime.fromtimestamp(start_time_ms / 1000),
             end_time=datetime.fromtimestamp(end_time_ms / 1000),
-            start_odometer=trip_data.get("start_odo"),
-            end_odometer=trip_data.get("end_odo"),
+            start_odo=trip_data.get("start_odo"),
+            end_odo=trip_data.get("end_odo"),
             day_night="night" if trip_data.get("day") is False else "day",
             weather=trip_data.get("weather"),
             notes=None,
@@ -181,7 +181,7 @@ def sync_trips():
 #     trips = data.get("trips", [])
 #     for t in trips:
 #         trip = Trip(
-#             learner_driver_id=request.user_id,
+#             learner_id=request.user_id,
 #             start_time=datetime.fromtimestamp(t.get("start_time") / 1000),
 #             end_time=datetime.fromtimestamp(t.get("end_time") / 1000),
 #             start_odometer=t.get("start_odo"),
@@ -197,7 +197,7 @@ def sync_trips():
 @app.delete("/api/trips")
 @require_auth
 def delete_trips():
-    Trip.query.filter_by(learner_driver_id=int(request.user_id)).delete()
+    Trip.query.filter_by(learner_id=int(request.user_id)).delete()
     db.session.commit()
     return jsonify({"message": "ok"}), 200
 
@@ -205,13 +205,13 @@ def delete_trips():
 @app.get("/api/trips")
 @require_auth
 def pull_trips():
-    trips = Trip.query.filter_by(learner_driver_id=int(request.user_id)).all()
+    trips = Trip.query.filter_by(learner_id=int(request.user_id)).all()
     return jsonify([{
         "id": t.id,
         "start_time": t.start_time.timestamp() * 1000,
         "end_time": t.end_time.timestamp() * 1000,
-        "start_odometer": t.start_odometer,
-        "end_odometer": t.end_odometer,
+        "start_odo": t.start_odo,
+        "end_odo": t.end_odo,
         "day_night": t.day_night,
         "weather": t.weather,
     } for t in trips]), 200
@@ -242,6 +242,28 @@ def create_sv():
             licence_no=licence_no
         )
         db.session.add(sv)
+        db.session.commit()
+    except (TypeError, ValueError) as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 400
+    return jsonify({
+        "id": sv.id,
+        "nickname": sv.nickname,
+        "licence_no": sv.licence_no,
+    }), 200
+
+@app.patch("/api/sv/<int:sv_id>")
+@require_auth
+def update_sv(sv_id):
+    sv = Sv.query.filter_by(id=sv_id, owner_id=int(request.user_id)).first()
+    if not sv:
+        return jsonify({"message": "not found"}), 404
+    data = request.json or {}
+    if "nickname" in data:
+        sv.nickname = data["nickname"]
+    if "licence_no" in data:
+        sv.licence_no = data["licence_no"]
+    try:
         db.session.commit()
     except (TypeError, ValueError) as e:
         db.session.rollback()
@@ -312,6 +334,35 @@ def create_car():
         "pairing_secret": car.pairing_secret,
     }), 200
 
+
+@app.patch("/api/cars/<int:car_id>")
+@require_auth
+def update_car(car_id):
+    car = Car.query.filter_by(id=car_id, owner_id=int(request.user_id)).first()
+    if not car:
+        return jsonify({"message": "not found"}), 404
+    data = request.json or {}
+    if "nickname" in data:
+        car.nickname = data["nickname"]
+    if "plate" in data:
+        car.plate = data["plate"]
+    if "ble_device_name" in data:
+        car.ble_device_name = data["ble_device_name"]
+    if "ble_service_uuid" in data:
+        car.ble_service_uuid = data["ble_service_uuid"]
+    try:
+        db.session.commit()
+    except (TypeError, ValueError) as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 400
+    return jsonify({
+        "id": car.id,
+        "nickname": car.nickname,
+        "plate": car.plate,
+        "ble_device_name": car.ble_device_name,
+        "ble_service_uuid": car.ble_service_uuid,
+        "has_pairing_secret": bool(car.pairing_secret),
+    }), 200
 
 @app.delete("/api/cars")
 @require_auth

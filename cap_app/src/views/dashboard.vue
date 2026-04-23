@@ -15,6 +15,23 @@
         <p>day {{ totalDay }}</p>
         <p>night {{ totalNight }}</p>
         <p>sum {{ total }}</p> -->
+        <ion-card v-for="(t, i) in [...trips.reverse()]" :key="t.start_time">
+          <ion-card-header >
+            <ion-card-title>Trip {{ trips.length - i}} {{t.day_night == 'day' ? '☀️' : '🌜' }}</ion-card-title>
+            <!-- <ion-card-subtitle>duration {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,0) }}</ion-card-subtitle> -->
+          </ion-card-header>
+          <ion-card-content>
+            <p>duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,0) }}</p>
+            <p>length: {{ t.end_odo - t.start_odo }} km</p>
+            <p>start odo: {{ t.start_odo }}km</p>
+            <p>end odo: {{ t.end_odo }}km</p>
+            <p>car: {{  }}</p>
+            <p>parent driver: {{  }}</p>
+            <p>weather: {{ t.weather }}</p>
+            <p></p>
+            <!-- <p>{{ t }}</p> -->
+          </ion-card-content>
+        </ion-card>
     </ion-content>
   </ion-page>
 </template>
@@ -34,9 +51,10 @@ let status = ref('🔄')
 const totalDay = ref('')
 const totalNight = ref('')
 const total = ref('')
-const capDay = ref(100)
-const capNight = ref(100)
+const capDay = ref(90)
+const capNight = ref(10)
 const capTotal = ref(100)
+
 
 type PieData = { datasets: [{ data: number[]; backgroundColor: string[] }] }
 const prefNum = (v: string | null) => parseInt(v ?? '100', 10) || 100
@@ -63,7 +81,7 @@ const updateHours = async () => {
   console.log(trips);
   
   const tot = day + night
-  totalDay.value = day.toFixed(2)
+  totalDay.value = (tot - night).toFixed(2)
   totalNight.value = night.toFixed(2)
   total.value = tot.toFixed(2)
   setRing(DchartData, day, capDay.value)
@@ -129,9 +147,12 @@ const load_dasbord = async () => {
     [TchartData, t],
   ] as [Ref<PieData>, number][])
     setRing(ch, 0, cap)
+  // do all sycing so if go offline later it will still work
   await uploadTrips()
   await pullTrips()
+  await pullSv()
   await updateHours()
+
 }
 
 const pullTrips = async () => {
@@ -144,6 +165,36 @@ const pullTrips = async () => {
   const remote = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
   const synced = remote.map((t: any) => ({ ...t, synced: true }))
   await Preferences.set({ key: 'trips', value: JSON.stringify(synced) })
+  trips.value = synced
+}
+
+const pullSv = async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const res = await CapacitorHttp.get({
+    url: `${API_URL}/api/sv`,
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (res.status !== 200) return
+  const remote = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+  await Preferences.set({ key: 'svs', value: JSON.stringify(remote) })
+}
+
+type GpsPoint = {
+  lat: number
+  lon: number
+  time: number
+}
+
+type Trip = {
+  start_time: number
+  end_time: number
+  start_odo: number
+  end_odo: number
+  day: boolean
+  day_night: 'day' | 'night'
+  weather: string
+  gps: GpsPoint[]
+  synced: boolean
 }
 
 onIonViewDidEnter(load_dasbord)

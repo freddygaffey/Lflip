@@ -109,22 +109,18 @@ const save = async () => {
     licence_no: form.value.licence_no || null,
   }
 
-  if (form.value.id) {
-    const delRes = await CapacitorHttp.delete({
-      url: `${API_URL}/api/sv/${form.value.id}`,
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    if (delRes.status !== 200) {
-      console.error('delete-before-create failed', delRes.status, delRes.data)
-      return
-    }
-  }
-
-  const res = await CapacitorHttp.post({
-    url: `${API_URL}/api/sv`,
-    headers,
-    data: payload,
-  })
+  const isEdit = !!form.value.id
+  const res = isEdit
+    ? await CapacitorHttp.patch({
+        url: `${API_URL}/api/sv/${form.value.id}`,
+        headers,
+        data: payload,
+      })
+    : await CapacitorHttp.post({
+        url: `${API_URL}/api/sv`,
+        headers,
+        data: payload,
+      })
 
   if (res.status === 200) {
     const saved = typeof res.data === 'string' ? JSON.parse(res.data) : res.data

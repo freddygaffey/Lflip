@@ -35,6 +35,7 @@
           <ion-label>Click to add supervisor</ion-label>
         </ion-item>
        </ion-list>
+    <ion-button @click="signOut">Sign Out</ion-button>
     </ion-content>
   </ion-page>
 </template>
@@ -79,6 +80,10 @@ const newCar = ref({ nickname: '', plate: '', ble_device_name: '' })
 
 
 async function onCarClick(car: Car | null) {
+  if (!navigator.onLine) {
+    alert("you need to be online to edit cars")
+    return
+  }
   if (!Capacitor.isNativePlatform() && car === null) {
     alert("sorry you cant make a car you need to be on a phone");
     return;
@@ -101,7 +106,7 @@ async function onCarClick(car: Car | null) {
 type Sv = {
   id: number
   nickname: string
-  licence_no: number
+  licence_no: string | null
 }
 const svs = ref<Sv[]>([])
 const newSv = ref({ nickname: '', licence_no: ''})
@@ -125,6 +130,10 @@ onMounted(async () => {
 })
 
 async function onSvClick(sv: Sv | null) {
+  if (!navigator.onLine) {
+    alert("you need to be online to edit supervisors")
+    return
+  }
   const model = await modalController.create({
     component: SvFormModal,
     componentProps: { sv }
@@ -138,6 +147,14 @@ async function onSvClick(sv: Sv | null) {
   else if (role == 'delete' && sv) {
     svs.value = svs.value.filter(s => s.id != sv.id)
   }
+}
+async function signOut(){
+  if (!navigator.onLine) {
+    alert("you need to be online to sign out as it will cause sync isues")
+    return
+  }
+  await Preferences.clear()
+  router.push("/")
 }
 </script>
 
