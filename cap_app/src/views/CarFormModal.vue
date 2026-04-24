@@ -76,20 +76,12 @@ import {
   IonItem,
   IonLabel,
 } from '@ionic/vue'
-import { Preferences } from '@capacitor/preferences'
-import { CapacitorHttp, Capacitor } from '@capacitor/core'
-
-type Car = {
-  id?: number
-  nickname: string
-  plate: string | null
-  ble_device_name: string | null
-}
+import { Capacitor } from '@capacitor/core'
+import { carsStore, type Car } from './classes/cars'
 
 type Found = { deviceId: string; name?: string }
 
 const props = defineProps<{ car: Car | null }>()
-const API_URL = import.meta.env.VITE_API_URL
 
 const form = ref({
   id: props.car?.id,
@@ -149,19 +141,9 @@ const del = async () => {
 }
 
 const doDelete = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const res = await CapacitorHttp.delete({
-    url: `${API_URL}/api/cars/${form.value.id}`,
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  console.log('delete resp', res.status, res.data)
-  if (res.status === 200) {
-    const { value: cached } = await Preferences.get({ key: 'cars' })
-    const list = cached ? JSON.parse(cached) : []
-    const next = list.filter((c: any) => c.id !== form.value.id)
-    await Preferences.set({ key: 'cars', value: JSON.stringify(next) })
-    dismiss('delete', { id: form.value.id })
-  } else console.error('delete failed', res.status, res.data)
+  if (!form.value.id) return
+  await carsStore.delete_car(form.value.id)
+  dismiss('delete')
 }
 
 const save = async () => {
@@ -169,38 +151,17 @@ const save = async () => {
     alert("sorry you cant edit cars you need to be on a phone")
     return
   }
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  }
-
-  const isEdit = !!form.value.id
-  const url = isEdit
-    ? `${API_URL}/api/cars/${form.value.id}`
-    : `${API_URL}/api/cars`
-
   const payload = {
     nickname: form.value.nickname,
     plate: form.value.plate || null,
     ble_device_name: form.value.ble_device_name || null,
   }
-  console.log('POST', url, payload)
 
-  const res = isEdit
-    ? await CapacitorHttp.patch({ url, headers, data: payload })
-    : await CapacitorHttp.post({ url, headers, data: payload })
-
-  console.log('save resp', res.status, res.data)
-  if (res.status === 200) {
-    const saved = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
-    const { value: cached } = await Preferences.get({ key: 'cars' })
-    const list = cached ? JSON.parse(cached) : []
-    const idx = list.findIndex((c: any) => c.id === saved.id)
-    if (idx >= 0) list[idx] = saved
-    else list.push(saved)
-    await Preferences.set({ key: 'cars', value: JSON.stringify(list) })
-    dismiss('save', saved)
-  } else console.error('save failed', res.status, res.data)
+  if (form.value.id) {
+    await carsStore.update_car({ id: form.value.id, ...payload } as Car)
+  } else {
+    await carsStore.add_car(payload as Car)
+  }
+  dismiss('save')
 }
 </script>

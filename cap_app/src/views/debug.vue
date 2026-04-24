@@ -86,11 +86,11 @@ const seedTrips = async () => {
   const now = Date.now()
   const hr = 3600000
   const fakeTrips = [
-    { start_time: now - 10 * hr, end_time: now - 7 * hr, start_odo: 100, end_odo: 250, day: true, day_night: 'day', weather: 'sunny', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 10 * hr }], synced: false },
-    { start_time: now - 20 * hr, end_time: now - 18 * hr, start_odo: 250, end_odo: 370, day: false, day_night: 'night', weather: 'cloudy', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 20 * hr }], synced: false },
-    { start_time: now - 30 * hr, end_time: now - 27 * hr, start_odo: 370, end_odo: 520, day: true, day_night: 'day', weather: 'rain', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 30 * hr }], synced: false },
-    { start_time: now - 40 * hr, end_time: now - 38 * hr, start_odo: 520, end_odo: 630, day: true, day_night: 'day', weather: 'sunny', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 40 * hr }], synced: false },
-    { start_time: now - 50 * hr, end_time: now - 48 * hr, start_odo: 630, end_odo: 740, day: false, day_night: 'night', weather: 'fog', supervising_driver_id: sv.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 50 * hr }], synced: false },
+    { start_time: now - 10 * hr, end_time: now - 7 * hr, start_odo: 100, end_odo: 250, day: true, day_night: 'day', weather: 'sunny', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 10 * hr }], synced: false },
+    { start_time: now - 20 * hr, end_time: now - 18 * hr, start_odo: 250, end_odo: 370, day: false, day_night: 'night', weather: 'cloudy', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 20 * hr }], synced: false },
+    { start_time: now - 30 * hr, end_time: now - 27 * hr, start_odo: 370, end_odo: 520, day: true, day_night: 'day', weather: 'rain', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 30 * hr }], synced: false },
+    { start_time: now - 40 * hr, end_time: now - 38 * hr, start_odo: 520, end_odo: 630, day: true, day_night: 'day', weather: 'sunny', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 40 * hr }], synced: false },
+    { start_time: now - 50 * hr, end_time: now - 48 * hr, start_odo: 630, end_odo: 740, day: false, day_night: 'night', weather: 'fog', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 50 * hr }], synced: false },
   ]
   await Preferences.set({ key: 'trips', value: JSON.stringify(fakeTrips) })
   alert(`Seeded SV id=${sv.id}, Car id=${car.id}, and 5 trips (local only, synced: false).`)

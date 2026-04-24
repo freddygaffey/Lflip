@@ -15,19 +15,19 @@
         <p>day {{ totalDay }}</p>
         <p>night {{ totalNight }}</p>
         <p>sum {{ total }}</p> -->
-        <ion-card v-for="(t, i) in [...trips.reverse()]" :key="t.start_time">
+        <ion-card v-for="(t, i) in trips.slice().reverse()" :key="t.start_time">
           <ion-card-header >
             <ion-card-title>Trip {{ trips.length - i}} {{t.day_night == 'day' ? '☀️' : '🌜' }}</ion-card-title>
             <!-- <ion-card-subtitle>duration {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,0) }}</ion-card-subtitle> -->
           </ion-card-header>
           <ion-card-content>
-            <p>duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,0) }}</p>
-            <p>length: {{ t.end_odo - t.start_odo }} km</p>
-            <p>start odo: {{ t.start_odo }}km</p>
-            <p>end odo: {{ t.end_odo }}km</p>
-            <p>car: {{  }}</p>
-            <p>parent driver: {{  }}</p>
-            <p>weather: {{ t.weather }}</p>
+            <p>Duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,0) }}</p>
+            <p>Length: {{ t.end_odo - t.start_odo }} km</p>
+            <p>Start odo: {{ t.start_odo }}km</p>
+            <p>End odo: {{ t.end_odo }}km</p>
+            <p>Ear: {{ carsStore.get_car_by_id(t.car_id)?.nickname }}</p>
+            <p>Parent driver: {{  }}</p>
+            <p>Weather: {{ t.weather }}</p>
             <p></p>
             <!-- <p>{{ t }}</p> -->
           </ion-card-content>
@@ -38,13 +38,13 @@
 
 <script setup lang="ts">
 import { ref, type Ref } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, onIonViewDidEnter } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardHeader, IonCardTitle, IonCardContent, onIonViewDidEnter } from '@ionic/vue'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
 
 import { Pie } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js'
-// import { st } from 'vue-router/dist/router-CWoNjPRp.mjs'
+import { carsStore } from './classes/cars'
 
 const API_URL = import.meta.env.VITE_API_URL
 let status = ref('🔄')
@@ -55,6 +55,7 @@ const capDay = ref(90)
 const capNight = ref(10)
 const capTotal = ref(100)
 
+carsStore.pull_cloud()
 
 type PieData = { datasets: [{ data: number[]; backgroundColor: string[] }] }
 const prefNum = (v: string | null) => parseInt(v ?? '100', 10) || 100
@@ -196,6 +197,8 @@ type Trip = {
   gps: GpsPoint[]
   synced: boolean
 }
+
+const trips = ref<Trip[]>([])
 
 onIonViewDidEnter(load_dasbord)
 </script> 

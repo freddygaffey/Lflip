@@ -39,8 +39,8 @@
         end_odo: null,
         gps: [],
         accel: [],
-        sv_id: 0,
-        car_id: 0,
+        sv_id: 1,
+        car_id: 1,
         weather: null,
         day: null,
         synced: false}

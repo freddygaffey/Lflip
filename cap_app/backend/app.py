@@ -164,7 +164,9 @@ def sync_trips():
             end_odo=trip_data.get("end_odo"),
             day_night="night" if trip_data.get("day") is False else "day",
             weather=trip_data.get("weather"),
-            notes=None,
+            car_id=trip_data.get("car_id"),
+            sv_id=trip_data.get("sv_id"),
+            notes=trip_data.get("notes"),
         )
         db.session.add(trip)
         db.session.commit()
@@ -214,6 +216,9 @@ def pull_trips():
         "end_odo": t.end_odo,
         "day_night": t.day_night,
         "weather": t.weather,
+        "car_id": t.car_id,
+        "sv_id": t.sv_id,
+        "notes": t.notes,
     } for t in trips]), 200
 
 # i copied the car routes and just renamed  

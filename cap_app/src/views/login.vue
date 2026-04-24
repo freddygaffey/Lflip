@@ -22,6 +22,7 @@ import { useRouter } from 'vue-router'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
 import { onMounted } from 'vue';
+import { carsStore } from './classes/cars';
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -70,5 +71,7 @@ const signIn = async () => {
     await fetchState()
     router.push('/tabs/dashboard')
   }
+  // this will do offline cashing 
+  carsStore.pull_cloud()
 }
 </script>

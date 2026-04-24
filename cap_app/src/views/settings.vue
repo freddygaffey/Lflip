@@ -62,21 +62,12 @@ import { CapacitorHttp } from '@capacitor/core'
 import CarFormModal from './CarFormModal.vue'
 import SvFormModal from './SvFormModal.vue'
 import { Capacitor } from '@capacitor/core'
+import { carsStore, type Car } from './classes/cars'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 
-type Car = {
-  id: number
-  nickname: string
-  plate: string | null
-  ble_device_name: string | null
-  ble_service_uuid: string | null
-  has_pairing_secret: boolean
-}
-
-const cars = ref<Car[]>([])
-const newCar = ref({ nickname: '', plate: '', ble_device_name: '' })
+const cars = carsStore.cars
 
 
 async function onCarClick(car: Car | null) {
@@ -93,14 +84,7 @@ async function onCarClick(car: Car | null) {
     componentProps: { car }
   })
   await model.present()
-  const { data, role } = await model.onWillDismiss()
-  if (role == 'save') {
-    if (car) Object.assign(car,data)
-    else cars.value.push(data)
-  }
-  else if (role == 'delete' && car) {
-    cars.value = cars.value.filter(c => c.id != car.id)
-  }
+  await model.onWillDismiss()
 }
 
 type Sv = {
@@ -112,15 +96,11 @@ const svs = ref<Sv[]>([])
 const newSv = ref({ nickname: '', licence_no: ''})
 
 onMounted(async () => {
+  await carsStore.pull_cloud()
+
   // this function is ai genarated
   const { value: token } = await Preferences.get({ key: 'auth_token' })
   const headers = { Authorization: `Bearer ${token}` }
-
-  const carsRes = await CapacitorHttp.get({ url: `${API_URL}/api/cars`, headers })
-  if (carsRes.status === 200) {
-    cars.value = typeof carsRes.data === 'string' ? JSON.parse(carsRes.data) : carsRes.data
-    await Preferences.set({ key: 'cars', value: JSON.stringify(cars.value) })
-  }
 
   const svRes = await CapacitorHttp.get({ url: `${API_URL}/api/sv`, headers })
   if (svRes.status === 200) {

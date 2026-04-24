@@ -4,7 +4,7 @@
 // i made a UAV called skydock that useed a psudo sington like this it work or that so i reused that concept
 // this file is not written by AI save where documented
 
-import { ref, type Ref } from 'vue'
+import { ref } from 'vue'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
 
@@ -22,12 +22,6 @@ export type Car = {
 
 class Cars{
     cars = ref<Car[]>([])  
-    time_cloud_sync: number;
-
-    constructor(){
-        this.time_cloud_sync = Date.now()
-        this.cars.value = []
-   }
 
     private async headers(){
         const { value: token } = await Preferences.get({ key: 'auth_token' })
@@ -52,22 +46,19 @@ class Cars{
     async add_car(car:Car){
         let tok = await this.headers()
         const headers = { ...tok, 'Content-Type': 'application/json' }
-        this.cars.value.push(car)
-        await Preferences.set({ key: 'cars', value: JSON.stringify(this.cars.value) })
-        await CapacitorHttp.post({ url:`${API_URL}/api/cars`, headers, data: car })
+        const res = await CapacitorHttp.post({ url:`${API_URL}/api/cars`, headers, data: car })
+        if (res.status !== 200 ) return 
+        await this.pull_cloud()
     }
 
-    // ai generated
     async delete_car(id: number){
         const headers = await this.headers()
         const res = await CapacitorHttp.delete({ url: `${API_URL}/api/cars/${id}`, headers })
-        if (res.status === 200) {
-            this.cars.value = this.cars.value.filter(c => c.id !== id)
-            await Preferences.set({ key: 'cars', value: JSON.stringify(this.cars.value) })
-        }
+        if (res.status !== 200) return
+        await this.pull_cloud()
     }
 
-    // ai generated
+    // ai generated (humen improved)
     async update_car(car: Car){
         const headers = { ...(await this.headers()), 'Content-Type': 'application/json' }
         const payload = {
@@ -76,12 +67,8 @@ class Cars{
             ble_device_name: car.ble_device_name || null,
         }
         const res = await CapacitorHttp.patch({ url: `${API_URL}/api/cars/${car.id}`, headers, data: payload })
-        if (res.status === 200) {
-            const saved = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
-            const idx = this.cars.value.findIndex(c => c.id === saved.id)
-            if (idx >= 0) this.cars.value[idx] = saved
-            await Preferences.set({ key: 'cars', value: JSON.stringify(this.cars.value) })
-        }
+        if (res.status !== 200 ) return 
+        await this.pull_cloud()
     }
 
     get_car_by_id(id:number){
@@ -91,4 +78,4 @@ class Cars{
 
 }
 
-export let carsStore =new Cars()
+export const carsStore =new Cars()
