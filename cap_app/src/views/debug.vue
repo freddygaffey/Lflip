@@ -78,10 +78,16 @@ const seedTrips = async () => {
     headers,
     data: { nickname: 'Test Car', plate: 'TEST-01' },
   })
+  const carRes2 = await CapacitorHttp.post({
+    url: `${API_URL}/api/cars`,
+    headers,
+    data: { nickname: 'Test Car', plate: 'TEST-01' },
+  })
   const car = carRes.data
+  const car2 = carRes2.data
 
   await Preferences.set({ key: 'svs', value: JSON.stringify([sv]) })
-  await Preferences.set({ key: 'cars', value: JSON.stringify([car]) })
+  await Preferences.set({ key: 'cars', value: JSON.stringify([car, car2]) })
 
   const now = Date.now()
   const hr = 3600000

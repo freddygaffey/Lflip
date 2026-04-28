@@ -90,6 +90,7 @@ class Sv(db.Model):
     nickname = db.Column(db.String(100), nullable=False)
     licence_no = db.Column(db.String(100),nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
+    last_used = db.Column(db.DateTime, nullable=True)
 
     owner = db.relationship("User", foreign_keys=[owner_id])
 
@@ -102,6 +103,7 @@ class Car(db.Model):
     ble_service_uuid = db.Column(db.String(36), nullable=True)
     pairing_secret = db.Column(db.String(64), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.now)
+    last_used = db.Column(db.DateTime, nullable=True)
 
     owner = db.relationship("User", foreign_keys=[owner_id])
 

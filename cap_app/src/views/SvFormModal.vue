@@ -48,17 +48,9 @@ import {
   IonContent,
   IonInput,
 } from '@ionic/vue'
-import { Preferences } from '@capacitor/preferences'
-import { CapacitorHttp } from '@capacitor/core'
-
-type Sv = {
-  id?: number
-  nickname: string
-  licence_no: string | null
-}
+import { svsStore, type Sv } from './classes/svs'
 
 const props = defineProps<{ sv: Sv | null }>()
-const API_URL = import.meta.env.VITE_API_URL
 
 const form = ref({
   id: props.sv?.id,
@@ -83,53 +75,20 @@ const del = async () => {
 }
 
 const doDelete = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const res = await CapacitorHttp.delete({
-    url: `${API_URL}/api/sv/${form.value.id}`,
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (res.status === 200) {
-    const { value: cached } = await Preferences.get({ key: 'svs' })
-    const list = cached ? JSON.parse(cached) : []
-    const next = list.filter((s: any) => s.id !== form.value.id)
-    await Preferences.set({ key: 'svs', value: JSON.stringify(next) })
-    dismiss('delete', { id: form.value.id })
-  } else console.error('delete failed', res.status, res.data)
+  if (!form.value.id) return
+  await svsStore.delete_sv(form.value.id)
+  dismiss('delete', { id: form.value.id })
 }
 
 const save = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  }
-
-  const payload = {
+  const payload: Sv = {
+    id: form.value.id ?? 0,
     nickname: form.value.nickname,
     licence_no: form.value.licence_no || null,
+    last_used: props.sv?.last_used ?? null,
   }
-
-  const isEdit = !!form.value.id
-  const res = isEdit
-    ? await CapacitorHttp.patch({
-        url: `${API_URL}/api/sv/${form.value.id}`,
-        headers,
-        data: payload,
-      })
-    : await CapacitorHttp.post({
-        url: `${API_URL}/api/sv`,
-        headers,
-        data: payload,
-      })
-
-  if (res.status === 200) {
-    const saved = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
-    const { value: cached } = await Preferences.get({ key: 'svs' })
-    const list = cached ? JSON.parse(cached) : []
-    const next = list.filter((s: any) => s.id !== form.value.id)
-    next.push(saved)
-    await Preferences.set({ key: 'svs', value: JSON.stringify(next) })
-    dismiss('save', saved)
-  } else console.error('save failed', res.status, res.data)
+  if (form.value.id) await svsStore.update_sv(payload)
+  else await svsStore.add_sv(payload)
+  dismiss('save', payload)
 }
 </script>

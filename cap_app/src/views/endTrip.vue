@@ -66,10 +66,11 @@ const detectWeather = async () => {
   try {
     const pos = await Geolocation.getCurrentPosition()
     const { latitude: lat, longitude: lon } = pos.coords
-    const res = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=weather_code,is_day`
-    )
-    const data = await res.json()
+    const res = await CapacitorHttp.get({
+      url: 'https://api.open-meteo.com/v1/forecast',
+      params: { latitude: String(lat), longitude: String(lon), current: 'weather_code,is_day' },
+    })
+    const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
     weather.value = mapWeatherCode(data.current.weather_code)
     isDay.value = data.current.is_day === 1
   } catch {
@@ -100,7 +101,7 @@ const save = async () => {
   await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
 
   const { value: token } = await Preferences.get({ key: 'auth_token' })
-  if (token) {
+  if (token && navigator.onLine) {
     type LocalTrip = { synced?: boolean }
     const unsynced = (trips as LocalTrip[]).filter((trip) => !trip.synced)
     for (const trip of unsynced) {
@@ -113,6 +114,7 @@ const save = async () => {
         data: { trip },
       })
       if (response.status === 200) trip.synced = true
+      else {trips.synced = false}
     }
     await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
   }

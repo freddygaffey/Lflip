@@ -8,6 +8,16 @@
     <ion-content>
       <ion-button @click="start" :disabled="!start_odo">Start</ion-button>
       <ion-input v-model="start_odo" placeholder="start odo (km)" type="text" inputmode="numeric"></ion-input>
+    <ion-item>
+      <ion-select label="Car" label-placement="floating" placeholder="Pick a car" v-model="selectedCarId">
+        <ion-select-option value="null">Guest Car</ion-select-option>
+        <ion-select-option 
+        v-for="(c, i) in cars"
+        :key="c.id"
+        :value="c.id"
+         >{{ c.nickname }}</ion-select-option>
+      </ion-select>
+    </ion-item>
       <!-- <ion-button @click="getPos">get poss</ion-button> -->
       <!-- <p>{{ posT }}</p> -->
     </ion-content>
@@ -15,13 +25,18 @@
 </template>
 
 <script setup lang="ts">
-  import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle } from '@ionic/vue';
+  import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
   import { Geolocation } from '@capacitor/geolocation'
   import { ref } from 'vue';
   import { Preferences } from '@capacitor/preferences'
   import { useRouter } from 'vue-router';
+import { carsStore } from './classes/cars';
+import { log } from 'console';
 
   const start_odo = ref('')
+  const cars = carsStore.cars
+  const selectedCarId = ref<number | null>(null)
+
 
   const router = useRouter()
   const start = async () => {
@@ -30,7 +45,7 @@
     // await Preferences.set({
     // key: 'odo',
     // value: String(odo)})
-
+  
 
   const newTrip = {
         start_time: Date.now(),
@@ -40,7 +55,7 @@
         gps: [],
         accel: [],
         sv_id: 1,
-        car_id: 1,
+        car_id: selectedCarId.value,
         weather: null,
         day: null,
         synced: false}
@@ -60,6 +75,7 @@
   const getPos = async () => {
     await Geolocation.requestPermissions()
     const pos = await Geolocation.getCurrentPosition()
+    console.log(pos)
     console.log(pos.coords.latitude, pos.coords.longitude)
     // posT.value = `${pos.coords.latitude}, ${pos.coords.longitude}`
   }

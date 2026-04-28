@@ -63,6 +63,7 @@ import CarFormModal from './CarFormModal.vue'
 import SvFormModal from './SvFormModal.vue'
 import { Capacitor } from '@capacitor/core'
 import { carsStore, type Car } from './classes/cars'
+import { svsStore, type Sv } from './classes/svs'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -87,26 +88,12 @@ async function onCarClick(car: Car | null) {
   await model.onWillDismiss()
 }
 
-type Sv = {
-  id: number
-  nickname: string
-  licence_no: string | null
-}
-const svs = ref<Sv[]>([])
+const svs = svsStore.svs
 const newSv = ref({ nickname: '', licence_no: ''})
 
 onMounted(async () => {
   await carsStore.pull_cloud()
-
-  // this function is ai genarated
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const headers = { Authorization: `Bearer ${token}` }
-
-  const svRes = await CapacitorHttp.get({ url: `${API_URL}/api/sv`, headers })
-  if (svRes.status === 200) {
-    svs.value = typeof svRes.data === 'string' ? JSON.parse(svRes.data) : svRes.data
-    await Preferences.set({ key: 'svs', value: JSON.stringify(svs.value) })
-  }
+  await svsStore.pull_cloud()
 })
 
 async function onSvClick(sv: Sv | null) {

@@ -58,7 +58,6 @@ class Cars{
         await this.pull_cloud()
     }
 
-    // ai generated (humen improved)
     async update_car(car: Car){
         const headers = { ...(await this.headers()), 'Content-Type': 'application/json' }
         const payload = {

@@ -21,11 +21,11 @@
             <!-- <ion-card-subtitle>duration {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,0) }}</ion-card-subtitle> -->
           </ion-card-header>
           <ion-card-content>
-            <p>Duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,0) }}</p>
+            <p>Duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,'0') }}</p>
             <p>Length: {{ t.end_odo - t.start_odo }} km</p>
             <p>Start odo: {{ t.start_odo }}km</p>
             <p>End odo: {{ t.end_odo }}km</p>
-            <p>Ear: {{ carsStore.get_car_by_id(t.car_id)?.nickname }}</p>
+            <p>Car: {{ carsStore.get_car_by_id(t.car_id)?.nickname }}</p>
             <p>Parent driver: {{  }}</p>
             <p>Weather: {{ t.weather }}</p>
             <p></p>
@@ -45,6 +45,7 @@ import { Preferences } from '@capacitor/preferences'
 import { Pie } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js'
 import { carsStore } from './classes/cars'
+import { svsStore } from './classes/svs'
 
 const API_URL = import.meta.env.VITE_API_URL
 let status = ref('🔄')
@@ -153,6 +154,7 @@ const load_dasbord = async () => {
   await pullTrips()
   await pullSv()
   await updateHours()
+  // await console.log(carsStore.cars)
 
 }
 
@@ -169,16 +171,7 @@ const pullTrips = async () => {
   trips.value = synced
 }
 
-const pullSv = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const res = await CapacitorHttp.get({
-    url: `${API_URL}/api/sv`,
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (res.status !== 200) return
-  const remote = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
-  await Preferences.set({ key: 'svs', value: JSON.stringify(remote) })
-}
+const pullSv = () => svsStore.pull_cloud()
 
 type GpsPoint = {
   lat: number
@@ -196,6 +189,8 @@ type Trip = {
   weather: string
   gps: GpsPoint[]
   synced: boolean
+  car_id: number
+  sv_id: number
 }
 
 const trips = ref<Trip[]>([])

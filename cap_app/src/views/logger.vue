@@ -18,7 +18,6 @@
   import { useRouter } from 'vue-router';
   import { Geolocation } from '@capacitor/geolocation';
   import { Preferences } from '@capacitor/preferences';
-  import { Car, Sv } from './sync.vue';
 
   const router = useRouter()
 

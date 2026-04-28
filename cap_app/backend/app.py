@@ -166,35 +166,27 @@ def sync_trips():
             weather=trip_data.get("weather"),
             car_id=trip_data.get("car_id"),
             sv_id=trip_data.get("sv_id"),
-            notes=trip_data.get("notes"),
+            notes=None,
         )
         db.session.add(trip)
         db.session.commit()
+
+        gps = trip_data.get("gps") or []
+        for i in gps:
+            p = GpsPoint(
+                trip_id=trip.id,
+                speed=i.get("speed"),
+                lon=i.get("lon"),
+                lat=i.get("lat"),
+                timestamp=datetime.fromtimestamp(i.get("time") / 1000),
+            )
+            db.session.add(p)
+        db.session.commit()
+
     except (TypeError, ValueError) as e:
         db.session.rollback()
         return jsonify({"message": str(e)}), 400
     return jsonify({"message": "ok"}), 200
-
-# @app.post("/api/trips/sync")
-# @require_auth
-# def sync_trips():
-#     data = request.json
-#     print(data)
-#     trips = data.get("trips", [])
-#     for t in trips:
-#         trip = Trip(
-#             learner_id=request.user_id,
-#             start_time=datetime.fromtimestamp(t.get("start_time") / 1000),
-#             end_time=datetime.fromtimestamp(t.get("end_time") / 1000),
-#             start_odometer=t.get("start_odo"),
-#             end_odometer=t.get("end_odo"),
-#             day_night="day" if t.get("day") else "night",
-#             notes={"weather": t.get("weather")}
-#         )
-#         db.session.add(trip)
-#     db.session.commit()
-#     return jsonify({"message": "ok"}), 200
-
 
 @app.delete("/api/trips")
 @require_auth
@@ -208,18 +200,35 @@ def delete_trips():
 @require_auth
 def pull_trips():
     trips = Trip.query.filter_by(learner_id=int(request.user_id)).all()
-    return jsonify([{
-        "id": t.id,
-        "start_time": t.start_time.timestamp() * 1000,
-        "end_time": t.end_time.timestamp() * 1000,
-        "start_odo": t.start_odo,
-        "end_odo": t.end_odo,
-        "day_night": t.day_night,
-        "weather": t.weather,
-        "car_id": t.car_id,
-        "sv_id": t.sv_id,
-        "notes": t.notes,
-    } for t in trips]), 200
+    value_json = []
+    for t in trips:
+        gps = GpsPoint.query.filter_by(trip_id=int(t.id)).all()
+        gps_arr = []
+        for g in gps:
+            gps_arr.append({
+                "time": g.timestamp.timestamp() * 1000,
+                "lon": g.lon,
+                "lat": g.lat,
+                "speed": g.speed})
+
+        td = {
+            "id": t.id,
+            "start_time": t.start_time.timestamp() * 1000,
+            "end_time": t.end_time.timestamp() * 1000,
+            "start_odo": t.start_odo,
+            "end_odo": t.end_odo,
+            "day_night": t.day_night,
+            "weather": t.weather,
+            "car_id": t.car_id,
+            "sv_id": t.sv_id,
+            "notes": t.notes,
+            "gps": gps_arr}
+
+        value_json.append(td)
+
+    return jsonify(value_json), 200
+
+
 
 # i copied the car routes and just renamed  
 @app.get("/api/sv")
@@ -229,7 +238,8 @@ def list_sv():
     return jsonify([{
         "id": c.id,
         "nickname": c.nickname,
-        "licence_no": c.licence_no
+        "licence_no": c.licence_no,
+        "last_used": c.last_used.timestamp() * 1000 if c.last_used else None,
     } for c in sv]), 200
 
 @app.post("/api/sv")
@@ -268,6 +278,8 @@ def update_sv(sv_id):
         sv.nickname = data["nickname"]
     if "licence_no" in data:
         sv.licence_no = data["licence_no"]
+    if "last_used" in data:
+        sv.last_used = datetime.fromtimestamp(data["last_used"] / 1000) if data["last_used"] else None
     try:
         db.session.commit()
     except (TypeError, ValueError) as e:
@@ -277,6 +289,7 @@ def update_sv(sv_id):
         "id": sv.id,
         "nickname": sv.nickname,
         "licence_no": sv.licence_no,
+        "last_used": sv.last_used.timestamp() * 1000 if sv.last_used else None,
     }), 200
 
 @app.delete("/api/sv")
@@ -307,6 +320,7 @@ def list_cars():
         "ble_device_name": c.ble_device_name,
         "ble_service_uuid": c.ble_service_uuid,
         "has_pairing_secret": bool(c.pairing_secret),
+        "last_used": c.last_used.timestamp() * 1000 if c.last_used else None,
     } for c in cars]), 200
 
 @app.post("/api/cars")
@@ -355,6 +369,8 @@ def update_car(car_id):
         car.ble_device_name = data["ble_device_name"]
     if "ble_service_uuid" in data:
         car.ble_service_uuid = data["ble_service_uuid"]
+    if "last_used" in data:
+        car.last_used = datetime.fromtimestamp(data["last_used"] / 1000) if data["last_used"] else None
     try:
         db.session.commit()
     except (TypeError, ValueError) as e:
@@ -367,6 +383,7 @@ def update_car(car_id):
         "ble_device_name": car.ble_device_name,
         "ble_service_uuid": car.ble_service_uuid,
         "has_pairing_secret": bool(car.pairing_secret),
+        "last_used": car.last_used.timestamp() * 1000 if car.last_used else None,
     }), 200
 
 @app.delete("/api/cars")
