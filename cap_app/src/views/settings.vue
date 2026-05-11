@@ -29,7 +29,7 @@
           button
           @click="onSvClick(sv)"
         >
-          <ion-label>{{ sv.nickname }}</ion-label>
+          <ion-label>{{ sv.full_name }}</ion-label>
         </ion-item>
         <ion-item button @click="onSvClick(null)">
           <ion-label>Click to add supervisor</ion-label>
@@ -89,7 +89,7 @@ async function onCarClick(car: Car | null) {
 }
 
 const svs = svsStore.svs
-const newSv = ref({ nickname: '', licence_no: ''})
+const newSv = ref({ full_name: '', licence_no: ''})
 
 onMounted(async () => {
   await carsStore.pull_cloud()

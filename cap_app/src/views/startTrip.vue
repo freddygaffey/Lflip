@@ -25,7 +25,7 @@
         v-for="(sv, i) in svs"
         :key="sv.id"
         :value="sv.id"
-         >{{ sv.nickname }}</ion-select-option>
+         >{{ sv.full_name }}</ion-select-option>
       </ion-select>
     </ion-item>
     <ion-input v-if="selectedSvId === null" placeholder="enter full name as on licence"></ion-input>

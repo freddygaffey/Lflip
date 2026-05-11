@@ -14,8 +14,8 @@
 
   <ion-content class="ion-padding">
     <ion-input
-      v-model="form.nickname"
-      label="Nickname"
+      v-model="form.full_name"
+      label="Full name"
       label-placement="stacked"
     />
     <ion-input
@@ -28,7 +28,7 @@
       expand="block"
       class="ion-margin-top"
       @click="save"
-      :disabled="!form.nickname.trim()"
+      :disabled="!form.full_name.trim()"
     >
       Save
     </ion-button>
@@ -54,7 +54,7 @@ const props = defineProps<{ sv: Sv | null }>()
 
 const form = ref({
   id: props.sv?.id,
-  nickname: props.sv?.nickname ?? '',
+  full_name: props.sv?.full_name ?? '',
   licence_no: props.sv?.licence_no ?? '',
 })
 
@@ -65,7 +65,7 @@ const del = async () => {
   if (!form.value.id) return
   const alert_ = await alertController.create({
     header: 'Delete supervisor?',
-    message: form.value.nickname,
+    message: form.value.full_name,
     buttons: [
       { text: 'Cancel', role: 'cancel' },
       { text: 'Delete', role: 'destructive', handler: doDelete },
@@ -83,7 +83,7 @@ const doDelete = async () => {
 const save = async () => {
   const payload: Sv = {
     id: form.value.id ?? 0,
-    nickname: form.value.nickname,
+    full_name: form.value.full_name,
     licence_no: form.value.licence_no || null,
     last_used: props.sv?.last_used ?? null,
   }

@@ -237,7 +237,7 @@ def list_sv():
     sv = Sv.query.filter_by(owner_id=int(request.user_id)).all()
     return jsonify([{
         "id": c.id,
-        "nickname": c.nickname,
+        "full_name": c.full_name,
         "licence_no": c.licence_no,
         "last_used": c.last_used.timestamp() * 1000 if c.last_used else None,
     } for c in sv]), 200
@@ -246,14 +246,14 @@ def list_sv():
 @require_auth
 def create_sv():
     data = request.json or {}
-    nickname = data.get("nickname")
+    full_name = data.get("full_name")
     licence_no = data.get("licence_no")
-    if not nickname:
-        return jsonify({"message": "nickname required"}), 400
+    if not full_name:
+        return jsonify({"message": "full_name required"}), 400
     try:
         sv = Sv(
             owner_id=int(request.user_id),
-            nickname=nickname,
+            full_name=full_name,
             licence_no=licence_no
         )
         db.session.add(sv)
@@ -263,7 +263,7 @@ def create_sv():
         return jsonify({"message": str(e)}), 400
     return jsonify({
         "id": sv.id,
-        "nickname": sv.nickname,
+        "full_name": sv.full_name,
         "licence_no": sv.licence_no,
     }), 200
 
@@ -274,8 +274,8 @@ def update_sv(sv_id):
     if not sv:
         return jsonify({"message": "not found"}), 404
     data = request.json or {}
-    if "nickname" in data:
-        sv.nickname = data["nickname"]
+    if "full_name" in data:
+        sv.full_name = data["full_name"]
     if "licence_no" in data:
         sv.licence_no = data["licence_no"]
     if "last_used" in data:
@@ -287,7 +287,7 @@ def update_sv(sv_id):
         return jsonify({"message": str(e)}), 400
     return jsonify({
         "id": sv.id,
-        "nickname": sv.nickname,
+        "full_name": sv.full_name,
         "licence_no": sv.licence_no,
         "last_used": sv.last_used.timestamp() * 1000 if sv.last_used else None,
     }), 200

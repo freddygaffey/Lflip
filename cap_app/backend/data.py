@@ -56,7 +56,6 @@ class LicenseInfo(db.Model):
     # license = db.Column(db.String(100), nullable=True)  # license type (e.g. Learner, P1, Full)
     licence_no = db.Column(db.String(100), nullable=False)
     state = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(100), nullable=False)  # parant leaner
     date_of_birth = db.Column(db.Date, nullable=True)
     last_updated = db.Column(db.DateTime, default=datetime.now())
 
@@ -72,11 +71,6 @@ class LicenseInfo(db.Model):
         if utils.is_state_valid(state) is None: raise ValueError(f"{key} is not valid")
         return state
 
-    @validates("role")
-    def role_validate(self, key, role):
-        if utils.is_role_valid(role) is None: raise ValueError(f"{key} is not valid role")
-        return role
-
     @validates("date_of_birth")
     def date_of_birth_validate(self, key, date_of_birth):
         if date_of_birth is not None and not utils.is_date_of_birth_valid(date_of_birth):
@@ -87,7 +81,7 @@ class LicenseInfo(db.Model):
 class Sv(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    nickname = db.Column(db.String(100), nullable=False)
+    full_name = db.Column(db.String(100), nullable=False)
     licence_no = db.Column(db.String(100),nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     last_used = db.Column(db.DateTime, nullable=True)

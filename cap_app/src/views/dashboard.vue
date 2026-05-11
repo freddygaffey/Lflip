@@ -27,7 +27,7 @@
             <p>Start odo: {{ t.start_odo }}</p>
             <p>End odo: {{ t.end_odo }}</p>
             <p>Car: {{ carsStore.get_car_by_id(t.car_id)?.nickname }}</p>
-            <p>Supervising driver: {{ svsStore.get_sv_by_id(t.sv_id)?.nickname }}</p>
+            <p>Supervising driver: {{ svsStore.get_sv_by_id(t.sv_id)?.full_name }}</p>
             <p>Supervising number: {{ svsStore.get_sv_by_id(t.sv_id)?.licence_no }}</p>
             <p>Weather: {{ t.weather }}</p>
             <p></p>

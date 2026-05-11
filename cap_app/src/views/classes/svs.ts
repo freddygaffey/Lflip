@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL
 
 export type Sv = {
   id: number
-  nickname: string
+  full_name: string
   licence_no: string | null
   last_used: number | null
 }
@@ -62,7 +62,7 @@ class Svs{
     async update_sv(sv: Sv){
         const headers = { ...(await this.headers()), 'Content-Type': 'application/json' }
         const payload = {
-            nickname: sv.nickname,
+            full_name: sv.full_name,
             licence_no: sv.licence_no || null,
             last_used: sv.last_used ?? null,
         }

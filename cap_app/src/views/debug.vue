@@ -71,12 +71,12 @@ const seedTrips = async () => {
   const mumRes = await CapacitorHttp.post({
     url: `${API_URL}/api/sv`,
     headers,
-    data: { nickname: 'Mum', licence_no: '0481726' },
+    data: { full_name: 'Sarah Whitman', licence_no: '0481726' },
   })
   const dadRes = await CapacitorHttp.post({
     url: `${API_URL}/api/sv`,
     headers,
-    data: { nickname: 'Dad', licence_no: '0392845' },
+    data: { full_name: 'Mark Whitman', licence_no: '0392845' },
   })
   const mum = mumRes.data
   const dad = dadRes.data

@@ -30,12 +30,6 @@ def is_date_of_birth_valid(date_of_birth) -> str | None:
     print("impmnet a date of birth valid")
     return date_of_birth
 
-def is_role_valid(role) -> str | None:
-    print("impmnet a role valid")
-    valid_roles = ["learner","sd"]
-    if not role in valid_roles: return None
-    return role
-
 def is_data_of_birth_valid(date_of_birth) -> str | None:
     print("impmnet a date of birth valid")
     return date_of_birth
