@@ -6,29 +6,29 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        <h1>{{ passOk }}</h1>
         <ion-input v-model="email" placeholder="email" type="email"></ion-input>
         <ion-input v-model="password" placeholder="password" type="password"></ion-input>
         <ion-button @click="signIn">sign in</ion-button>
         <ion-button router-link="/register">Go to register</ion-button>
-      </ion-content>
+        <h2>{{ passOk }}</h2>
+     </ion-content>
     </ion-page>
   </template>
   
   <script setup lang="ts">
-import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle } from '@ionic/vue';
+import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, onIonViewWillEnter } from '@ionic/vue';
 import { ref, warn } from 'vue'
 import { useRouter } from 'vue-router'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
-import { onMounted } from 'vue';
 import { carsStore } from './classes/cars';
+import { svsStore } from './classes/svs';
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 const email = ref('')
 const password = ref('')
-let passOk = ref('')
+const passOk = ref('')
 
 const isAuth = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
@@ -57,7 +57,7 @@ const fetchState = async () => {
   await Preferences.set({ key: 'total', value: String(data.total) })
   await Preferences.set({ key: 'night', value: String(data.night) })
 }
-onMounted(isAuth)
+onIonViewWillEnter(isAuth)
 
 const signIn = async () => {
   const response = await CapacitorHttp.post({
@@ -66,12 +66,14 @@ const signIn = async () => {
     data: { email: email.value, password: password.value }
   })
   console.log('login response', response.status, response.data)
+  passOk.value = response.data.message
   if (response.status === 200) {
     await Preferences.set({ key: 'auth_token', value: response.data.token })
     await fetchState()
     router.push('/tabs/dashboard')
   }
-  // this will do offline cashing 
+  // this will do offline cashing
   carsStore.pull_cloud()
+  svsStore.pull_cloud()
 }
 </script>

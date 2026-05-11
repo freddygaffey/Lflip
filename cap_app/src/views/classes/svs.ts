@@ -22,13 +22,17 @@ class Svs{
         return { Authorization: `Bearer ${token}` }
     }
 
+    private async save_cache(){
+        await Preferences.set({ key: 'svs', value: JSON.stringify(this.svs.value) })
+    }
+
     async pull_cloud(){
         const headers = await this.headers()
 
         const svsRes = await CapacitorHttp.get({ url: `${API_URL}/api/sv`, headers })
         if (svsRes.status === 200) {
             this.svs.value = typeof svsRes.data === 'string' ? JSON.parse(svsRes.data) : svsRes.data
-            await Preferences.set({ key: 'svs', value: JSON.stringify(this.svs.value) })
+            await this.save_cache()
         }
     }
 
@@ -42,14 +46,17 @@ class Svs{
         const headers = { ...tok, 'Content-Type': 'application/json' }
         const res = await CapacitorHttp.post({ url:`${API_URL}/api/sv`, headers, data: sv })
         if (res.status !== 200 ) return
-        await this.pull_cloud()
+        const saved = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+        this.svs.value.push(saved)
+        await this.save_cache()
     }
 
     async delete_sv(id: number){
         const headers = await this.headers()
         const res = await CapacitorHttp.delete({ url: `${API_URL}/api/sv/${id}`, headers })
         if (res.status !== 200) return
-        await this.pull_cloud()
+        this.svs.value = this.svs.value.filter(s => s.id !== id)
+        await this.save_cache()
     }
 
     async update_sv(sv: Sv){
@@ -61,7 +68,10 @@ class Svs{
         }
         const res = await CapacitorHttp.patch({ url: `${API_URL}/api/sv/${sv.id}`, headers, data: payload })
         if (res.status !== 200 ) return
-        await this.pull_cloud()
+        const saved = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+        const i = this.svs.value.findIndex(s => s.id === sv.id)
+        if (i >= 0) this.svs.value[i] = saved
+        await this.save_cache()
     }
 
     get_sv_by_id(id: number){

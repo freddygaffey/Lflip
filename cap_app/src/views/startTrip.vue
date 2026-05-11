@@ -18,8 +18,18 @@
          >{{ c.nickname }}</ion-select-option>
       </ion-select>
     </ion-item>
-      <!-- <ion-button @click="getPos">get poss</ion-button> -->
-      <!-- <p>{{ posT }}</p> -->
+    <ion-item>
+    <ion-select label="Supervising Driver" label-placement="floating" placeholder="Pick a driver" v-model="selectedSvId">
+        <ion-select-option :value="null">Guest Driver</ion-select-option>
+        <ion-select-option 
+        v-for="(sv, i) in svs"
+        :key="sv.id"
+        :value="sv.id"
+         >{{ sv.nickname }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-input v-if="selectedSvId === null" placeholder="enter full name as on licence"></ion-input>
+    <ion-input v-if="selectedSvId === null" placeholder="enter licence number"></ion-input>
     </ion-content>
   </ion-page>
 </template>
@@ -30,13 +40,15 @@
   import { ref } from 'vue';
   import { Preferences } from '@capacitor/preferences'
   import { useRouter } from 'vue-router';
-import { carsStore } from './classes/cars';
-import { log } from 'console';
+  import { carsStore } from './classes/cars';
+  import { svsStore } from './classes/svs';
+  import { log } from 'console';
 
   const start_odo = ref('')
   const cars = carsStore.cars
+  const svs = svsStore.svs
   const selectedCarId = ref<number | null>(null)
-
+  const selectedSvId = ref<number | null>(null)
 
   const router = useRouter()
   const start = async () => {
@@ -54,7 +66,7 @@ import { log } from 'console';
         end_odo: null,
         gps: [],
         accel: [],
-        sv_id: 1,
+        sv_id: selectedSvId.value,
         car_id: selectedCarId.value,
         weather: null,
         day: null,

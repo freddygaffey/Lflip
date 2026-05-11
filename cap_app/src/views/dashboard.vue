@@ -15,6 +15,7 @@
         <p>day {{ totalDay }}</p>
         <p>night {{ totalNight }}</p>
         <p>sum {{ total }}</p> -->
+        <h2>List of trips</h2>
         <ion-card v-for="(t, i) in trips.slice().reverse()" :key="t.start_time">
           <ion-card-header >
             <ion-card-title>Trip {{ trips.length - i}} {{t.day_night == 'day' ? '☀️' : '🌜' }}</ion-card-title>
@@ -23,10 +24,11 @@
           <ion-card-content>
             <p>Duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,'0') }}</p>
             <p>Length: {{ t.end_odo - t.start_odo }} km</p>
-            <p>Start odo: {{ t.start_odo }}km</p>
-            <p>End odo: {{ t.end_odo }}km</p>
+            <p>Start odo: {{ t.start_odo }}</p>
+            <p>End odo: {{ t.end_odo }}</p>
             <p>Car: {{ carsStore.get_car_by_id(t.car_id)?.nickname }}</p>
-            <p>Parent driver: {{  }}</p>
+            <p>Supervising driver: {{ svsStore.get_sv_by_id(t.sv_id)?.nickname }}</p>
+            <p>Supervising number: {{ svsStore.get_sv_by_id(t.sv_id)?.licence_no }}</p>
             <p>Weather: {{ t.weather }}</p>
             <p></p>
             <!-- <p>{{ t }}</p> -->
@@ -37,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, type Ref } from 'vue'
+import { ref } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardHeader, IonCardTitle, IonCardContent, onIonViewDidEnter } from '@ionic/vue'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
@@ -56,57 +58,35 @@ const capDay = ref(90)
 const capNight = ref(10)
 const capTotal = ref(100)
 
-carsStore.pull_cloud()
+// carsStore.pull_cloud()
+// svsStore.pull_cloud()
 
-type PieData = { datasets: [{ data: number[]; backgroundColor: string[] }] }
-const prefNum = (v: string | null) => parseInt(v ?? '100', 10) || 100
-const setRing = (chart: Ref<PieData>, used: number, cap: number) => {
-  const ds = chart.value.datasets[0]
-  chart.value = { ...chart.value, datasets: [{ ...ds, data: [used, Math.max(0, cap - used)] }] }
-}
+ChartJS.register(ArcElement, Tooltip, Legend, Title)
+
+const DchartData = ref({ datasets: [{ data: [0, 90], backgroundColor: ['#FFD700', '#e0e0e0'] }] })
+const NchartData = ref({ datasets: [{ data: [0, 10], backgroundColor: ['#1a1a2e', '#e0e0e0'] }] })
+const TchartData = ref({ datasets: [{ data: [0, 100], backgroundColor: ['#4CAF50', '#e0e0e0'] }] })
+
+const DchartOptions = { responsive: true, plugins: { title: { display: true, text: 'Day Hours' } } }
+const NchartOptions = { responsive: true, plugins: { title: { display: true, text: 'Night Hours' } } }
+const TchartOptions = { responsive: true, plugins: { title: { display: true, text: 'Total Hours' } } }
 
 const updateHours = async () => {
   const trips = JSON.parse((await Preferences.get({ key: "trips" })).value ?? '[]')
-  let day = 0.0
-  let night = 0.0
+  let day = 0
+  let night = 0
   for (const t of trips) {
-    if (t.day_night == "day") {
-      day += (t.end_time - t.start_time) / 1000 / 3600
-    }
-    if (t.day_night == "night") {
-      night += (t.end_time - t.start_time) / 1000 / 3600
-    }
+    if (t.day_night == "day") day += (t.end_time - t.start_time) / 1000 / 3600
+    if (t.day_night == "night") night += (t.end_time - t.start_time) / 1000 / 3600
   }
-  console.log(day);
-  console.log(night);
-  console.log(total);
-  console.log(trips);
-  
   const tot = day + night
-  totalDay.value = (tot - night).toFixed(2)
+  totalDay.value = day.toFixed(2)
   totalNight.value = night.toFixed(2)
   total.value = tot.toFixed(2)
-  setRing(DchartData, day, capDay.value)
-  setRing(NchartData, night, capNight.value)
-  setRing(TchartData, tot, capTotal.value)
+  DchartData.value = { datasets: [{ data: [day, Math.max(0, capDay.value - day)], backgroundColor: ['#FFD700', '#e0e0e0'] }] }
+  NchartData.value = { datasets: [{ data: [night, Math.max(0, capNight.value - night)], backgroundColor: ['#1a1a2e', '#e0e0e0'] }] }
+  TchartData.value = { datasets: [{ data: [tot, Math.max(0, capTotal.value - tot)], backgroundColor: ['#4CAF50', '#e0e0e0'] }] }
 }
-ChartJS.register(ArcElement, Tooltip, Legend, Title)
-
-const makeChart = (color: string, outOf: string) => ref<PieData>({
-  datasets: [{ data: [0, parseInt(outOf, 10) || 100], backgroundColor: [color, '#e0e0e0'] }]
-})
-const makeOptions = (title: string) => ({
-  responsive: true,
-  // plugins: { legend: { position: 'top' as const }, title: { display: true, text: title } }
-  plugins: {title: { display: true, text: title } }
-})
-const DchartData = makeChart('#FFD700', '100')
-const NchartData = makeChart('#1a1a2e', '100')
-const TchartData = makeChart('#4CAF50', '100')
-
-const DchartOptions = makeOptions('Day Hours')
-const NchartOptions = makeOptions('Night Hours')
-const TchartOptions = makeOptions('Total Hours')
 
 const uploadTrips = async () => {
   const { value: tripsRaw } = await Preferences.get({ key: 'trips' })
@@ -135,43 +115,49 @@ const uploadTrips = async () => {
 
 
 const load_dasbord = async () => {
-  const [{ value: tn }, { value: tt }] = await Promise.all([
-    Preferences.get({ key: 'night' }),
-    Preferences.get({ key: 'total' }),
-  ])
-  const t = prefNum(tt),
-    n = prefNum(tn),
-    d = Math.max(0, t - n) || t
-  ;[capTotal.value, capNight.value, capDay.value] = [t, n, d]
-  for (const [ch, cap] of [
-    [DchartData, d],
-    [NchartData, n],
-    [TchartData, t],
-  ] as [Ref<PieData>, number][])
-    setRing(ch, 0, cap)
+  const { value: tn } = await Preferences.get({ key: 'night' })
+  const { value: tt } = await Preferences.get({ key: 'total' })
+  const t = parseInt(tt ?? '100', 10) || 100
+  const n = parseInt(tn ?? '100', 10) || 100
+  const d = Math.max(0, t - n) || t
+  capTotal.value = t
+  capNight.value = n
+  capDay.value = d
   // do all sycing so if go offline later it will still work
   await uploadTrips()
   await pullTrips()
-  await pullSv()
+  await svsStore.pull_cloud()
+  await carsStore.pull_cloud()
   await updateHours()
-  // await console.log(carsStore.cars)
-
 }
 
-const pullTrips = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
+async function pullTrips() {
+  const tokenPref = await Preferences.get({ key: 'auth_token' })
+  const token = tokenPref.value
+
   const res = await CapacitorHttp.get({
     url: `${API_URL}/api/trips`,
     headers: { Authorization: `Bearer ${token}` },
   })
   if (res.status !== 200) return
-  const remote = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
-  const synced = remote.map((t: any) => ({ ...t, synced: true }))
+
+  let remote = res.data
+  if (typeof remote === 'string') {
+    remote = JSON.parse(remote)
+  }
+
+  // mark every trip from the server as already synced
+  const synced = []
+  for (let i = 0; i < remote.length; i++) {
+    const trip = remote[i]
+    trip.synced = true
+    synced.push(trip)
+  }
+
   await Preferences.set({ key: 'trips', value: JSON.stringify(synced) })
   trips.value = synced
 }
 
-const pullSv = () => svsStore.pull_cloud()
 
 type GpsPoint = {
   lat: number

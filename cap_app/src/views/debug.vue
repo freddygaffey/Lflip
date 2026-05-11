@@ -10,6 +10,7 @@
       <ion-button @click="seedTrips" color="warning">Seed Test Data</ion-button>
       <ion-button @click="deleteTrips" color="danger">Delete All Trips</ion-button>
       <ion-button @click="deleteCars" color="danger">Delete All Cars</ion-button>
+      <ion-button @click="nukeAllData" color="danger">Nuke All Data</ion-button>
       <ion-button @click="showRawTrips" color="medium">Show raw trips</ion-button>
       <ion-button @click="setServerToTrue" color="medium">overite trips</ion-button>
       <ion-button @click="showAllPrefs" color="medium">Show all preferences</ion-button>
@@ -67,39 +68,45 @@ const seedTrips = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
   const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
 
-  const svRes = await CapacitorHttp.post({
+  const mumRes = await CapacitorHttp.post({
     url: `${API_URL}/api/sv`,
     headers,
-    data: { nickname: 'Test Supervisor', licence_no: '1234567' },
+    data: { nickname: 'Mum', licence_no: '0481726' },
   })
-  const sv = svRes.data
+  const dadRes = await CapacitorHttp.post({
+    url: `${API_URL}/api/sv`,
+    headers,
+    data: { nickname: 'Dad', licence_no: '0392845' },
+  })
+  const mum = mumRes.data
+  const dad = dadRes.data
   const carRes = await CapacitorHttp.post({
     url: `${API_URL}/api/cars`,
     headers,
-    data: { nickname: 'Test Car', plate: 'TEST-01' },
+    data: { nickname: "Mum's Corolla", plate: 'YMC42N' },
   })
   const carRes2 = await CapacitorHttp.post({
     url: `${API_URL}/api/cars`,
     headers,
-    data: { nickname: 'Test Car', plate: 'TEST-01' },
+    data: { nickname: "Dad's Hilux", plate: 'CXR88K' },
   })
   const car = carRes.data
   const car2 = carRes2.data
 
-  await Preferences.set({ key: 'svs', value: JSON.stringify([sv]) })
+  await Preferences.set({ key: 'svs', value: JSON.stringify([mum, dad]) })
   await Preferences.set({ key: 'cars', value: JSON.stringify([car, car2]) })
 
   const now = Date.now()
   const hr = 3600000
   const fakeTrips = [
-    { start_time: now - 10 * hr, end_time: now - 7 * hr, start_odo: 100, end_odo: 250, day: true, day_night: 'day', weather: 'sunny', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 10 * hr }], synced: false },
-    { start_time: now - 20 * hr, end_time: now - 18 * hr, start_odo: 250, end_odo: 370, day: false, day_night: 'night', weather: 'cloudy', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 20 * hr }], synced: false },
-    { start_time: now - 30 * hr, end_time: now - 27 * hr, start_odo: 370, end_odo: 520, day: true, day_night: 'day', weather: 'rain', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 30 * hr }], synced: false },
-    { start_time: now - 40 * hr, end_time: now - 38 * hr, start_odo: 520, end_odo: 630, day: true, day_night: 'day', weather: 'sunny', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 40 * hr }], synced: false },
-    { start_time: now - 50 * hr, end_time: now - 48 * hr, start_odo: 630, end_odo: 740, day: false, day_night: 'night', weather: 'fog', sv_id: 1, car_id: 1, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 50 * hr }], synced: false },
+    { start_time: now - 10 * hr, end_time: now - 9.3 * hr, start_odo: 48210, end_odo: 48235, day: true, day_night: 'day', weather: 'sunny', sv_id: mum.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 10 * hr }], synced: false },
+    { start_time: now - 30 * hr, end_time: now - 28.5 * hr, start_odo: 48235, end_odo: 48298, day: false, day_night: 'night', weather: 'cloudy', sv_id: dad.id, car_id: car2.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 30 * hr }], synced: false },
+    { start_time: now - 54 * hr, end_time: now - 52.7 * hr, start_odo: 48298, end_odo: 48342, day: true, day_night: 'day', weather: 'rain', sv_id: mum.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 54 * hr }], synced: false },
+    { start_time: now - 78 * hr, end_time: now - 76 * hr, start_odo: 48342, end_odo: 48421, day: true, day_night: 'day', weather: 'sunny', sv_id: dad.id, car_id: car2.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 78 * hr }], synced: false },
+    { start_time: now - 102 * hr, end_time: now - 100.5 * hr, start_odo: 48421, end_odo: 48468, day: false, day_night: 'night', weather: 'fog', sv_id: mum.id, car_id: car.id, gps: [{ lat: -35.3136, lon: 149.1166, time: now - 102 * hr }], synced: false },
   ]
   await Preferences.set({ key: 'trips', value: JSON.stringify(fakeTrips) })
-  alert(`Seeded SV id=${sv.id}, Car id=${car.id}, and 5 trips (local only, synced: false).`)
+  alert(`Seeded Mum (id=${mum.id}), Dad (id=${dad.id}), 2 cars, and 5 trips (local only, synced: false).`)
 }
 const setServerToTrue = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
@@ -138,6 +145,23 @@ const deleteCars = async () => {
     headers: { 'Authorization': `Bearer ${token}` }
   })
   alert('All cars deleted!')
+}
+
+const nukeAllData = async () => {
+  if (!confirm('Nuke ALL data? This deletes every trip, car, supervisor, and local pref.')) return
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const headers = { 'Authorization': `Bearer ${token}` }
+  await Promise.all([
+    CapacitorHttp.delete({ url: `${API_URL}/api/trips`, headers }),
+    CapacitorHttp.delete({ url: `${API_URL}/api/cars`, headers }),
+    CapacitorHttp.delete({ url: `${API_URL}/api/sv`, headers }),
+  ])
+  const { keys } = await Preferences.keys()
+  for (const k of keys) {
+    if (k === 'auth_token') continue
+    await Preferences.remove({ key: k })
+  }
+  alert('Nuked. Server data and local prefs cleared (auth_token kept).')
 }
 
 const deleteTrips = async () => {

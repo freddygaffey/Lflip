@@ -106,14 +106,7 @@ async function onSvClick(sv: Sv | null) {
     componentProps: { sv }
   })
   await model.present()
-  const { data, role } = await model.onWillDismiss()
-  if (role == 'save') {
-    if (sv) Object.assign(sv,data)
-    else svs.value.push(data)
-  }
-  else if (role == 'delete' && sv) {
-    svs.value = svs.value.filter(s => s.id != sv.id)
-  }
+  await model.onWillDismiss()
 }
 async function signOut(){
   if (!navigator.onLine) {

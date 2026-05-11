@@ -26,6 +26,7 @@
         <ion-button :color="role == 'sd' ? 'success' : 'danger'" v-model="role" @click="role = 'sd'">sd</ion-button>
         <ion-input v-model="license_number" :placeholder="role === 'learner' ? 'license number (optinal)' : 'licence number'" type="text"></ion-input>
         <ion-button @click="signUp">sign up</ion-button>
+        <ion-button router-link="/login">Go to login</ion-button>
       </ion-content>
     </ion-page>
   </template>
@@ -77,6 +78,6 @@
       if (response.status !== 200) { console.error('register failed', response.data); return; }
       await signIn();
       await add_info();
-      router.push('/tabs/dashboard')
+      router.push('/login') // login will cashe all need data and then redirect you to /tabs/dasbord
     }
   </script>
