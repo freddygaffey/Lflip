@@ -21,8 +21,10 @@
 
   const router = useRouter()
 
+  type GpsPoint = { time: number, lat: number, lon: number }
+
   let watchId: string | null = null
-  const gpsPoints: { time: number, lat: number, lon: number }[] = []
+  const gpsPoints: GpsPoint[] = []
   let lastLogTime = 0
   let timeout = 1000
 
@@ -52,14 +54,11 @@
     router.push("/tabs")
   }
   const stop = async () => {
-    if (watchId) Geolocation.clearWatch({ id: watchId })                                                                           
+    if (watchId) Geolocation.clearWatch({ id: watchId })
     const { value } = await Preferences.get({key:'trips'})
     const trips = JSON.parse(value ?? '[]')
     trips[trips.length -1].gps = gpsPoints
     trips[trips.length -1].end_time = Date.now()
-    // TODO: set end odo
-    trips[trips.length -1].end_odo = 10
-    console.log("set end odo");
     await Preferences.set({ key: 'trips', value: JSON.stringify(trips)})
     router.push('/endTrip')
   }

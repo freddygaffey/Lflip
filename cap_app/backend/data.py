@@ -11,6 +11,7 @@ db = flask_sqlalchemy.SQLAlchemy()
 # i wrote the first coupple of validation functions and got a llm to coppy that pattern
 # i specified the exact table and atributre format i wanted this is allowed in the Kings
 # ai ploicis as I was using it to automate boring and repditve task 
+# if there is a problem i can rewrite it myself
 
 class User(db.Model, flask_login.UserMixin):
     # TODO: move licene to this table

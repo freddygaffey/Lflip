@@ -80,7 +80,70 @@ const detectWeather = async () => {
   }
 }
 
-onMounted(detectWeather)
+type GpsPoint = { time: number, lat: number, lon: number }
+type Trip = { gps?: GpsPoint[], start_odo: number, end_odo?: number }
+
+function haversine(p1: [number, number], p2: [number, number]): number {
+  const [lat1, lon1] = p1
+  const [lat2, lon2] = p2
+  const R = 6371.0
+  const phi1 = lat1 * Math.PI / 180
+  const phi2 = lat2 * Math.PI / 180
+  const dphi = (lat2 - lat1) * Math.PI / 180
+  const dlambda = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(dphi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dlambda / 2) ** 2
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+function calculateEndOdo(trip: Trip): number {
+  const points = trip.gps ?? []
+  let dist = 0
+  for (let i = 0; i < points.length - 1; i++) {
+    dist += haversine([points[i].lat, points[i].lon], [points[i + 1].lat, points[i + 1].lon])
+  }
+  return trip.start_odo + dist
+}
+
+// def calculate_end_odo(trip):
+//   points = trip.get("gps", [])
+//   dist = 0
+//   for i in range(len(points) - 1):
+//     p1 = (points[i]["lat"], points[i]["lon"])
+//     p2 = (points[i+1]["lat"], points[i+1]["lon"])
+//     dist += haversine(p1, p2)
+//   return trip["start_odo"] + dist
+//
+// def haversine(p1, p2):
+//   lat1, lon1 = p1
+//   lat2, lon2 = p2
+//   R = 6371.0  # Earth radius in kilometers
+//
+//   # Convert degrees to radians
+//   phi1 = math.radians(lat1)
+//   phi2 = math.radians(lat2)
+//   dphi = math.radians(lat2 - lat1)
+//   dlambda = math.radians(lon2 - lon1)
+//
+//   # Haversine formula
+//   a = math.sin(dphi/2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda/2)**2
+//   c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+//
+//   return R * c  # Distance in kilometers
+
+async function prefillEndOdo() {
+  const { value } = await Preferences.get({ key: 'trips' })
+  const trips: Trip[] = JSON.parse(value ?? '[]')
+  const current = trips[trips.length - 1]
+  if (!current) return
+  const computed = calculateEndOdo(current)
+  endOdo.value = String(Math.round(computed * 10) / 10)
+}
+
+onMounted(() => {
+  prefillEndOdo()
+  detectWeather()
+})
 
 const save = async () => {
   const { value: tripsRaw } = await Preferences.get({ key: 'trips' })
