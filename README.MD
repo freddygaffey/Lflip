@@ -2,6 +2,10 @@
 
 it is  a project for my DT and IT hsc major work
 
+# commands 
+npm run build && npx cap sync ios && npx cap open ios
+npm run build && npx cap sync android && npx cap open android
+
 ## The Stack
 
 - HTML

@@ -1,4 +1,6 @@
 .env.local
+/android/*
+
 
 # PlatformIO build directory
 L_plate_server/.pio/

@@ -1,3 +1,4 @@
 - need to make automatic swithch to the logger if there is a incomple trip entry
 - need to make synk in bacground
 - make the charts in dashbord adapt to the states houres 
+- make the time work save utc then dispty from the firt porint 
