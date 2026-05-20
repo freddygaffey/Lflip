@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["lflip.pebnum.com", "capacitor://localhost", "http://localhost"])
+CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", "http://localhost"])
 
 # TODO: change on deployment
 app.config['SECRET_KEY'] = secret_key
