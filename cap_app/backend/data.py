@@ -25,7 +25,7 @@ class User(db.Model, flask_login.UserMixin):
     password_hash = db.Column(db.String(100), nullable=False)
     license_records = db.relationship("LicenseInfo", backref="account", lazy=True)
 
-    def __init__(self, f_name, l_name, email, password_hash, license_info: "LicenseInfo" | None, nickname=None):
+    def __init__(self, f_name, l_name, email, password_hash, license_info: "LicenseInfo | None", nickname=None):
         self.f_name = f_name
         self.l_name = l_name
         self.email = email
