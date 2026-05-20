@@ -4,6 +4,8 @@
 
 # PlatformIO build directory
 L_plate_server/.pio/
+cap_app/esp32/.pio/
+**/.pio/
 
 # VS Code settings
 .vscode/
