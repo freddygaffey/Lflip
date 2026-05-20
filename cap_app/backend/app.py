@@ -407,4 +407,7 @@ def delete_car(car_id):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="127.0.0.1", port=5001, debug=True,
+            origins=["lflip.pebnum.com",
+                     "capacitor://localhost",
+                     "http://localhost"])
