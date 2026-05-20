@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lflip",
+  "compatibility_date": "2026-05-20",
+  "assets": {
+    "directory": "cap_app/dist",
+    "not_found_handling": "single-page-application"
+  }
+}
