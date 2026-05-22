@@ -22,8 +22,6 @@
                 <ion-select-option value="nt">NT</ion-select-option>
             </select>
         </ion-select>
-        <!-- <ion-button :color="role == 'learner' ? 'success' : 'danger'" v-model="role" @click="role = 'learner'">learner</ion-button>
-        <ion-button :color="role == 'sd' ? 'success' : 'danger'" v-model="role" @click="role = 'sd'">sd</ion-button> -->
         <ion-input v-model="license_number" placeholder="license number (optinal)" type="text"></ion-input>
         <ion-button @click="signUp">sign up</ion-button>
         <ion-button router-link="/login">Go to login</ion-button>
@@ -45,7 +43,6 @@
     const email = ref('')
     const password = ref('')
     const state = ref('')
-    // const role = ref('')
     const license_number = ref('')
   
     const signIn = async () => {
