@@ -24,7 +24,7 @@
         </ion-select>
         <!-- <ion-button :color="role == 'learner' ? 'success' : 'danger'" v-model="role" @click="role = 'learner'">learner</ion-button>
         <ion-button :color="role == 'sd' ? 'success' : 'danger'" v-model="role" @click="role = 'sd'">sd</ion-button> -->
-        <ion-input v-model="license_number" :placeholder="role === 'learner' ? 'license number (optinal)' : 'licence number'" type="text"></ion-input>
+        <ion-input v-model="license_number" placeholder="license number (optinal)" type="text"></ion-input>
         <ion-button @click="signUp">sign up</ion-button>
         <ion-button router-link="/login">Go to login</ion-button>
       </ion-content>
