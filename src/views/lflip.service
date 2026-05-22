@@ -1,0 +1,14 @@
+[Unit]
+Description=Lflip Flask backend
+After=network.target
+
+[Service]
+User=fred
+WorkingDirectory=/home/fred/Lflip/backend
+Environment="PALTH=/home/fred/venv/bib
+ExecStart=/home/fred/venv/bin/python app.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
