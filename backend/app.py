@@ -86,14 +86,12 @@ def set_licence():
         data = request.json
         print(data)
         state = data.get("state")
-        role = data.get("role")
         licence_no = data.get("licence_no")
 
         licence_info = LicenseInfo(
             account_id=request.user_id,
             state=state,
-            licence_no=licence_no,
-            role=role)
+            licence_no=licence_no)
         db.session.add(licence_info)
         db.session.commit()
         return jsonify({"message" :"ok"}), 200
