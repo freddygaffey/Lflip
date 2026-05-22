@@ -22,8 +22,8 @@
                 <ion-select-option value="nt">NT</ion-select-option>
             </select>
         </ion-select>
-        <ion-button :color="role == 'learner' ? 'success' : 'danger'" v-model="role" @click="role = 'learner'">learner</ion-button>
-        <ion-button :color="role == 'sd' ? 'success' : 'danger'" v-model="role" @click="role = 'sd'">sd</ion-button>
+        <!-- <ion-button :color="role == 'learner' ? 'success' : 'danger'" v-model="role" @click="role = 'learner'">learner</ion-button>
+        <ion-button :color="role == 'sd' ? 'success' : 'danger'" v-model="role" @click="role = 'sd'">sd</ion-button> -->
         <ion-input v-model="license_number" :placeholder="role === 'learner' ? 'license number (optinal)' : 'licence number'" type="text"></ion-input>
         <ion-button @click="signUp">sign up</ion-button>
         <ion-button router-link="/login">Go to login</ion-button>
@@ -45,7 +45,7 @@
     const email = ref('')
     const password = ref('')
     const state = ref('')
-    const role = ref('')
+    // const role = ref('')
     const license_number = ref('')
   
     const signIn = async () => {
@@ -63,7 +63,7 @@
       const r = await CapacitorHttp.post({
         url: `${API_URL}/api/set_licence`,
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        data: { state: state.value, role: role.value, licence_no: license_number.value }
+        data: { state: state.value, licence_no: license_number.value }
       })
       console.log(r.data)
     }
@@ -72,7 +72,7 @@
         url: `${API_URL}/api/register`,
         headers: { 'Content-Type': 'application/json' },
         data: { email: email.value, pwd: password.value, f_name: f_name.value,
-                l_name: l_name.value, state: state.value, role: role.value,
+                l_name: l_name.value, state: state.value,
                 licence_no: license_number.value }
       })
       if (response.status !== 200) { console.error('register failed', response.data); return; }
