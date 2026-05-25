@@ -43,7 +43,9 @@
   import { carsStore } from './classes/cars';
   import { svsStore } from './classes/svs';
   import { log } from 'console';
+  import { computed } from 'vue'
 
+  // const start_enabled = ref('')
   const start_odo = ref('')
   const cars = carsStore.cars
   const svs = svsStore.svs
@@ -58,6 +60,8 @@
     // key: 'odo',
     // value: String(odo)})
   
+    // const start_enabled = computed(() => 
+    //   )
 
   const newTrip = {
         start_time: Date.now(),
