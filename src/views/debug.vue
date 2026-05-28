@@ -14,13 +14,16 @@
       <ion-button @click="showRawTrips" color="medium">Show raw trips</ion-button>
       <ion-button @click="setServerToTrue" color="medium">overite trips</ion-button>
       <ion-button @click="showAllPrefs" color="medium">Show all preferences</ion-button>
+      <ion-button @click="toggleSimulateNative" :color="simulateNative ? 'success' : 'medium'">
+        Simulate native: {{ simulateNative ? 'ON' : 'OFF' }}
+      </ion-button>
       <pre v-if="rawTripsText" class="raw-trips">{{ rawTripsText }}</pre>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
@@ -29,6 +32,17 @@ import { CapacitorHttp } from '@capacitor/core'
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 const rawTripsText = ref('')
+const simulateNative = ref(false)
+
+onMounted(async () => {
+  const { value } = await Preferences.get({ key: 'simulate_native' })
+  simulateNative.value = value === 'true'
+})
+
+const toggleSimulateNative = async () => {
+  simulateNative.value = !simulateNative.value
+  await Preferences.set({ key: 'simulate_native', value: String(simulateNative.value) })
+}
 
 const showAllPrefs = async () => {
   const { keys } = await Preferences.keys()

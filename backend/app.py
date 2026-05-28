@@ -9,13 +9,10 @@ from my_auth import gen_token, require_auth
 import time
 from datetime import datetime
 
-app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", "http://localhost"])
+import sys 
 
-# TODO: change on deployment
+app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-db.init_app(app)
 
 ########################################################
 # api routes
@@ -403,6 +400,20 @@ def delete_car(car_id):
 
 
 if __name__ == "__main__":
+    import argparse
+    debug = False
+    passer = argparse.ArgumentParser()
+    passer.add_argument('-d','--debug',action=eval("debug=True"))
+
+    db_file = 'database-debug.db' if debug else 'database.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_file}'
+    db.init_app(app)
+
     with app.app_context():
         db.create_all()
-    app.run(host="127.0.0.1", port=5000, debug=True) # TODO: PROD: remove befor producion
+    if debug:
+        CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", "http://localhost"])
+        app.run(host="127.0.0.1", port=5001, debug=True) # TODO: PROD: remove befor producion
+    else:
+        CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost"])
+        app.run(host="127.0.0.1", port=5000)
