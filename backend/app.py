@@ -403,16 +403,15 @@ if __name__ == "__main__":
     import argparse
     debug = False
     passer = argparse.ArgumentParser()
-    passer.add_argument('-d','--debug',action=eval("debug=True"))
-    passer.parse_args()
+    passer.add_argument('-d','--debug',action='store_true')
+    args = passer.parse_args()
 
-    db_file = 'database-debug.db' if debug else 'database.db'
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_file}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///database.db'
     db.init_app(app)
 
     with app.app_context():
         db.create_all()
-    if debug:
+    if args.debug: 
         CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", "http://localhost"])
         app.run(host="127.0.0.1", port=5001, debug=True) # TODO: PROD: remove befor producion
     else:
