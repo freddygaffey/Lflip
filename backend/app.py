@@ -404,6 +404,7 @@ if __name__ == "__main__":
     debug = False
     passer = argparse.ArgumentParser()
     passer.add_argument('-d','--debug',action=eval("debug=True"))
+    passer.parse_args()
 
     db_file = 'database-debug.db' if debug else 'database.db'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_file}'
