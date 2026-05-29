@@ -412,8 +412,8 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     if args.debug: 
-        CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", "http://localhost:/d+"])
+        CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
         app.run(host="127.0.0.1", port=5001, debug=True) # TODO: PROD: remove befor producion
     else:
-        CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost"])
+        CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
         app.run(host="127.0.0.1", port=5000)
