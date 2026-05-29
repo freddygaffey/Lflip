@@ -10,11 +10,17 @@ import Logger from '../views/logger.vue'
 import Debug from '../views/debug.vue'
 import Settings from '../views/settings.vue'
 import EndTrip from '../views/endTrip.vue'
+import Marketing from '../views/marketing.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     redirect: '/login'
+  },
+  {
+    path: '/marketing',
+    name: 'Marketing',
+    component: Marketing
   },
   {
     path: '/login',

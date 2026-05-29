@@ -37,13 +37,22 @@
 <script setup lang="ts">
   import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
   import { Geolocation } from '@capacitor/geolocation'
-  import { ref } from 'vue';
+  import { Capacitor } from '@capacitor/core'
+  import { ref, onMounted } from 'vue';
   import { Preferences } from '@capacitor/preferences'
   import { useRouter } from 'vue-router';
   import { carsStore } from './classes/cars';
   import { svsStore } from './classes/svs';
   import { log } from 'console';
   import { computed } from 'vue'
+
+  // hardware-capable if on a real device, OR if the debug "simulate native" flag is on
+  const simulateNative = ref(false)
+  const isNative = computed(() => Capacitor.isNativePlatform() || simulateNative.value)
+  onMounted(async () => {
+    const { value } = await Preferences.get({ key: 'simulate_native' })
+    simulateNative.value = value === 'true'
+  })
 
   // const start_enabled = ref('')
   const start_odo = ref('')
@@ -54,6 +63,11 @@
 
   const router = useRouter()
   const start = async () => {
+    if (!isNative.value) {
+      alert('You need to be on a phone to start a trip (or enable "Simulate native" in debug).')
+      router.push('/marketing')
+      return
+    }
     // const { value } = await Preferences.get({key: 'odo'})
     // const odo = parseFloat(value ?? "0")
     // await Preferences.set({
