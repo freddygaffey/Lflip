@@ -8,8 +8,8 @@
         <p class="sub">Tap to start. Drive. We log the rest — hours, GPS, day vs night, supervisor — automatically.</p>
 
         <div class="cta">
-          <a class="store" href="#">📱 App Store</a>
-          <a class="store" href="#">▶ Google Play</a>
+          <a class="store" href="#" @click.prevent="comingSoon">📱 App Store</a>
+          <a class="store" href="#" @click.prevent="comingSoon">▶ Google Play</a>
         </div>
         <p class="hint">You're on the web preview — grab the app on your phone to start logging.</p>
       </div>
@@ -37,7 +37,7 @@
         </div>
       </div>
 
-      <ion-button expand="block" class="back" @click="router.back()">← Back to the app</ion-button>
+      <ion-button expand="block" class="back" @click="router.push('/tabs')">← Back to the app</ion-button>
     </ion-content>
   </ion-page>
 </template>
@@ -46,6 +46,10 @@
 import { IonPage, IonContent, IonButton } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
+
+const comingSoon = () => {
+  alert('L Plate is still in development and not ready for release yet. If you\'d like a demo, please email the developer at porthole-heave-owl@duck.com.')
+}
 </script>
 
 <style scoped>

@@ -114,9 +114,13 @@ class Trip(db.Model):
     start_odo = db.Column(db.Float, nullable=True)
     end_odo = db.Column(db.Float, nullable=True)
     weather = db.Column(db.String(50), nullable=True)
+
     sv_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    sv_name = db.Column(db.String,nullable=True)
+    sv_licence_no = db.Column(db.String,nullable=True)
+
     car_id = db.Column(db.Integer, db.ForeignKey("car.id"), nullable=True)
-    notes = db.Column(db.JSON, nullable=True)  # structured blob: supervising_driver_name, license_number
+    # notes = db.Column(db.JSON, nullable=True)  # structured blob: supervising_driver_name, license_number
 
     aproved = db.Column(db.Boolean,default=False)
 

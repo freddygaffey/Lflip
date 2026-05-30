@@ -161,7 +161,8 @@ def sync_trips():
             weather=trip_data.get("weather"),
             car_id=trip_data.get("car_id"),
             sv_id=trip_data.get("sv_id"),
-            notes=None,
+            sv_name=trip_data.get("sv_name"),
+            sv_licence_no=trip_data.get("sv_licence_no"),
         )
         db.session.add(trip)
         db.session.commit()
@@ -216,7 +217,8 @@ def pull_trips():
             "weather": t.weather,
             "car_id": t.car_id,
             "sv_id": t.sv_id,
-            "notes": t.notes,
+            "sv_name": t.sv_name,
+            "sv_licence_no": t.sv_licence_no,
             "gps": gps_arr}
 
         value_json.append(td)
