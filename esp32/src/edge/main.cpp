@@ -152,7 +152,23 @@ void setup() {
   initEspNow();
 }
 
+// Bench testing without a physical button: type a letter in the serial monitor.
+//   p = re-pair (forget master)   r = factory reset   s = status
+void handleSerial() {
+  if (!Serial.available()) return;
+  switch (Serial.read()) {
+    case 'p':
+      if (paired && esp_now_is_peer_exist(masterMac)) esp_now_del_peer(masterMac);
+      paired = false;
+      Serial.println("re-pairing requested");
+      break;
+    case 'r': factoryReset(); break;
+    case 's': Serial.printf("status: paired=%d, myState=%u\n", paired, (unsigned)myState); break;
+  }
+}
+
 void loop() {
+  handleSerial();
   switch (pollButton()) {
     case 1:                                     // re-pair: forget our master
       if (paired && esp_now_is_peer_exist(masterMac)) esp_now_del_peer(masterMac);

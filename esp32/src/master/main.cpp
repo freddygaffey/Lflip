@@ -221,7 +221,20 @@ void setup() {
   initBle();
 }
 
+// Bench testing without a physical button: type a letter in the serial monitor.
+//   p = enter pairing   r = factory reset   s = status
+void handleSerial() {
+  if (!Serial.available()) return;
+  switch (Serial.read()) {
+    case 'p': enterPairing(); break;
+    case 'r': factoryReset(); break;
+    case 's': Serial.printf("status: %u edge(s) paired, desired=%u, pairing=%d\n",
+                            edgeCount, (unsigned)desiredState, pairing); break;
+  }
+}
+
 void loop() {
+  handleSerial();
   switch (pollButton()) {
     case 1: enterPairing();   break;
     case 2: factoryReset();   break;
