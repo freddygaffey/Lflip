@@ -35,6 +35,7 @@ uint8_t      edgeMac[MAX_EDGES][6];
 uint8_t      edgeCount = 0;
 uint8_t      lmk[KEY_LEN];
 bool         hasLmk = false;
+String       gUid;          // unique per-master id, advertised in the BLE name
 
 volatile PlateState desiredState = PlateState::DOWN;   // set by the phone
 bool      pairing = false;
@@ -185,8 +186,24 @@ class PlateCharCallbacks : public NimBLECharacteristicCallbacks {
   }
 };
 
+// Make a unique id once, persist it, and reuse it forever. Its presence means
+// this master is provisioned; wiping NVS (factory reset) regenerates a fresh one.
+void ensureUid() {
+  prefs.begin("lplate", false);
+  gUid = prefs.getString("uid", "");
+  if (gUid.length() == 0) {
+    char buf[9];
+    snprintf(buf, sizeof(buf), "%08X", (unsigned)esp_random());
+    gUid = buf;
+    prefs.putString("uid", gUid);
+    Serial.printf("generated UID %s\n", gUid.c_str());
+  }
+  prefs.end();
+}
+
 void initBle() {
-  NimBLEDevice::init("L-Plate Master");
+  String name = "LP-" + gUid;
+  NimBLEDevice::init(name.c_str());
   NimBLEServer* server = NimBLEDevice::createServer();
   NimBLEService* svc   = server->createService(SVC_UUID);
   NimBLECharacteristic* ch = svc->createCharacteristic(
@@ -196,7 +213,7 @@ void initBle() {
   NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
   adv->addServiceUUID(SVC_UUID);
   adv->start();
-  Serial.println("BLE advertising as 'L-Plate Master'");
+  Serial.printf("BLE advertising as '%s'\n", name.c_str());
 }
 
 // ── button: returns 0 none, 1 short press, 2 long (5s) press ──────────────────
@@ -217,6 +234,7 @@ void setup() {
   pinMode(PIN_BUTTON, INPUT_PULLUP);
   pinMode(PIN_LED, OUTPUT);
   loadConfig();
+  ensureUid();
   initEspNow();
   initBle();
 }

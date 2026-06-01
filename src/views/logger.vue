@@ -18,6 +18,8 @@
   import { useRouter } from 'vue-router';
   import { Geolocation } from '@capacitor/geolocation';
   import { Preferences } from '@capacitor/preferences';
+  import { carsStore } from './classes/cars';
+  import { plateLink } from './classes/plates';
 
   const router = useRouter()
 
@@ -44,9 +46,24 @@
         gpsPoints.push({ time: position.timestamp, lat: position.coords.latitude, lon: position.coords.longitude })
       }
     )
+
+    // Connect to this trip's car L-plate (if it has one) for the whole trip.
+    try {
+      const { value } = await Preferences.get({ key: 'trips' })
+      const trips = JSON.parse(value ?? '[]')
+      const carId = trips[trips.length - 1]?.car_id
+      if (carId != null) {
+        if (!carsStore.cars.value.length) await carsStore.load_cache()
+        const car = carsStore.get_car_by_id(carId)
+        if (car) await plateLink.connect(car)
+      }
+    } catch (e) {
+      console.error('plate connect (trip) failed', e)
+    }
   })
   onIonViewWillLeave(() => {
     if (watchId) Geolocation.clearWatch({ id: watchId })
+    plateLink.disconnect()
   })
   const cancel = async () => {
     await Preferences.remove({ key: 'trips' })
