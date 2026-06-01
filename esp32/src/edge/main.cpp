@@ -15,6 +15,7 @@
 
 constexpr int PIN_BUTTON = D1;   // re-pair / reset button to GND
 constexpr int PIN_LED    = D2;   // status LED (blinks while pairing)
+constexpr int PIN_SERVO  = D10;  // mock servo: HIGH = open (UP), LOW = closed (DOWN)
 
 static const uint8_t BCAST[6] = { 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF };
 constexpr uint32_t POLL_EVERY = 3000;   // ms between polls (30000 later)
@@ -125,9 +126,11 @@ static void sendPoll() {
   esp_now_send(masterMac, (uint8_t*)&poll, sizeof(poll));
 }
 
-// move the plate (placeholder until the servo/MOSFET phase)
+// move the plate. Mock servo on D10: HIGH = open (UP), LOW = closed (DOWN).
 static void movePlate(PlateState s) {
-  Serial.printf("  -> moving plate to %u\n", (unsigned)s);
+  digitalWrite(PIN_SERVO, s == PlateState::UP ? HIGH : LOW);
+  Serial.printf("  -> moving plate to %u (D10 %s)\n",
+                (unsigned)s, s == PlateState::UP ? "HIGH" : "LOW");
   myState = s;
 }
 
@@ -148,6 +151,8 @@ void setup() {
   Serial.printf("\nEDGE online — protocol v%u\n", PROTO_VERSION);
   pinMode(PIN_BUTTON, INPUT_PULLUP);
   pinMode(PIN_LED, OUTPUT);
+  pinMode(PIN_SERVO, OUTPUT);
+  digitalWrite(PIN_SERVO, myState == PlateState::UP ? HIGH : LOW);  // reflect boot state (DOWN)
   loadConfig();
   initEspNow();
 }
