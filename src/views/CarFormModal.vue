@@ -48,6 +48,20 @@
       </ion-item>
     </ion-list>
 
+    <!-- Test the L-plates: connect to the master and toggle the servos. -->
+    <ion-list-header class="ion-margin-top">
+      <ion-label>Test L-plates</ion-label>
+    </ion-list-header>
+    <ion-item lines="none">
+      <ion-label>{{ bleStatus || 'not connected' }}</ion-label>
+    </ion-item>
+    <ion-button expand="block" fill="outline" :disabled="bleBusy" @click="sendPlates(1)">
+      Plates UP
+    </ion-button>
+    <ion-button expand="block" fill="outline" :disabled="bleBusy" @click="sendPlates(0)">
+      Plates DOWN
+    </ion-button>
+
     <ion-button
       expand="block"
       class="ion-margin-top"
@@ -93,6 +107,54 @@ const form = ref({
 const found = ref<Found[]>([])
 const scanning = ref(false)
 
+// ── L-plate test (BLE) ──────────────────────────────────────────────────────
+// These UUIDs must match the master firmware (esp32/src/master/main.cpp).
+const PLATE_SERVICE = 'a1b2c3d4-0001-4000-8000-000000000001'
+const PLATE_CHAR    = 'a1b2c3d4-0002-4000-8000-000000000002'
+const bleStatus = ref('')
+const bleBusy = ref(false)
+let plateDeviceId = ''   // remembered from a pick or a scan-by-service
+
+// Scan for the master (it advertises PLATE_SERVICE) and return its device id.
+async function findMaster(): Promise<string> {
+  const { BleClient } = await import('@capacitor-community/bluetooth-le')
+  await BleClient.initialize()
+  return await new Promise<string>((resolve, reject) => {
+    let id = ''
+    BleClient.requestLEScan({ services: [PLATE_SERVICE] }, r => {
+      if (!id) id = r.device.deviceId
+    }).catch(reject)
+    setTimeout(async () => {
+      try { await BleClient.stopLEScan() } catch {}
+      id ? resolve(id) : reject(new Error('L-Plate Master not found'))
+    }, 4000)
+  })
+}
+
+// Write one byte: 1 = plates up, 0 = plates down.
+async function sendPlates(state: 0 | 1) {
+  if (bleBusy.value) return
+  bleBusy.value = true
+  try {
+    const { BleClient, numbersToDataView } = await import('@capacitor-community/bluetooth-le')
+    await BleClient.initialize()
+    if (!plateDeviceId) {
+      bleStatus.value = 'scanning…'
+      plateDeviceId = await findMaster()
+    }
+    bleStatus.value = 'connecting…'
+    await BleClient.connect(plateDeviceId, () => { plateDeviceId = '' })  // clear cache on disconnect
+    await BleClient.write(plateDeviceId, PLATE_SERVICE, PLATE_CHAR, numbersToDataView([state]))
+    bleStatus.value = state ? 'sent: plates UP' : 'sent: plates DOWN'
+  } catch (e: any) {
+    plateDeviceId = ''
+    bleStatus.value = 'error: ' + (e?.message ?? e)
+    console.error('BLE plate test failed', e)
+  } finally {
+    bleBusy.value = false
+  }
+}
+
 const scan = async () => {
   scanning.value = true
   found.value = []
@@ -116,6 +178,7 @@ const scan = async () => {
 
 const pick = (d: Found) => {
   form.value.ble_device_name = d.name || d.deviceId
+  plateDeviceId = d.deviceId   // reuse for the test buttons, no re-scan needed
   found.value = []
 }
 
