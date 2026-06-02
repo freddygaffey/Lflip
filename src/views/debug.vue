@@ -6,6 +6,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
+      <ion-button @click="openMasterDebug" color="primary">L-plate master debug</ion-button>
       <ion-button @click="signOut" color="danger">Sign out</ion-button>
       <ion-button @click="seedTrips" color="warning">Seed Test Data</ion-button>
       <ion-button @click="deleteTrips" color="danger">Delete All Trips</ion-button>
@@ -24,10 +25,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, modalController } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { CapacitorHttp } from '@capacitor/core'
+import MasterDebugModal from './MasterDebugModal.vue'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -38,6 +40,11 @@ onMounted(async () => {
   const { value } = await Preferences.get({ key: 'simulate_native' })
   simulateNative.value = value === 'true'
 })
+
+const openMasterDebug = async () => {
+  const modal = await modalController.create({ component: MasterDebugModal })
+  await modal.present()
+}
 
 const toggleSimulateNative = async () => {
   simulateNative.value = !simulateNative.value

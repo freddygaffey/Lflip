@@ -11,7 +11,15 @@ import type { Car } from './cars'
 // The product service every L-plate master advertises. Used ONLY to filter the
 // scan — the per-car identity is the device name above, not this UUID.
 const PLATE_SERVICE = 'a1b2c3d4-0001-4000-8000-000000000001'
-const PLATE_CHAR    = 'a1b2c3d4-0002-4000-8000-000000000002'
+const PLATE_CHAR    = 'a1b2c3d4-0002-4000-8000-000000000002'  // plate 0/1
+const PLATE_CMD     = 'a1b2c3d4-0003-4000-8000-000000000003'  // debug command
+const PLATE_STAT    = 'a1b2c3d4-0004-4000-8000-000000000004'  // status JSON
+
+// Shape of the status JSON the master reports (see master/main.cpp buildStatus).
+export type PlateEdge = { i: number; mac: string; age: number; mv: number; cur: number }
+export type PlateStatus = {
+  uid: string; up: number; edges: number; desired: number; pairing: boolean; e: PlateEdge[]
+}
 
 type Status = 'off' | 'searching' | 'connecting' | 'connected'
 
@@ -90,6 +98,55 @@ class PlateLink {
     if (!this.connected.value || !this.deviceId) throw new Error('plates not connected')
     const { BleClient, numbersToDataView } = await import('@capacitor-community/bluetooth-le')
     await BleClient.write(this.deviceId, PLATE_SERVICE, PLATE_CHAR, numbersToDataView([state]))
+  }
+
+  // ── Debug helpers (used by the Debug tab's master panel) ────────────────────
+
+  // Scan for any L-plate master in range and return what's advertising.
+  async scanMasters(ms = 5000): Promise<{ deviceId: string; name?: string }[]> {
+    const { BleClient } = await import('@capacitor-community/bluetooth-le')
+    await BleClient.initialize()
+    const found: { deviceId: string; name?: string }[] = []
+    await BleClient.requestLEScan({ services: [PLATE_SERVICE] }, r => {
+      if (!found.find(x => x.deviceId === r.device.deviceId))
+        found.push({ deviceId: r.device.deviceId, name: r.device.name })
+    })
+    await new Promise(res => setTimeout(res, ms))
+    try { await BleClient.stopLEScan() } catch {}
+    return found
+  }
+
+  // Connect straight to a known deviceId (from scanMasters) and hold it.
+  async connectById(deviceId: string) {
+    const { BleClient } = await import('@capacitor-community/bluetooth-le')
+    await BleClient.initialize()
+    this.keepAlive = true
+    this.wantName = ''
+    this.status.value = 'connecting'
+    await BleClient.connect(deviceId, () => this.onDrop())
+    this.deviceId = deviceId
+    this.connected.value = true
+    this.status.value = 'connected'
+  }
+
+  // Send a single debug-command opcode to the master.
+  private async sendCmd(op: number) {
+    if (!this.connected.value || !this.deviceId) throw new Error('not connected')
+    const { BleClient, numbersToDataView } = await import('@capacitor-community/bluetooth-le')
+    await BleClient.write(this.deviceId, PLATE_SERVICE, PLATE_CMD, numbersToDataView([op]))
+  }
+
+  async enterPairing() { await this.sendCmd(1) }   // master listens 60s for edges
+  async factoryReset() { await this.sendCmd(2) }   // wipes pairings + restarts
+  async stopPairing()  { await this.sendCmd(3) }
+
+  // Read the master's live status JSON (paired edges, ages, battery, etc).
+  async readStatus(): Promise<PlateStatus> {
+    if (!this.connected.value || !this.deviceId) throw new Error('not connected')
+    const { BleClient } = await import('@capacitor-community/bluetooth-le')
+    const dv = await BleClient.read(this.deviceId, PLATE_SERVICE, PLATE_STAT)
+    const txt = new TextDecoder().decode(dv.buffer)
+    return JSON.parse(txt) as PlateStatus
   }
 
   async disconnect() {
