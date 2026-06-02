@@ -88,8 +88,69 @@ the single "source of truth" for what the plates *should* be doing.
 
 A **deep-asleep radio can't receive anything**, so the master can't push to a
 sleeping edge. The edge wakes on its own timer and *pulls* the latest state.
-Trade-off: worst-case time to raise a plate ≈ one poll interval (start: 30 s).
-Fine for L-plates.
+Trade-off: worst-case time to raise a plate ≈ one poll interval. Fine for
+L-plates — and the interval isn't fixed, it adapts (below).
+
+### Adaptive poll cadence (the battery story)
+
+The edge's poll interval is **not constant**. The master computes the next one
+on every reply and hands it back inside the `CmdMsg` (a `next_sleep_s` field);
+the edge just obeys and sleeps that long. The master picks the interval from
+four signals, fastest-wins:
+
+1. **Phone presence.** The master is the BLE server, so it knows for free
+   whether the phone is connected. Phone connected ⇒ a trip is happening ⇒ poll
+   **fast (~1 s)** for snappy toggles.
+2. **Speed** (streamed from the app's GPS over BLE while connected).
+   Stopped / `<15 km/h` ⇒ pulling in/out, parking, drop-off ⇒ **fast**; cruising
+   `>40–100 km/h` ⇒ committed to the drive, nothing to toggle ⇒ **slow
+   (~5–10 s)**. This saves the most energy, because the highway cruise is the
+   bulk of a drive and is exactly when responsiveness matters *least*.
+3. **Current plate state.** `DOWN` (the illegal-if-driving state) ⇒ poll
+   **faster**, so a raise happens promptly; `UP` (the safe state) ⇒ poll lazily.
+4. **Time of day** (used when no phone is around). Short baseline during
+   likely-driving windows (school run ~7–9 am, evening ~4–7 pm) so the edge
+   *discovers* the phone within seconds when driving is probable; longer midday;
+   very long overnight (~60 s+, the car is parked).
+
+> **Hard boundary:** speed and time change *how often we check* — **never the
+> plate state**. Whose trip it is (learner vs parent) is always a human choice;
+> it can't be inferred from speed.
+
+**Where the master gets the time:** it has no internet in the OBD port. Either
+the phone writes the current epoch time over BLE on each connect (cheap,
+re-synced every drive — start here) or fit a **DS3231 RTC** (battery-backed,
+survives power loss).
+
+Rough budget, one 18650 (~3000 mAh), edge awake ~150 ms per poll @ ~80 mA:
+
+| Window | Cadence | ~Daily cost |
+|--------|---------|-------------|
+| Night (10 pm–4 am) | 60 s | ~1.5 mAh |
+| Midday idle | 60 s | ~2.5 mAh |
+| Commute windows (~5 h) | 5–10 s | ~6 mAh |
+| Actually driving (~1 h, phone present, speed-aware) | 1–10 s | ~6–12 mAh |
+| **Total** | | **~20 mAh/day → ~3–4 months** |
+
+The always-awake placeholder loop in the current firmware lasts only **~2–3
+days**; the months-scale figure needs the deep-sleep + adaptive cadence above.
+
+### Fail-safe: default to plates UP
+
+The legal risk is **one-directional**:
+
+- Plates **UP while parked** — legal (just unnecessary).
+- Plates **DOWN while driving** — **illegal**.
+
+So the whole system **fails toward UP**. On boot, on wake, on lost comms, on any
+uncertainty, the edge defaults to **plates displayed**. Because of the same
+asymmetry, *lowering* can be lazy (a parent's plates retracting a little slowly
+is legal-but-cosmetic) while *raising* must be eager — which is why the `DOWN`
+state polls faster.
+
+Normal operation still commands the state explicitly (parent ⇒ DOWN, learner ⇒
+UP); the UP bias only governs the degraded / uncertain case. Concretely:
+**boot/wake default = UP**, and **edge raises if it misses N consecutive polls.**
 
 ---
 
@@ -175,11 +236,19 @@ stops the compiler inserting padding that would break the layout.
 |--------|-----|-------|
 | Pairing/reset button | **D1 (GPIO3)** | momentary button to **GND**; uses the internal pull-up |
 | Status LED | **D2 (GPIO4)** | LED + resistor to GND; blinks while pairing |
-| Servo signal *(edge, later)* | TBD | PWM out |
-| MOSFET gate *(edge, later)* | TBD | switches servo power; 100 kΩ gate→GND pulldown |
+| **Mock servo** *(edge, now)* | **D10 (GPIO10)** | bench stand-in: **HIGH = open/UP, LOW = closed/DOWN**. Put an LED/meter here to watch toggles. |
+| MOSFET gate / power-enable *(edge)* | **D10 (GPIO10)** | the mock pin becomes the servo **power switch**; gate via ~150 Ω, 10 kΩ gate→GND pulldown |
+| Servo PWM signal *(edge)* | **D9 (GPIO9)** | the servo's control wire — low current, driven straight from the GPIO via ESP32Servo. *(GPIO9 is a boot-strapping pin; the servo's signal input is high-impedance so it won't affect boot, but don't tie anything that pulls it low at reset.)* |
 
 The master also needs its 12 V→5 V supply from the OBD port; the edges run from
 1–3 × 18650.
+
+> **Why two pins for the servo?** Cutting the power rail (D10) isn't enough on
+> its own: while the servo is unpowered, its **signal wire** at 3.3 V can
+> backfeed through the servo and leak. So the firmware drives the PWM pin
+> **LOW** whenever it cuts power. `movePlate()` = enable power → send PWM to the
+> angle → wait `SERVO_TRAVEL_MS` → detach + PWM LOW → cut power; the mechanical
+> rest holds the plate. Tune `SERVO_UP_DEG` / `SERVO_DOWN_DEG` to your stops.
 
 ---
 
@@ -214,9 +283,11 @@ your PATH). Run these from the `esp32/` folder:
    from ...`, and the edge prints `PAIRED to ...`. They're now bound in flash.
 4. The edge switches to `POLL sent` every few seconds; the master logs each
    `POLL ... -> reply desired=0`.
-5. Connect a BLE app (**nRF Connect**) to **"L-Plate Master"** and write `01` to
-   characteristic `a1b2c3d4-0002-…`. The edge's next reply flips to `desired=1`
-   and it logs the (simulated) move.
+5. Connect a BLE app (**nRF Connect**) to the master — it advertises a **unique
+   per-car name `LP-<uid>`** (e.g. `LP-2DD17AC9`), generated on first boot and
+   saved, so two cars don't clash. Write `01` to characteristic
+   `a1b2c3d4-0002-…`. The edge's next reply flips to `desired=1` and it drives
+   D10 (mock servo) HIGH.
 6. Power-cycle both — they reconnect automatically (pairing persisted). Hold a
    button 5 s to factory-reset.
 
@@ -224,15 +295,35 @@ your PATH). Run these from the `esp32/` folder:
 
 ## 8. Hardware notes (servo + power, coming next)
 
-Each edge will drive its servo through a **logic-level N-channel MOSFET** used as
-a power switch:
+Each edge drives its servo through an **N-channel MOSFET used as a low-side power
+switch** (the MOSFET sits between the servo's GND and battery GND; gate ← D10):
 
-- Gate HIGH → servo powered; gate LOW → servo fully off (≈0 draw while asleep).
-- A **100 kΩ gate-to-GND pulldown** keeps the servo off during boot/sleep.
-- Move sequence: power on → send PWM → wait → cut power. The plate rests against a
-  mechanical stop so it holds position with **no power**.
-- Use a MOSFET fully on at 3.3 V gate (e.g. AO3400 / IRLZ44N). A plain IRF540
-  won't switch properly at 3.3 V.
+- Gate HIGH → servo's ground path closed → servo powered; gate LOW → open → servo
+  fully off (≈0 draw while asleep).
+- **~150 Ω gate resistor** in series with D10, and a **10 kΩ gate→GND pulldown**.
+  The pulldown is essential: during boot and **deep sleep** the GPIO floats, and
+  without it the gate could half-turn-on and quietly drain the 18650s.
+- Common ground: ESP32 GND and battery − tie together at the MOSFET source.
+- Move sequence: power on → send PWM → wait → PWM LOW → cut power. The plate rests
+  against a mechanical stop so it holds position with **no power**.
+
+**You can't skip the MOSFET and power the servo from a GPIO.** A pin sources only
+~20 mA (40 mA absolute max); a servo pulls 150 mA–2.5 A. The GPIO can drive the
+*signal* wire directly, but the *power rail* needs a switch element. The XIAO has
+**no software-switchable power rail** of its own (its `3V3` is always-on), so a
+MOSFET — or a load-switch IC — is the minimum required part.
+
+**Choosing the part (gate driven at 3.3 V):**
+
+- ✅ **AO3400 / SI2302** (SOT-23, tiny — ideal for a battery board) or **IRLB8721**
+  (TO-220) — these are *fully on* at ~2.5 V, so they're happy at 3.3 V.
+- ⚠️ **IRLZ44N** *works* for one small servo but isn't ideal: its R<sub>DS(on)</sub>
+  is specified at **V<sub>GS</sub> = 5 V**, and it's a 47 A TO-220 brick — overkill,
+  and only partially enhanced at 3.3 V.
+- ❌ **IRF540** and other non-logic-level FETs won't switch properly at 3.3 V.
+- 🧩 **Tidier alternative:** a **load-switch IC** (e.g. **TPS22918**, AP22802) is a
+  packaged MOSFET with the gate resistor/pulldown built in — feed it `VIN`,
+  `VOUT`, `GND`, and an `ON` pin straight from D10.
 
 ---
 
@@ -247,6 +338,12 @@ a power switch:
   files mid-edit (duplicated/scrambled lines → bogus compile errors). If a build
   fails on code that looks correct, the file may be corrupted — re-save it, or
   better, **move the project out of the OneDrive folder.**
+- **The master can flatten the *car* battery.** Most cars keep OBD pin 16 live
+  even with the ignition off, so an always-on ESP32-C3 (~50–80 mA) is a parasitic
+  drain that will run a car battery down over a week or two of the car sitting.
+  The master needs its own low-power behaviour (light-sleep when no phone has
+  connected and no edge has polled for a while) — same presence/time logic as the
+  edges, applied on the master side.
 
 ---
 
@@ -256,9 +353,13 @@ a power switch:
 - [x] Real-MAC pairing with a button + auto-pair on first boot
 - [x] ESP-NOW encryption (PMK + per-system LMK) on poll/command traffic
 - [x] Persistent storage of pairings (survives power-off)
-- [x] BLE server on the master the phone connects to
-- [x] Poll → reply → (simulated) plate move
-- [ ] Servo + MOSFET `movePlate()` on the edge
+- [x] BLE server on the master, unique per-car name `LP-<uid>`
+- [x] Poll → reply → plate move, **mocked on D10** (HIGH=UP, LOW=DOWN)
+- [x] Phone-app BLE integration in the Lflip Vue app (per-car `plateLink`,
+      trip-scoped connect + car-edit test buttons)
+- [ ] Real servo + MOSFET `movePlate()` (power-enable + PWM) on the edge
 - [ ] Deep sleep + battery voltage read on the edge
-- [ ] Non-linear poll scheduling (less often at night)
-- [ ] Phone-app BLE integration in the Lflip Vue app
+- [ ] Adaptive poll cadence (presence + speed + state + time-of-day) — see §2
+- [ ] Fail-safe default-UP on boot/lost-comms — see §2
+- [ ] Phone→master time sync + speed streaming over BLE
+- [ ] Master low-power behaviour (protect the car battery)

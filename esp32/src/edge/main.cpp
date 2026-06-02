@@ -11,11 +11,30 @@
 #include <esp_wifi.h>
 #include <esp_now.h>
 #include <Preferences.h>
+#include <ESP32Servo.h>
 #include "protocol.h"
+#include "battery.h"
 
-constexpr int PIN_BUTTON = D1;   // re-pair / reset button to GND
-constexpr int PIN_LED    = D2;   // status LED (blinks while pairing)
-constexpr int PIN_SERVO  = D10;  // mock servo: HIGH = open (UP), LOW = closed (DOWN)
+constexpr int PIN_BUTTON    = D1;   // re-pair / reset button to GND
+constexpr int PIN_LED       = D2;   // status LED (blinks while pairing)
+constexpr int PIN_SERVO_PWR = D9;   // MOSFET gate: HIGH = servo powered, LOW = off
+constexpr int PIN_SERVO_PWM = D10;  // servo control signal (PWM)
+
+// Servo travel. Tune the two angles to your mechanical stops.
+constexpr int SERVO_DOWN_DEG  = 0;     // plate down / closed
+constexpr int SERVO_UP_DEG    = 90;    // plate up / open
+constexpr uint32_t SERVO_TRAVEL_MS = 5000;  // TEST: hold power 5s (real value ~600)
+
+Servo plateServo;
+
+// ── PWM_TEST (servo jog/calibration) ─────────────────────────────────────────
+// Set to 1 to power the servo and JOG it from the serial monitor so you can find
+// the safe end-points (just before it grinds against a stop). Keys:
+//   +  / -   nudge ±25us      ]  / [   nudge ±100us
+// Note the us value where the plate is fully UP and fully DOWN, tell those to me,
+// and I'll bake them in. Set back to 0 after calibrating.
+#define PWM_TEST 1
+int testUs = 1500;   // current jog position (start centred)
 
 static const uint8_t BCAST[6] = { 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF };
 constexpr uint32_t POLL_EVERY = 3000;   // ms between polls (30000 later)
@@ -126,11 +145,25 @@ static void sendPoll() {
   esp_now_send(masterMac, (uint8_t*)&poll, sizeof(poll));
 }
 
-// move the plate. Mock servo on D10: HIGH = open (UP), LOW = closed (DOWN).
+// Move the plate: power the servo (MOSFET on), drive it to the angle, wait,
+// then cut power. The plate rests on a mechanical stop so it holds with no draw.
+// The PWM line is forced LOW before cutting power so it can't backfeed the
+// unpowered servo through its signal pin.
 static void movePlate(PlateState s) {
-  digitalWrite(PIN_SERVO, s == PlateState::UP ? HIGH : LOW);
-  Serial.printf("  -> moving plate to %u (D10 %s)\n",
-                (unsigned)s, s == PlateState::UP ? "HIGH" : "LOW");
+  const int angle = (s == PlateState::UP) ? SERVO_UP_DEG : SERVO_DOWN_DEG;
+  Serial.printf("  -> moving plate to %u (%d deg)\n", (unsigned)s, angle);
+
+  digitalWrite(PIN_SERVO_PWR, HIGH);              // power the servo
+  delay(20);                                      // let the rail settle
+  plateServo.attach(PIN_SERVO_PWM, 500, 2400);    // start PWM
+  plateServo.write(angle);
+  delay(SERVO_TRAVEL_MS);                          // wait for the arm to arrive
+
+  plateServo.detach();                            // stop PWM
+  pinMode(PIN_SERVO_PWM, OUTPUT);
+  digitalWrite(PIN_SERVO_PWM, LOW);               // no signal-line backfeed
+  digitalWrite(PIN_SERVO_PWR, LOW);               // cut power; mechanical rest holds
+
   myState = s;
 }
 
@@ -151,8 +184,15 @@ void setup() {
   Serial.printf("\nEDGE online — protocol v%u\n", PROTO_VERSION);
   pinMode(PIN_BUTTON, INPUT_PULLUP);
   pinMode(PIN_LED, OUTPUT);
-  pinMode(PIN_SERVO, OUTPUT);
-  digitalWrite(PIN_SERVO, myState == PlateState::UP ? HIGH : LOW);  // reflect boot state (DOWN)
+  pinMode(PIN_SERVO_PWR, OUTPUT);
+  digitalWrite(PIN_SERVO_PWR, LOW);          // servo unpowered at boot
+  pinMode(PIN_SERVO_PWM, OUTPUT);
+  digitalWrite(PIN_SERVO_PWM, LOW);          // idle the signal line (no backfeed)
+#if PWM_TEST
+  digitalWrite(PIN_SERVO_PWR, HIGH);              // MOSFET always ON
+  plateServo.attach(PIN_SERVO_PWM, 500, 2500);    // PWM on D9
+  Serial.println("PWM_TEST sweep: D10 sweeps 500<->2500us, MOSFET always ON");
+#endif
   loadConfig();
   initEspNow();
 }
@@ -173,6 +213,33 @@ void handleSerial() {
 }
 
 void loop() {
+  // Low-battery guard (every 5s): cut the servo and park in deep sleep before
+  // the cell is over-discharged. Runs in ALL modes incl. PWM_TEST, so a board
+  // left running on battery can't flatten the cell. Needs the A0 divider; with
+  // none wired it reads ~0 and does nothing. See lib/power/battery.h.
+  static uint32_t lastBattChk = 0;
+  if (millis() - lastBattChk > 5000) {
+    lastBattChk = millis();
+    if (batt::isLow()) {
+      digitalWrite(PIN_SERVO_PWR, LOW);           // cut servo power
+      plateServo.detach();
+      pinMode(PIN_SERVO_PWM, OUTPUT);
+      digitalWrite(PIN_SERVO_PWM, LOW);
+      digitalWrite(PIN_LED, LOW);
+      batt::parkForever();
+    }
+  }
+
+#if PWM_TEST
+  // MOSFET stays ON (set HIGH in setup). Smooth 180deg sweep 500<->2500us.
+  uint32_t phase = millis() % 6000;
+  int us = (phase < 3000) ? 500 + phase * 2000 / 3000
+                          : 2500 - (phase - 3000) * 2000 / 3000;
+  plateServo.writeMicroseconds(us);
+  delay(5);   // finer updates = smoother sweep
+  return;
+#endif
+
   handleSerial();
   switch (pollButton()) {
     case 1:                                     // re-pair: forget our master
