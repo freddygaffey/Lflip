@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
+from markupsafe import escape
 from data import db, User, LicenseInfo, Trip, GpsPoint, Car, Sv
 import secrets
 from config import states, secret_key
@@ -8,11 +9,22 @@ from flask_cors import CORS
 from my_auth import gen_token, require_auth
 import time
 from datetime import datetime
+from functools import wraps
 
-import sys 
+import sys
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key
+
+def handle_validation_error(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except ValueError as e:
+            db.session.rollback()
+            return jsonify({"message": str(e)}), 400
+    return wrapper
 
 ########################################################
 # api routes
@@ -40,8 +52,8 @@ def login():
         response = jsonify({
             "message": "ok",
             "account_id": user.id,
-            "nickname": user.nickname,
-            "email": user.email,
+            "nickname": escape(user.nickname),
+            "email": escape(user.email),
             "token": token})
         response.set_cookie('auth_token', token, httponly=True, secure=False, samesite='Lax')
         return response, 200
@@ -53,6 +65,7 @@ def logout():
     return jsonify({"message": "log out is a front end only"}), 200
 
 @app.post("/api/register")
+@handle_validation_error
 def register():
     data = request.json
     print(data)
@@ -65,11 +78,8 @@ def register():
     pwd_hash = generate_password_hash(pwd)
     if User.query.filter_by(email=email).first():
         return jsonify({"message": "email already registered"}), 400
-    try:
-        user = User(f_name=f_name, l_name=l_name, email=email, password_hash=pwd_hash, license_info=None)
-    except ValueError as e:
-        return jsonify({"message": str(e)}), 400
 
+    user = User(f_name=f_name, l_name=l_name, email=email, password_hash=pwd_hash, license_info=None)
     db.session.add(user)
     db.session.commit()
 
@@ -80,11 +90,10 @@ def register():
 
 @app.post("/api/set_licence")
 @require_auth
+@handle_validation_error
 def set_licence():
-        print("ran somthing")
         time.sleep(0.5)
         data = request.json
-        print(data)
         state = data.get("state")
         licence_no = data.get("licence_no")
 
@@ -95,7 +104,6 @@ def set_licence():
         db.session.add(licence_info)
         db.session.commit()
         return jsonify({"message" :"ok"}), 200
-
 
 @app.post("/api/is_tok_valid")
 @require_auth
@@ -145,47 +153,45 @@ def license_state():
 
 @app.post("/api/trips/push_trip")
 @require_auth
+@handle_validation_error
 def sync_trips():
     data = request.json or {}
     trip_data = data.get("trip")
     if trip_data is None or type(trip_data) is not dict:
         return jsonify({"message": "trip must be one object in body, e.g. {\"trip\": {...}}"}), 400
-    try:
-        start_time_ms = trip_data.get("start_time")
-        end_time_ms = trip_data.get("end_time")
-        if start_time_ms is None or end_time_ms is None:
-            return jsonify({"message": "trip start_time and end_time required"}), 400
-        trip = Trip(
-            learner_id=int(request.user_id),
-            start_time=datetime.fromtimestamp(start_time_ms / 1000),
-            end_time=datetime.fromtimestamp(end_time_ms / 1000),
-            start_odo=trip_data.get("start_odo"),
-            end_odo=trip_data.get("end_odo"),
-            day_night="night" if trip_data.get("day") is False else "day",
-            weather=trip_data.get("weather"),
-            car_id=trip_data.get("car_id"),
-            sv_id=trip_data.get("sv_id"),
-            sv_name=trip_data.get("sv_name"),
-            sv_licence_no=trip_data.get("sv_licence_no"),
+
+    start_time_ms = trip_data.get("start_time")
+    end_time_ms = trip_data.get("end_time")
+    if start_time_ms is None or end_time_ms is None:
+        return jsonify({"message": "trip start_time and end_time required"}), 400
+    trip = Trip(
+        learner_id=int(request.user_id),
+        start_time=datetime.fromtimestamp(start_time_ms / 1000),
+        end_time=datetime.fromtimestamp(end_time_ms / 1000),
+        start_odo=trip_data.get("start_odo"),
+        end_odo=trip_data.get("end_odo"),
+        day_night="night" if trip_data.get("day") is False else "day",
+        weather=trip_data.get("weather"),
+        car_id=trip_data.get("car_id"),
+        sv_id=trip_data.get("sv_id"),
+        sv_name=trip_data.get("sv_name"),
+        sv_licence_no=trip_data.get("sv_licence_no"),
+    )
+    db.session.add(trip)
+    db.session.commit()
+
+    gps = trip_data.get("gps") or []
+    for i in gps:
+        p = GpsPoint(
+            trip_id=trip.id,
+            speed=i.get("speed"),
+            lon=i.get("lon"),
+            lat=i.get("lat"),
+            timestamp=datetime.fromtimestamp(i.get("time") / 1000),
         )
-        db.session.add(trip)
-        db.session.commit()
+        db.session.add(p)
+    db.session.commit()
 
-        gps = trip_data.get("gps") or []
-        for i in gps:
-            p = GpsPoint(
-                trip_id=trip.id,
-                speed=i.get("speed"),
-                lon=i.get("lon"),
-                lat=i.get("lat"),
-                timestamp=datetime.fromtimestamp(i.get("time") / 1000),
-            )
-            db.session.add(p)
-        db.session.commit()
-
-    except (TypeError, ValueError) as e:
-        db.session.rollback()
-        return jsonify({"message": str(e)}), 400
     return jsonify({"message": "ok"}), 200
 
 @app.delete("/api/trips")
@@ -217,18 +223,17 @@ def pull_trips():
             "end_time": t.end_time.timestamp() * 1000,
             "start_odo": t.start_odo,
             "end_odo": t.end_odo,
-            "day_night": t.day_night,
-            "weather": t.weather,
+            "day_night": escape(t.day_night),
+            "weather": escape(t.weather) if t.weather else None,
             "car_id": t.car_id,
             "sv_id": t.sv_id,
-            "sv_name": t.sv_name,
-            "sv_licence_no": t.sv_licence_no,
+            "sv_name": escape(t.sv_name) if t.sv_name else None,
+            "sv_licence_no": escape(t.sv_licence_no) if t.sv_licence_no else None,
             "gps": gps_arr}
 
         value_json.append(td)
 
     return jsonify(value_json), 200
-
 
 
 # i copied the car routes and just renamed  
@@ -238,38 +243,38 @@ def list_sv():
     sv = Sv.query.filter_by(owner_id=int(request.user_id)).all()
     return jsonify([{
         "id": c.id,
-        "full_name": c.full_name,
-        "licence_no": c.licence_no,
+        "full_name": escape(c.full_name),
+        "licence_no": escape(c.licence_no),
         "last_used": c.last_used.timestamp() * 1000 if c.last_used else None,
     } for c in sv]), 200
 
 @app.post("/api/sv")
 @require_auth
+@handle_validation_error
 def create_sv():
     data = request.json or {}
     full_name = data.get("full_name")
     licence_no = data.get("licence_no")
     if not full_name:
         return jsonify({"message": "full_name required"}), 400
-    try:
-        sv = Sv(
-            owner_id=int(request.user_id),
-            full_name=full_name,
-            licence_no=licence_no
-        )
-        db.session.add(sv)
-        db.session.commit()
-    except (TypeError, ValueError) as e:
-        db.session.rollback()
-        return jsonify({"message": str(e)}), 400
+
+    sv = Sv(
+        owner_id=int(request.user_id),
+        full_name=full_name,
+        licence_no=licence_no
+    )
+    db.session.add(sv)
+    db.session.commit()
+
     return jsonify({
         "id": sv.id,
-        "full_name": sv.full_name,
-        "licence_no": sv.licence_no,
+        "full_name": escape(sv.full_name),
+        "licence_no": escape(sv.licence_no),
     }), 200
 
 @app.patch("/api/sv/<int:sv_id>")
 @require_auth
+@handle_validation_error
 def update_sv(sv_id):
     sv = Sv.query.filter_by(id=sv_id, owner_id=int(request.user_id)).first()
     if not sv:
@@ -281,15 +286,13 @@ def update_sv(sv_id):
         sv.licence_no = data["licence_no"]
     if "last_used" in data:
         sv.last_used = datetime.fromtimestamp(data["last_used"] / 1000) if data["last_used"] else None
-    try:
-        db.session.commit()
-    except (TypeError, ValueError) as e:
-        db.session.rollback()
-        return jsonify({"message": str(e)}), 400
+
+    db.session.commit()
+
     return jsonify({
         "id": sv.id,
-        "full_name": sv.full_name,
-        "licence_no": sv.licence_no,
+        "full_name": escape(sv.full_name),
+        "licence_no": escape(sv.licence_no),
         "last_used": sv.last_used.timestamp() * 1000 if sv.last_used else None,
     }), 200
 
@@ -316,47 +319,46 @@ def list_cars():
     cars = Car.query.filter_by(owner_id=int(request.user_id)).all()
     return jsonify([{
         "id": c.id,
-        "nickname": c.nickname,
-        "plate": c.plate,
-        "ble_device_name": c.ble_device_name,
-        "ble_service_uuid": c.ble_service_uuid,
+        "nickname": escape(c.nickname),
+        "plate": escape(c.plate) if c.plate else None,
+        "ble_device_name": escape(c.ble_device_name) if c.ble_device_name else None,
+        "ble_service_uuid": escape(c.ble_service_uuid) if c.ble_service_uuid else None,
         "has_pairing_secret": bool(c.pairing_secret),
         "last_used": c.last_used.timestamp() * 1000 if c.last_used else None,
     } for c in cars]), 200
 
 @app.post("/api/cars")
 @require_auth
+@handle_validation_error
 def create_car():
     data = request.json or {}
     nickname = data.get("nickname")
     if not nickname:
         return jsonify({"message": "nickname required"}), 400
-    try:
-        car = Car(
-            owner_id=int(request.user_id),
-            nickname=nickname,
-            plate=data.get("plate"),
-            ble_device_name=data.get("ble_device_name"),
-            ble_service_uuid=data.get("ble_service_uuid"),
-            pairing_secret=secrets.token_hex(32),
-        )
-        db.session.add(car)
-        db.session.commit()
-    except (TypeError, ValueError) as e:
-        db.session.rollback()
-        return jsonify({"message": str(e)}), 400
+
+    car = Car(
+        owner_id=int(request.user_id),
+        nickname=nickname,
+        plate=data.get("plate"),
+        ble_device_name=data.get("ble_device_name"),
+        ble_service_uuid=data.get("ble_service_uuid"),
+        pairing_secret=secrets.token_hex(32),
+    )
+    db.session.add(car)
+    db.session.commit()
+
     return jsonify({
         "id": car.id,
-        "nickname": car.nickname,
-        "plate": car.plate,
-        "ble_device_name": car.ble_device_name,
-        "ble_service_uuid": car.ble_service_uuid,
+        "nickname": escape(car.nickname),
+        "plate": escape(car.plate) if car.plate else None,
+        "ble_device_name": escape(car.ble_device_name) if car.ble_device_name else None,
+        "ble_service_uuid": escape(car.ble_service_uuid) if car.ble_service_uuid else None,
         "pairing_secret": car.pairing_secret,
     }), 200
 
-
 @app.patch("/api/cars/<int:car_id>")
 @require_auth
+@handle_validation_error
 def update_car(car_id):
     car = Car.query.filter_by(id=car_id, owner_id=int(request.user_id)).first()
     if not car:
@@ -372,17 +374,15 @@ def update_car(car_id):
         car.ble_service_uuid = data["ble_service_uuid"]
     if "last_used" in data:
         car.last_used = datetime.fromtimestamp(data["last_used"] / 1000) if data["last_used"] else None
-    try:
-        db.session.commit()
-    except (TypeError, ValueError) as e:
-        db.session.rollback()
-        return jsonify({"message": str(e)}), 400
+
+    db.session.commit()
+
     return jsonify({
         "id": car.id,
-        "nickname": car.nickname,
-        "plate": car.plate,
-        "ble_device_name": car.ble_device_name,
-        "ble_service_uuid": car.ble_service_uuid,
+        "nickname": escape(car.nickname),
+        "plate": escape(car.plate) if car.plate else None,
+        "ble_device_name": escape(car.ble_device_name) if car.ble_device_name else None,
+        "ble_service_uuid": escape(car.ble_service_uuid) if car.ble_service_uuid else None,
         "has_pairing_secret": bool(car.pairing_secret),
         "last_used": car.last_used.timestamp() * 1000 if car.last_used else None,
     }), 200

@@ -62,19 +62,20 @@ class LicenseInfo(db.Model):
 
     __table_args__ = (Index("ix_license_info_account_updated", "account_id", "last_updated"),)
 
-    @validates("licence_no")
-    def licence_no_validate(self, key, licence_no):
-        if utils.is_licence_no_valid(licence_no) is None: raise ValueError(f"{key} is not valid")
-        return licence_no
 
     @validates("state")
     def state_validate(self, key, state):
         if utils.is_state_valid(state) is None: raise ValueError(f"{key} is not valid")
         return state
 
+    @validates("licence_no")
+    def licence_no_validate(self, key, licence_no):
+        if utils.is_licence_no_valid(licence_no, self.state) is None: raise ValueError(f"{key} is not valid")
+        return licence_no
+
     @validates("date_of_birth")
     def date_of_birth_validate(self, key, date_of_birth):
-        if date_of_birth is not None and not utils.is_date_of_birth_valid(date_of_birth):
+        if date_of_birth is not None and utils.is_date_of_birth_valid(date_of_birth) is None:
             raise ValueError(f"{key} is not valid")
         return date_of_birth
 
@@ -137,9 +138,8 @@ class Trip(db.Model):
     @validates("day_night")
     def day_night_valadate(self, key, val):
         val = val.lower()
-        arr = ["day","night"]
-        if val not in arr:
-            raise ValueError(f"{key = } is not {arr}")
+        if val not in ["day", "night"]:
+            raise ValueError(f"{key} must be 'day' or 'night'")
         return val
 
     @validates("weather")
