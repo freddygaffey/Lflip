@@ -5,34 +5,32 @@
         <ion-title>Dashboard {{ status }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content>
-        <div style="display: flex; gap: 1px;">
-          <div style="flex: 1"><Pie :data="DchartData" :options="DchartOptions"/><p>{{ totalDay }}/{{ capDay }}</p></div>
-          <div style="flex: 1"><Pie :data="NchartData" :options="NchartOptions"/><p>{{ totalNight }}/{{ capNight }}</p></div>
-          <div style="flex: 1"><Pie :data="TchartData" :options="TchartOptions"/><p>{{ total }}/{{ capTotal }}</p></div>
-        </div>
-        <!-- <p>{{ status }}</p>
-        <p>day {{ totalDay }}</p>
-        <p>night {{ totalNight }}</p>
-        <p>sum {{ total }}</p> -->
-        
-        <h2>List of trips  <ion-button>view in logbook format</ion-button></h2>
-        <ion-card v-for="(t, i) in trips.slice().reverse()" :key="t.start_time">
-          <ion-card-header >
-            <ion-card-title>Trip {{ trips.length - i}} {{t.day_night == 'day' ? '☀️' : '🌜' }}</ion-card-title>
-            <!-- <ion-card-subtitle>duration {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,0) }}</ion-card-subtitle> -->
-          </ion-card-header>
-          <ion-card-content>
-            <p>Duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,'0') }}</p>
-            <p>Length: {{ t.end_odo - t.start_odo }} km</p>
-            <p>Start odo: {{ t.start_odo }}</p>
-            <p>End odo: {{ t.end_odo }}</p>
-            <p>Car: {{ carsStore.get_car_by_id(t.car_id)?.nickname ?? 'None saved' }}</p>
-            <p>Supervising driver: {{ t.sv_name ?? svsStore.get_sv_by_id(t.sv_id)?.full_name }}</p>
-            <p>Supervising number: {{ t.sv_licence_no ?? svsStore.get_sv_by_id(t.sv_id)?.licence_no }}</p>
-            <p>Weather: {{ t.weather }}</p>
-          </ion-card-content>
-        </ion-card>
+    <ion-content class="ion-padding">
+      <div class="charts-row">
+        <div class="chart-col"><Pie :data="DchartData" :options="DchartOptions"/><p>{{ totalDay }}/{{ capDay }}</p></div>
+        <div class="chart-col"><Pie :data="NchartData" :options="NchartOptions"/><p>{{ totalNight }}/{{ capNight }}</p></div>
+        <div class="chart-col"><Pie :data="TchartData" :options="TchartOptions"/><p>{{ total }}/{{ capTotal }}</p></div>
+      </div>
+
+      <h2 class="trips-heading">
+        List of trips
+        <ion-button size="small" fill="outline">view in logbook format</ion-button>
+      </h2>
+      <ion-card v-for="(t, i) in trips.slice().reverse()" :key="t.start_time">
+        <ion-card-header>
+          <ion-card-title>Trip {{ trips.length - i}} {{t.day_night == 'day' ? '☀️' : '🌜' }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p>Duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,'0') }}</p>
+          <p>Length: {{ t.end_odo - t.start_odo }} km</p>
+          <p>Start odo: {{ t.start_odo }}</p>
+          <p>End odo: {{ t.end_odo }}</p>
+          <p>Car: {{ carsStore.get_car_by_id(t.car_id)?.nickname ?? 'None saved' }}</p>
+          <p>Supervising driver: {{ t.sv_name ?? svsStore.get_sv_by_id(t.sv_id)?.full_name }}</p>
+          <p>Supervising number: {{ t.sv_licence_no ?? svsStore.get_sv_by_id(t.sv_id)?.licence_no }}</p>
+          <p>Weather: {{ t.weather }}</p>
+        </ion-card-content>
+      </ion-card>
     </ion-content>
   </ion-page>
 </template>
@@ -62,9 +60,9 @@ const capTotal = ref(100)
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title)
 
-const DchartData = ref({ datasets: [{ data: [0, 90], backgroundColor: ['#FFD700', '#e0e0e0'] }] })
-const NchartData = ref({ datasets: [{ data: [0, 10], backgroundColor: ['#1a1a2e', '#e0e0e0'] }] })
-const TchartData = ref({ datasets: [{ data: [0, 100], backgroundColor: ['#4CAF50', '#e0e0e0'] }] })
+const DchartData = ref({ datasets: [{ data: [0, 90], backgroundColor: ['#C5BF10', '#E0E0E0'] }] })
+const NchartData = ref({ datasets: [{ data: [0, 10], backgroundColor: ['#1D1D1D', '#E0E0E0'] }] })
+const TchartData = ref({ datasets: [{ data: [0, 100], backgroundColor: ['#36A225', '#E0E0E0'] }] })
 
 const DchartOptions = { responsive: true, plugins: { title: { display: true, text: 'Day Hours' } } }
 const NchartOptions = { responsive: true, plugins: { title: { display: true, text: 'Night Hours' } } }
@@ -82,9 +80,9 @@ const updateHours = async () => {
   totalDay.value = day.toFixed(2)
   totalNight.value = night.toFixed(2)
   total.value = tot.toFixed(2)
-  DchartData.value = { datasets: [{ data: [day, Math.max(0, capDay.value - day)], backgroundColor: ['#FFD700', '#e0e0e0'] }] }
-  NchartData.value = { datasets: [{ data: [night, Math.max(0, capNight.value - night)], backgroundColor: ['#1a1a2e', '#e0e0e0'] }] }
-  TchartData.value = { datasets: [{ data: [tot, Math.max(0, capTotal.value - tot)], backgroundColor: ['#4CAF50', '#e0e0e0'] }] }
+  DchartData.value = { datasets: [{ data: [day, Math.max(0, capDay.value - day)], backgroundColor: ['#C5BF10', '#E0E0E0'] }] }
+  NchartData.value = { datasets: [{ data: [night, Math.max(0, capNight.value - night)], backgroundColor: ['#1D1D1D', '#E0E0E0'] }] }
+  TchartData.value = { datasets: [{ data: [tot, Math.max(0, capTotal.value - tot)], backgroundColor: ['#36A225', '#E0E0E0'] }] }
 }
 
 const uploadTrips = async () => {
@@ -183,4 +181,26 @@ type Trip = {
 const trips = ref<Trip[]>([])
 
 onIonViewDidEnter(load_dasbord)
-</script> 
+</script>
+
+<style scoped>
+
+.charts-row {
+  display: flex;
+  gap: 4px;
+  text-align: center;
+  margin: 0 -16px;
+}
+
+.chart-col {
+  flex: 1;
+}
+
+.trips-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 24px;
+}
+</style> 

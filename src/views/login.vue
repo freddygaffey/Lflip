@@ -5,18 +5,28 @@
           <ion-title>Sign In</ion-title>
         </ion-toolbar>
       </ion-header>
-      <ion-content>
-        <ion-input v-model="email" placeholder="email" type="email"></ion-input>
-        <ion-input v-model="password" placeholder="password" type="password"></ion-input>
-        <ion-button @click="signIn">sign in</ion-button>
-        <ion-button router-link="/register">Go to register</ion-button>
-        <h2>{{ passOk }}</h2>
+      <ion-content class="ion-padding">
+        <div class="auth-card">
+          <ion-list lines="none" class="auth-list">
+            <ion-item>
+              <ion-input v-model="email" label="Email" label-placement="stacked" placeholder="you@example.com" type="email"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input v-model="password" label="Password" label-placement="stacked" placeholder="••••••••" type="password"></ion-input>
+            </ion-item>
+          </ion-list>
+
+          <ion-button expand="block" class="ion-margin-top" @click="signIn">Sign in</ion-button>
+          <ion-button expand="block" fill="clear" router-link="/register">Create an account</ion-button>
+
+          <p class="auth-message" v-if="passOk">{{ passOk }}</p>
+        </div>
      </ion-content>
     </ion-page>
   </template>
   
   <script setup lang="ts">
-import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, onIonViewWillEnter } from '@ionic/vue';
+import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonList, IonItem, onIonViewWillEnter } from '@ionic/vue';
 import { ref, warn } from 'vue'
 import { useRouter } from 'vue-router'
 import { CapacitorHttp } from '@capacitor/core'
@@ -77,3 +87,21 @@ const signIn = async () => {
   svsStore.pull_cloud()
 }
 </script>
+
+<style scoped>
+.auth-card {
+  max-width: 420px;
+  margin: 0 auto;
+  padding-top: 24px;
+}
+
+.auth-list {
+  background: transparent;
+}
+
+.auth-message {
+  text-align: center;
+  color: var(--ion-color-danger);
+  margin-top: 12px;
+}
+</style>

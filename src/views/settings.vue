@@ -76,8 +76,10 @@ async function onCarClick(car: Car | null) {
     alert("you need to be online to edit cars")
     return
   }
-  if (!Capacitor.isNativePlatform() && car === null) {
-    alert("sorry you cant make a car you need to be on a phone");
+  const { value } = await Preferences.get({ key: 'simulate_native' })
+  const native_override = value === 'true'
+  if (!Capacitor.isNativePlatform() && !native_override && car === null) {
+    alert("Adding a car pairs it with your L-plate hardware over Bluetooth, which needs the phone app. Open L Flip on your phone to add a car (or enable \"Simulate native\" in debug).")
     return;
   }
   const model = await modalController.create({

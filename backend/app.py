@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from markupsafe import escape
-from data import db, User, LicenseInfo, Trip, GpsPoint, Car, Sv
+from data import db, User, LicenseInfo, Trip, GpsPoint, Car, Sv, Chat, ChatMessage
 import secrets
-from config import states, secret_key
+from config import states, secret_key, TOKEN_LIMIT_5H, TOKEN_LIMIT_WEEK
 from utils import is_pwd_valid
 from flask_cors import CORS
 from my_auth import gen_token, require_auth
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import func
 from functools import wraps
 
 import sys
@@ -404,6 +405,110 @@ def delete_car(car_id):
     db.session.commit()
     return jsonify({"message": "ok"}), 200
 
+######### ai chat bot funcnality #############
+@app.get("/api/chats")
+@require_auth
+def list_chats():
+    chats = Chat.query.filter_by(user_id=int(request.user_id), hidden=False).all()
+    return jsonify([{
+        "id": c.id,
+        "chat_name": escape(c.chat_name) if c.chat_name else None,
+        "created_at": c.created_at.timestamp() * 1000 if c.created_at else None,
+    } for c in chats]), 200
+
+@app.post("/api/chats")
+@require_auth
+@handle_validation_error
+def create_chat():
+    data = request.json or {}
+    chat = Chat(
+        user_id=int(request.user_id),
+        chat_name=data.get("chat_name"),
+    )
+    db.session.add(chat)
+    db.session.commit()
+
+    return jsonify({
+        "id": chat.id,
+        "chat_name": escape(chat.chat_name) if chat.chat_name else None,
+        "created_at": chat.created_at.timestamp() * 1000 if chat.created_at else None,
+    }), 200
+
+@app.delete("/api/chats/<int:chat_id>")
+@require_auth
+def delete_chat(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=int(request.user_id)).first()
+    if not chat:
+        return jsonify({"message": "not found"}), 404
+    chat.hidden = True
+    db.session.commit()
+    return jsonify({"message": "ok"}), 200
+
+@app.get("/api/chats/<int:chat_id>/messages")
+@require_auth
+def list_chat_messages(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=int(request.user_id)).first()
+    if not chat:
+        return jsonify({"message": "not found"}), 404
+
+    messages = ChatMessage.query.filter_by(chat_id=chat.id).order_by(ChatMessage.timestamp.asc()).all()
+    return jsonify([{
+        "id": m.id,
+        "is_ai": m.is_ai,
+        "content": escape(m.content),
+        "tokens_used": m.tokens_used,
+        "timestamp": m.timestamp.timestamp() * 1000 if m.timestamp else None,
+    } for m in messages]), 200
+
+@app.post("/api/chats/<int:chat_id>/messages")
+@require_auth
+@handle_validation_error
+def create_chat_message(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=int(request.user_id)).first()
+    if not chat:
+        return jsonify({"message": "not found"}), 404
+
+    data = request.json or {}
+    content = data.get("content")
+    is_ai = data.get("is_ai")
+    if content is None or is_ai is None:
+        return jsonify({"message": "content and is_ai required"}), 400
+
+    message = ChatMessage(
+        chat_id=chat.id,
+        is_ai=bool(is_ai),
+        content=content,
+        tokens_used=data.get("tokens_used"),
+    )
+    db.session.add(message)
+    db.session.commit()
+
+    return jsonify({
+        "id": message.id,
+        "is_ai": message.is_ai,
+        "content": escape(message.content),
+        "tokens_used": message.tokens_used,
+        "timestamp": message.timestamp.timestamp() * 1000 if message.timestamp else None,
+    }), 200
+
+
+@app.get("/api/ai/tokens_left")
+@require_auth
+def ai_tokens_left():
+    now = datetime.now()
+    used_5h = db.session.query(func.sum(ChatMessage.tokens_used)) \
+        .join(Chat, Chat.id == ChatMessage.chat_id) \
+        .filter(Chat.user_id == int(request.user_id), ChatMessage.is_ai == True, ChatMessage.timestamp >= now - timedelta(hours=5)) \
+        .scalar() or 0
+    used_week = db.session.query(func.sum(ChatMessage.tokens_used)) \
+        .join(Chat, Chat.id == ChatMessage.chat_id) \
+        .filter(Chat.user_id == int(request.user_id), ChatMessage.is_ai == True, ChatMessage.timestamp >= now - timedelta(days=7)) \
+        .scalar() or 0
+
+    return jsonify({
+        "tokens_left_5h": max(TOKEN_LIMIT_5H - used_5h, 0),
+        "tokens_left_week": max(TOKEN_LIMIT_WEEK - used_week, 0),
+    }), 200
 
 if __name__ == "__main__":
     import argparse

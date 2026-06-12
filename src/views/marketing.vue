@@ -3,7 +3,7 @@
     <ion-content :fullscreen="true" class="bg">
       <div class="hero">
         <div class="badge">L</div>
-        <h1 class="title">L&nbsp;Plate</h1>
+        <h1 class="title">L&nbsp;Flip</h1>
         <p class="tag">The pocket logbook for learner drivers.</p>
         <p class="sub">Tap to start. Drive. We log the rest — hours, GPS, day vs night, supervisor — automatically.</p>
 
@@ -48,7 +48,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const comingSoon = () => {
-  alert('L Plate is still in development and not ready for release yet. If you\'d like a demo, please email the developer at porthole-heave-owl@duck.com.')
+  alert('L Flip is still in development and not ready for release yet. If you\'d like a demo, please email the developer at porthole-heave-owl@duck.com.')
 }
 </script>
 

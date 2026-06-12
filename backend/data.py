@@ -187,6 +187,24 @@ class GpsPoint(db.Model):
             raise ValueError(f"{key} must be between -180 and 180")
         return lon
 
+class Chat(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    chat_name = db.Column(db.String(100), nullable=True)
+    hidden = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+    owner = db.relationship("User", foreign_keys=[user_id])
+    messages = db.relationship("ChatMessage", backref="chat", lazy=True)
+
+class ChatMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    chat_id = db.Column(db.Integer, db.ForeignKey("chat.id"), nullable=False)
+    is_ai = db.Column(db.Boolean, nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    tokens_used = db.Column(db.Integer, nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+
 # class Pair(db.Model):
 #     """Glue table linking supervising drivers with learner drivers."""
 #     __table_args__ = (db.UniqueConstraint("supervising_driver_id", "learner_driver_id", name="uq_supervision_pair"),)

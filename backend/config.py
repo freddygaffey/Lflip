@@ -1,5 +1,9 @@
 secret_key = 'd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686fd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686f'
 
+# ai token usage limits
+TOKEN_LIMIT_5H = 5000
+TOKEN_LIMIT_WEEK = 50000
+
 class State(object):
     def __init__(self, total_hours, night_hours):
         self.total_hours = total_hours
