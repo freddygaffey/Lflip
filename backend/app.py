@@ -19,10 +19,13 @@ app.config['SECRET_KEY'] = secret_key
 ########################################################
 @app.get("/")
 def root():
+    print("the os it" + request.headers.get('User-Agent', ''))
     return "you are connected to the pyton server", 200
+
 
 @app.post("/api/login")
 def login():
+    print("the os it" + request.headers.get('User-Agent', ''))
     data = request.json
     email = data.get("email")
     pwd = data.get("password")
@@ -99,9 +102,10 @@ def set_licence():
 def is_tok_valid_route():
     return jsonify({"id":request.user_id}), 200
 
-@app.post("/api/test")
+@app.route("/api/test",methods=["GET","POST"])
 @require_auth
 def test():
+    print("the os it" + request.headers.get('User-Agent', ''))
     return "some string", 200
 
 @app.post("/api/dashboard")

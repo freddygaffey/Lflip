@@ -18,6 +18,7 @@
       <ion-button @click="toggleSimulateNative" :color="simulateNative ? 'success' : 'medium'">
         Simulate native: {{ simulateNative ? 'ON' : 'OFF' }}
       </ion-button>
+      <ion-button @click="hitTest" color="medium">hit test</ion-button>
       <pre v-if="rawTripsText" class="raw-trips">{{ rawTripsText }}</pre>
     </ion-content>
   </ion-page>
@@ -50,6 +51,12 @@ const toggleSimulateNative = async () => {
   simulateNative.value = !simulateNative.value
   await Preferences.set({ key: 'simulate_native', value: String(simulateNative.value) })
 }
+
+const hitTest = async () => {
+  const mumRes = await CapacitorHttp.post({
+  url: `${API_URL}/api/test`
+  })
+ }
 
 const showAllPrefs = async () => {
   const { keys } = await Preferences.keys()

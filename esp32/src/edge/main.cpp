@@ -179,6 +179,17 @@ int pollButton() {
 }
 
 void setup() {
+  // EMERGENCY SLEEP: cut servo power + signal, then deep-sleep forever so the
+  // board stops drawing current / overheating. Power-cycle won't wake it; reflash
+  // normal firmware to restore. (Set EMERGENCY_SLEEP 0 to disable.)
+  #define EMERGENCY_SLEEP 1
+  #if EMERGENCY_SLEEP
+    pinMode(PIN_SERVO_PWR, OUTPUT); digitalWrite(PIN_SERVO_PWR, LOW);
+    pinMode(PIN_SERVO_PWM, OUTPUT); digitalWrite(PIN_SERVO_PWM, LOW);
+    pinMode(PIN_LED, OUTPUT);       digitalWrite(PIN_LED, LOW);
+    esp_deep_sleep_start();
+  #endif
+
   Serial.begin(115200);
   delay(300);
   Serial.printf("\nEDGE online — protocol v%u\n", PROTO_VERSION);

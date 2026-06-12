@@ -15,7 +15,8 @@
         <p>day {{ totalDay }}</p>
         <p>night {{ totalNight }}</p>
         <p>sum {{ total }}</p> -->
-        <h2>List of trips</h2>
+        
+        <h2>List of trips  <ion-button>view in logbook format</ion-button></h2>
         <ion-card v-for="(t, i) in trips.slice().reverse()" :key="t.start_time">
           <ion-card-header >
             <ion-card-title>Trip {{ trips.length - i}} {{t.day_night == 'day' ? '☀️' : '🌜' }}</ion-card-title>
@@ -26,12 +27,10 @@
             <p>Length: {{ t.end_odo - t.start_odo }} km</p>
             <p>Start odo: {{ t.start_odo }}</p>
             <p>End odo: {{ t.end_odo }}</p>
-            <p>Car: {{ carsStore.get_car_by_id(t.car_id)?.nickname }}</p>
-            <p>Supervising driver: {{ svsStore.get_sv_by_id(t.sv_id)?.full_name }}</p>
-            <p>Supervising number: {{ svsStore.get_sv_by_id(t.sv_id)?.licence_no }}</p>
+            <p>Car: {{ carsStore.get_car_by_id(t.car_id)?.nickname ?? 'None saved' }}</p>
+            <p>Supervising driver: {{ t.sv_name ?? svsStore.get_sv_by_id(t.sv_id)?.full_name }}</p>
+            <p>Supervising number: {{ t.sv_licence_no ?? svsStore.get_sv_by_id(t.sv_id)?.licence_no }}</p>
             <p>Weather: {{ t.weather }}</p>
-            <p></p>
-            <!-- <p>{{ t }}</p> -->
           </ion-card-content>
         </ion-card>
     </ion-content>
@@ -40,7 +39,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardHeader, IonCardTitle, IonCardContent, onIonViewDidEnter } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardHeader, IonCardTitle, IonCardContent, onIonViewDidEnter, IonButton } from '@ionic/vue'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
 
@@ -177,6 +176,8 @@ type Trip = {
   synced: boolean
   car_id: number
   sv_id: number
+  sv_name: string | null
+  sv_licence_no: string | null
 }
 
 const trips = ref<Trip[]>([])
