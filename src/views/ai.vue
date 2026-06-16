@@ -3,55 +3,115 @@
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="start" v-if="activeChat">
-          <ion-button @click="activeChat = null">
-            <ion-icon :icon="arrowBack"></ion-icon>
+          <ion-button @click="closeChat" aria-label="Back to chats">
+            <ion-icon :icon="arrowBack" slot="icon-only"></ion-icon>
           </ion-button>
         </ion-buttons>
-        <ion-title>{{ activeChat ? (activeChat.chat_name || 'AI Chat') : 'AI Chat' }}</ion-title>
-        <ion-buttons slot="end" v-if="!activeChat">
-          <ion-button @click="newChat">
-            <ion-icon :icon="add"></ion-icon>
-          </ion-button>
-        </ion-buttons>
+        <ion-title>{{ activeChat ? (activeChat.chat_name || 'AI Chat') : 'Assistant' }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content>
+
+    <ion-content ref="contentRef" :scroll-y="true">
       <!-- chat list -->
-      <ion-list v-if="!activeChat">
-        <ion-item v-for="chat in chatsStore.chats.value" :key="chat.id" button @click="openChat(chat)">
-          <ion-label>{{ chat.chat_name || 'Untitled chat' }}</ion-label>
-        </ion-item>
-        <ion-item button @click="newChat">
-          <ion-label>Click to start a new chat</ion-label>
-        </ion-item>
-      </ion-list>
+      <template v-if="!activeChat">
+        <div v-if="chatsStore.chats.value.length === 0" class="empty-state">
+          <ion-icon :icon="chatbubblesOutline" class="empty-icon"></ion-icon>
+          <h2>Your driving assistant</h2>
+          <p>Ask about road rules, your logged trips, or licence requirements.</p>
+          <ion-button @click="newChat">
+            <ion-icon :icon="add" slot="start"></ion-icon>
+            Start a chat
+          </ion-button>
+        </div>
+
+        <ion-list v-else lines="none">
+          <ion-item-sliding v-for="chat in chatsStore.chats.value" :key="chat.id">
+            <ion-item button detail @click="openChat(chat)" class="chat-row">
+              <div class="chat-avatar" slot="start">
+                <ion-icon :icon="chatbubblesOutline"></ion-icon>
+              </div>
+              <ion-label>
+                <h2>{{ chat.chat_name || 'Untitled chat' }}</h2>
+                <p v-if="chat.created_at">{{ formatDate(chat.created_at) }}</p>
+              </ion-label>
+            </ion-item>
+            <ion-item-options side="end">
+              <ion-item-option color="danger" @click="removeChat(chat.id)">
+                <ion-icon :icon="trashOutline" slot="icon-only"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        </ion-list>
+
+        <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+          <ion-fab-button @click="newChat" aria-label="New chat">
+            <ion-icon :icon="add"></ion-icon>
+          </ion-fab-button>
+        </ion-fab>
+      </template>
 
       <!-- messages -->
       <div v-else class="messages">
-        <div v-for="m in chatsStore.messages.value" :key="m.id"
-             class="bubble" :class="m.is_ai ? 'bubble-ai' : 'bubble-user'">
-          {{ m.content }}
+        <div v-if="chatsStore.messages.value.length === 0 && !sending" class="thread-hint">
+          <ion-icon :icon="chatbubblesOutline" class="empty-icon"></ion-icon>
+          <p>Ask me anything about learning to drive.</p>
         </div>
-        <div v-if="sending" class="bubble bubble-ai">
-          <ion-spinner name="dots"></ion-spinner>
+
+        <div v-for="m in chatsStore.messages.value" :key="m.id"
+             class="row" :class="m.is_ai ? 'row-ai' : 'row-user'">
+          <div v-if="m.is_ai" class="msg-avatar">
+            <span class="lplate">L</span>
+          </div>
+          <div class="bubble" :class="m.is_ai ? 'bubble-ai' : 'bubble-user'">
+            <div v-if="m.is_ai" class="md" v-html="render(m.content)"></div>
+            <template v-else>{{ m.content }}</template>
+          </div>
+        </div>
+
+        <div v-if="sending" class="row row-ai">
+          <div class="msg-avatar">
+            <span class="lplate">L</span>
+          </div>
+          <div class="bubble bubble-ai typing">
+            <span></span><span></span><span></span>
+          </div>
         </div>
       </div>
     </ion-content>
 
     <ion-footer v-if="activeChat">
-      <ion-toolbar>
+      <div class="composer-bar">
+        <ion-button
+          shape="round"
+          fill="clear"
+          color="medium"
+          class="chats-btn"
+          @click="closeChat"
+          aria-label="Back to chats"
+        >
+          <ion-icon :icon="listOutline" slot="icon-only"></ion-icon>
+        </ion-button>
         <ion-textarea
           v-model="prompt"
-          placeholder="Ask about road rules, your trips, or licence info..."
+          placeholder="Ask about road rules, your trips, or licence info…"
           :auto-grow="true"
+          :rows="1"
           :disabled="sending"
+          class="composer-input"
+          @keydown="onKeydown"
         ></ion-textarea>
-        <ion-buttons slot="end">
-          <ion-button :disabled="sending || !prompt.trim()" @click="send">
-            <ion-icon :icon="send_icon"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
+        <ion-button
+          shape="round"
+          fill="solid"
+          color="primary"
+          class="send-btn"
+          :disabled="sending || !prompt.trim()"
+          @click="send"
+          aria-label="Send"
+        >
+          <ion-icon :icon="send_icon" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
     </ion-footer>
   </ion-page>
 </template>
@@ -60,15 +120,37 @@
 import {
   IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonFooter,
   IonButton, IonButtons, IonIcon, IonList, IonItem, IonLabel,
-  IonTextarea, IonSpinner,
+  IonTextarea, IonItemSliding, IonItemOptions, IonItemOption,
+  IonFab, IonFabButton,
 } from '@ionic/vue'
-import { add, arrowBack, send as send_icon } from 'ionicons/icons'
-import { ref, onMounted } from 'vue'
+import {
+  add, arrowBack, send as send_icon,
+  chatbubblesOutline, trashOutline, listOutline,
+} from 'ionicons/icons'
+import { ref, onMounted, nextTick } from 'vue'
+import { marked } from 'marked'
 import { chatsStore, type Chat } from './classes/chats'
 
 const activeChat = ref<Chat | null>(null)
 const prompt = ref('')
 const sending = ref(false)
+const contentRef = ref<InstanceType<typeof IonContent> | null>(null)
+
+marked.setOptions({ breaks: true, gfm: true })
+
+function render(text: string): string {
+  return marked.parse(text ?? '') as string
+}
+
+function formatDate(ts: number): string {
+  const d = new Date(ts < 1e12 ? ts * 1000 : ts)
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+async function scrollToBottom(smooth = true) {
+  await nextTick()
+  await contentRef.value?.$el?.scrollToBottom(smooth ? 300 : 0)
+}
 
 onMounted(async () => {
   await chatsStore.pull_chats()
@@ -77,6 +159,11 @@ onMounted(async () => {
 async function openChat(chat: Chat) {
   activeChat.value = chat
   await chatsStore.pull_messages(chat.id)
+  await scrollToBottom(false)
+}
+
+function closeChat() {
+  activeChat.value = null
 }
 
 async function newChat() {
@@ -88,16 +175,36 @@ async function newChat() {
   await openChat(chat)
 }
 
+async function removeChat(id: number) {
+  await chatsStore.delete_chat(id)
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    send()
+  }
+}
+
 async function send() {
   if (!activeChat.value || !prompt.value.trim()) return
   const text = prompt.value.trim()
+  const wasFirstMessage = chatsStore.messages.value.length === 0
   prompt.value = ''
   sending.value = true
+  await scrollToBottom()
   try {
     const result = await chatsStore.send_message(activeChat.value.id, text)
     if (!result) {
       alert('Message failed to send. Check your connection and try again.')
+    } else if (wasFirstMessage) {
+      // the AI auto-names the chat after the first message; refresh so the
+      // header/list show the new name instead of "Untitled chat"
+      await chatsStore.pull_chats()
+      const updated = chatsStore.chats.value.find(c => c.id === activeChat.value?.id)
+      if (updated) activeChat.value = updated
     }
+    await scrollToBottom()
   } finally {
     sending.value = false
   }
@@ -105,28 +212,191 @@ async function send() {
 </script>
 
 <style scoped>
+/* ===== empty states ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 70vh;
+  padding: 24px;
+  gap: 6px;
+}
+.empty-icon {
+  font-size: 56px;
+  color: var(--ion-color-medium);
+  margin-bottom: 8px;
+}
+.empty-state h2 {
+  margin: 0;
+  font-weight: 700;
+}
+.empty-state p {
+  margin: 0 0 16px;
+  color: var(--ion-color-medium-shade);
+  max-width: 280px;
+}
+
+/* ===== chat list ===== */
+.chat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 20px;
+}
+.chat-row ion-label h2 {
+  font-weight: 600;
+}
+
+/* ===== messages thread ===== */
 .messages {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 16px 12px;
+}
+.thread-hint {
+  text-align: center;
+  color: var(--ion-color-medium-shade);
+  margin: 32px 0;
+}
+.row {
+  display: flex;
+  align-items: flex-end;
   gap: 8px;
-  padding: 12px;
+  max-width: 100%;
+}
+.row-user {
+  justify-content: flex-end;
+}
+.row-ai {
+  justify-content: flex-start;
+}
+.msg-avatar {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* mini L-plate: white tile, red "L", red border */
+.lplate {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--lp-yellow, #c5bf10);
+  color: var(--lp-dark, #1d1d1d);
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .bubble {
-  max-width: 75%;
-  padding: 8px 12px;
-  border-radius: 16px;
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 18px;
   white-space: pre-wrap;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 .bubble-user {
-  align-self: flex-end;
   background: var(--ion-color-primary);
   color: var(--ion-color-primary-contrast);
   border-bottom-right-radius: 4px;
 }
 .bubble-ai {
-  align-self: flex-start;
-  background: var(--ion-color-light);
-  color: var(--ion-color-light-contrast);
+  background: #ffffff;
+  color: var(--ion-text-color);
   border-bottom-left-radius: 4px;
+}
+
+/* markdown inside AI bubbles */
+.md {
+  white-space: normal;
+}
+.md :first-child { margin-top: 0; }
+.md :last-child { margin-bottom: 0; }
+.md p { margin: 0 0 8px; }
+.md ul, .md ol { margin: 4px 0 8px; padding-left: 20px; }
+.md li { margin: 2px 0; }
+.md h1, .md h2, .md h3 { margin: 8px 0 4px; font-size: 1.05em; }
+.md code {
+  background: var(--ion-color-light-shade);
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+.md pre {
+  background: var(--lp-dark, #1d1d1d);
+  color: #f4f4f4;
+  padding: 10px 12px;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+.md pre code { background: none; padding: 0; }
+.md a { color: var(--ion-color-primary); }
+
+/* typing indicator */
+.typing {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ion-color-medium);
+  animation: blink 1.4s infinite both;
+}
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink {
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
+}
+
+/* ===== composer ===== */
+.composer-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px;
+  background: var(--ion-toolbar-background);
+}
+.composer-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  --background: var(--ion-color-light);
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  --placeholder-opacity: 1;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --border-radius: 20px;
+  border-radius: 20px;
+  min-height: 40px;
+  max-height: 120px;
+}
+.send-btn,
+.chats-btn {
+  flex: 0 0 auto;
+  --padding-start: 0;
+  --padding-end: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0;
 }
 </style>

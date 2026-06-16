@@ -409,7 +409,12 @@ def delete_car(car_id):
 @app.get("/api/chats")
 @require_auth
 def list_chats():
-    chats = Chat.query.filter_by(user_id=int(request.user_id), hidden=False).all()
+    # only list chats that actually have messages - skip blank/abandoned ones
+    chats = Chat.query.filter(
+        Chat.user_id == int(request.user_id),
+        Chat.hidden == False,
+        Chat.messages.any(),
+    ).all()
     return jsonify([{
         "id": c.id,
         "chat_name": escape(c.chat_name) if c.chat_name else None,
@@ -427,6 +432,26 @@ def create_chat():
     )
     db.session.add(chat)
     db.session.commit()
+
+    return jsonify({
+        "id": chat.id,
+        "chat_name": escape(chat.chat_name) if chat.chat_name else None,
+        "created_at": chat.created_at.timestamp() * 1000 if chat.created_at else None,
+    }), 200
+
+@app.patch("/api/chats/<int:chat_id>")
+@require_auth
+@handle_validation_error
+def update_chat(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=int(request.user_id)).first()
+    if not chat:
+        return jsonify({"message": "not found"}), 404
+
+    data = request.json or {}
+    if "chat_name" in data:
+        name = (data.get("chat_name") or "").strip()
+        chat.chat_name = name[:100] if name else None
+        db.session.commit()
 
     return jsonify({
         "id": chat.id,

@@ -1,22 +1,5 @@
 <template>
   <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>L Flip</ion-title>
-        <ion-buttons slot="end">
-          <router-link to="/tabs/debug">
-            <ion-button>
-              <ion-icon slot="icon-only" :ios="bugOutline" :md="bugSharp"></ion-icon>
-            </ion-button>
-          </router-link>
-          <router-link to="/tabs/settings">
-            <ion-button>
-              <ion-icon slot="icon-only" :ios="settingsOutline" :md="settingsSharp"></ion-icon>
-            </ion-button>
-          </router-link>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
     <ion-tabs>
       <ion-router-outlet />
       <ion-tab-bar slot="bottom">
@@ -40,6 +23,6 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonTabs, IonTabBar, IonTabButton, IonLabel, IonRouterOutlet, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon } from '@ionic/vue'
-import { settingsOutline, settingsSharp, bugOutline, bugSharp, bookOutline, bookSharp, chatbubblesOutline, chatbubblesSharp } from 'ionicons/icons'
+import { IonPage, IonTabs, IonTabBar, IonTabButton, IonLabel, IonRouterOutlet, IonIcon } from '@ionic/vue'
+import { bookOutline, bookSharp, chatbubblesOutline, chatbubblesSharp } from 'ionicons/icons'
 </script>

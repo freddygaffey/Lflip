@@ -2,6 +2,9 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-back-button default-href="/tabs/dashboard"></ion-back-button>
+        </ion-buttons>
         <ion-title>Settings</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -48,6 +51,8 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
+  IonButtons,
+  IonBackButton,
   IonButton,
   IonList,
   IonListHeader,

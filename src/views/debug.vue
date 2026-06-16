@@ -2,6 +2,9 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-back-button default-href="/tabs/dashboard"></ion-back-button>
+        </ion-buttons>
         <ion-title>Debug</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -26,7 +29,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, modalController } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, modalController } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { CapacitorHttp } from '@capacitor/core'

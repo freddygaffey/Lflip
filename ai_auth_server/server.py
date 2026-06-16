@@ -80,6 +80,29 @@ def run_ollama(messages: list, max_tokens: int) -> OllamaJob:
     return job
 
 
+def generate_title(prompt: str) -> str | None:
+    """Ask the model for a short title summarising the first message of a chat.
+
+    gpt-oss is a reasoning model, so it spends tokens "thinking" before it
+    writes the answer. num_predict has to be high enough to cover that thinking
+    plus the short title, otherwise message.content comes back empty.
+    """
+    messages = [
+        {"role": "system", "content": (
+            "You generate a concise title for a chat, 3 to 5 words long. "
+            "Reply with only the title text, no quotes and no trailing punctuation."
+        )},
+        {"role": "user", "content": prompt},
+    ]
+    job = run_ollama(messages, 256)
+    if job.error or not job.result:
+        return None
+    title = job.result.get("message", {}).get("content", "")
+    # tidy up: collapse whitespace and strip wrapping quotes/punctuation
+    title = " ".join(title.split()).strip(' "\'.')
+    return title[:100] or None
+
+
 def get_token() -> str | None:
     token = request.cookies.get("auth_token")
     auth_header = request.headers.get("Authorization")
@@ -179,6 +202,20 @@ def chat():
         )
     except requests.RequestException:
         return jsonify({"message": "could not reach main server"}), 502
+
+    # first message in the chat -> auto-name it (best-effort). fall back to a
+    # trimmed version of the prompt if the model doesn't return a usable title
+    if not history:
+        title = generate_title(prompt) or " ".join(prompt.split())[:40]
+        try:
+            requests.patch(
+                f"{MAIN_SERVER_URL}/api/chats/{chat_id}",
+                headers=forward_headers(token),
+                json={"chat_name": title},
+                timeout=10,
+            )
+        except requests.RequestException:
+            pass
 
     return jsonify({"content": reply, "tokens_used": tokens_used}), 200
 

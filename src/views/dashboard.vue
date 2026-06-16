@@ -3,6 +3,7 @@
     <ion-header>
       <ion-toolbar>
         <ion-title>Dashboard {{ status }}</ion-title>
+        <HeaderButtons />
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
@@ -45,6 +46,7 @@ import { Pie } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js'
 import { carsStore } from './classes/cars'
 import { svsStore } from './classes/svs'
+import HeaderButtons from '../components/HeaderButtons.vue'
 
 const API_URL = import.meta.env.VITE_API_URL
 let status = ref('🔄')

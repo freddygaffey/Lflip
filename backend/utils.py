@@ -16,8 +16,8 @@ def is_pwd_valid(pwd) -> str | None:
     s_char_count = 0
     for i in pwd:
         if i in letters: lower_count += 1
-        if i in letters.upper: upper_count += 1
-        if i in chr: s_char_count += 1
+        if i in letters.upper(): upper_count += 1
+        if i in chars: s_char_count += 1
     if not (lower_count >= 1): return None
     if not (upper_count >= 1): return None
     if not (s_char_count >= 1): return None
