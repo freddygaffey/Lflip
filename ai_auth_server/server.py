@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 import threading
 from collections import deque
-import os
+import logging
 
 app = Flask(__name__)
+CORS(app)
+logging.basicConfig(level=logging.INFO)
 
 # TODO: PROD: point these at the real hosts
 DEFAULT_MAIN_SERVER_URL = "http://127.0.0.1:5001"  # 5001 with `python app.py -d`, 5000 without
@@ -14,8 +17,8 @@ DEFAULT_MAIN_SERVER_URL = "http://127.0.0.1:5001"  # 5001 with `python app.py -d
 MAIN_SERVER_MAP = {
     "5000": "http://127.0.0.1:5000",
     "5001": "http://127.0.0.1:5001",
-    "api.": "https://api.lflip.pebnum.com",
-    "dev.": "https://api.lflip.pebnum.com",  # dev subdomain proxies to the same prod flask
+    "api.": "http://127.0.0.1:5000",
+    "dev.": "http://127.0.0.1:5001",
 }
 
 def get_main_server_url() -> str:
@@ -25,13 +28,8 @@ def get_main_server_url() -> str:
             return url
     return DEFAULT_MAIN_SERVER_URL
 
-# local ollama by default; set OLLAMA_API_KEY to use Ollama Cloud instead
 OLLAMA_URL = "http://127.0.0.1:11434"
-OLLAMA_MODEL = "gemma4"
-OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY")
-if OLLAMA_API_KEY:
-    OLLAMA_URL = "https://ollama.com"
-    OLLAMA_MODEL = "gemma4-cloud"
+OLLAMA_MODEL = "gpt-oss:120b-cloud"
 
 # ollama only handles one generation well at a time, so requests are
 # queued and processed one-by-one by a single worker thread
@@ -53,11 +51,9 @@ def ollama_worker():
                 ollama_queue_not_empty.wait()
             job = ollama_queue.popleft()
 
-        ollama_headers = {"Authorization": f"Bearer {OLLAMA_API_KEY}"} if OLLAMA_API_KEY else {}
         try:
             resp = requests.post(
                 f"{OLLAMA_URL}/api/chat",
-                headers=ollama_headers,
                 json={
                     "model": OLLAMA_MODEL,
                     "messages": job.messages,
@@ -95,6 +91,10 @@ def get_token() -> str | None:
 def forward_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
+
+@app.get("/")
+def main():
+    return "this is the ai server it works" , 200
 
 @app.post("/api/ai/chat")
 def chat():

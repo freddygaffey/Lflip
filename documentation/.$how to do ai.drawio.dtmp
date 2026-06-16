@@ -1,0 +1,58 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="q7qwlqgnz8dN8h4acjoh">
+    <mxGraphModel dx="2264" dy="1070" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="760" width="904" x="-140" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;user&lt;/b&gt;&lt;div&gt;running local ie (native app) or app.lflip.pebnum.com&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="514" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="" vertex="1">
+          <mxGeometry height="390" width="210" x="-370" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div style=&quot;&quot;&gt;&lt;b&gt;ai server&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;ai.lflip.pebnum.com&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="-310" y="255" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-8" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="180" y="120" as="sourcePoint" />
+            <mxPoint x="180" y="120" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;" value="&lt;div style=&quot;text-align: center;&quot;&gt;&lt;span style=&quot;&quot;&gt;&lt;b&gt;passer&lt;/b&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;( a tool will be stored in modules in the passer they allow you to make a request to the backend)&lt;/div&gt;&lt;span style=&quot;&quot;&gt;&lt;div&gt;&lt;span style=&quot;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;if message show&lt;/span&gt;&lt;div style=&quot;&quot;&gt;if tool check for prmitions in pref&amp;nbsp;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;if allowed make web request to backend with the there user token&lt;/div&gt;&lt;div style=&quot;&quot;&gt;if allowed then notify the user used&lt;/div&gt;&lt;div style=&quot;&quot;&gt;if not asked for ask&lt;/div&gt;" vertex="1">
+          <mxGeometry height="210" width="330" x="424" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;Tools&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;- licence info&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;- past drives all data not location&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;- past drives with location&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;- given context how the app works so that it can provide ui help&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="330" x="424" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-23" edge="1" parent="1" source="g_EiLYnD5NPa7pznDrJI-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="g_EiLYnD5NPa7pznDrJI-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;Front end&lt;/b&gt;&lt;div&gt;- I am not sure but i just need to display bubles&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="330" x="424" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;how to reduse scope&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;- i will not have cloud sync of chats&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;- i will not allow the ai access the internet no search tool therfore i will now have command injection risks&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;- I will not to rate limiting or have user auth as that is hard&amp;nbsp;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="330" x="424" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;ai model&lt;/b&gt;&lt;div&gt;just a ollama rest api&lt;/div&gt;&lt;div&gt;not protected&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="150" x="-340" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-21" edge="1" parent="1" source="g_EiLYnD5NPa7pznDrJI-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="g_EiLYnD5NPa7pznDrJI-19" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-24" edge="1" parent="1" source="g_EiLYnD5NPa7pznDrJI-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="g_EiLYnD5NPa7pznDrJI-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-20" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;ai auth (ngnix)&lt;/b&gt;&lt;div&gt;this will make a request to the ai model on the user behalf after checking for auth&lt;/div&gt;&lt;div&gt;END POINT TODO&lt;/div&gt;&lt;div&gt;/api/ai/&amp;lt;user session token&amp;gt;/tokens_left&lt;/div&gt;&lt;div&gt;responce:&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;tokens left&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;if the user has &amp;gt; 0 tokens can make request&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;after the request&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ues the&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;https://docs.ollama.com/api/generate#response-eval-count&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;then hits&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;END POINT TODO&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;/api/ai/id=&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;user session token jwt then decode id &amp;amp; add_used_tokens= int&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;once auth then it will just pass the request to ai modle&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="300" width="390" x="-120" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="g_EiLYnD5NPa7pznDrJI-22" edge="1" parent="1" source="g_EiLYnD5NPa7pznDrJI-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.003;entryY=0.448;entryDx=0;entryDy=0;entryPerimeter=0;" target="g_EiLYnD5NPa7pznDrJI-20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
