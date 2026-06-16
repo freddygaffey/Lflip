@@ -3,7 +3,6 @@
     <ion-header>
       <ion-toolbar>
         <ion-title>Dashboard {{ status }}</ion-title>
-        <HeaderButtons />
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
@@ -13,42 +12,75 @@
         <div class="chart-col"><Pie :data="TchartData" :options="TchartOptions"/><p>{{ total }}/{{ capTotal }}</p></div>
       </div>
 
-      <h2 class="trips-heading">
-        List of trips
-        <ion-button size="small" fill="outline">view in logbook format</ion-button>
-      </h2>
-      <ion-card v-for="(t, i) in trips.slice().reverse()" :key="t.start_time">
-        <ion-card-header>
-          <ion-card-title>Trip {{ trips.length - i}} {{t.day_night == 'day' ? '☀️' : '🌜' }}</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <p>Duration: {{ Math.floor((t.end_time - t.start_time) / 3600000) }}:{{ String(Math.floor(((t.end_time - t.start_time) / 60000)%60)).padStart(2,'0') }}</p>
-          <p>Length: {{ t.end_odo - t.start_odo }} km</p>
-          <p>Start odo: {{ t.start_odo }}</p>
-          <p>End odo: {{ t.end_odo }}</p>
-          <p>Car: {{ carsStore.get_car_by_id(t.car_id)?.nickname ?? 'None saved' }}</p>
-          <p>Supervising driver: {{ t.sv_name ?? svsStore.get_sv_by_id(t.sv_id)?.full_name }}</p>
-          <p>Supervising number: {{ t.sv_licence_no ?? svsStore.get_sv_by_id(t.sv_id)?.licence_no }}</p>
-          <p>Weather: {{ t.weather }}</p>
-        </ion-card-content>
-      </ion-card>
+      <ion-segment v-model="mode" class="mode-switch">
+        <ion-segment-button value="day">
+          <ion-label>Day</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="night">
+          <ion-label>Night</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <div class="logbook">
+        <div class="logbook-title">
+          Record of Driving Hours — {{ mode === 'day' ? 'Day' : 'Night' }}
+          <span class="logbook-sub">with a supervising driver</span>
+        </div>
+        <div class="logbook-scroll">
+          <table class="logbook-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Weather<br>Conditions</th>
+                <th>SD Name</th>
+                <th>SD Licence</th>
+                <th>SD Signature</th>
+                <th>Start<br>Time</th>
+                <th>Finish<br>Time</th>
+                <th>Odometer<br>Start</th>
+                <th>Odometer<br>Finish</th>
+                <th>Total<br>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="t in filteredTrips" :key="t.id" @click="openTrip(t)">
+                <td>{{ fmtDate(t.start_time) }}</td>
+                <td>{{ t.weather }}</td>
+                <td>{{ t.sv_name ?? svsStore.get_sv_by_id(t.sv_id)?.full_name }}</td>
+                <td>{{ t.sv_licence_no ?? svsStore.get_sv_by_id(t.sv_id)?.licence_no }}</td>
+                <td></td>
+                <td>{{ fmtTime(t.start_time) }}</td>
+                <td>{{ fmtTime(t.end_time) }}</td>
+                <td>{{ t.start_odo }}</td>
+                <td>{{ t.end_odo }}</td>
+                <td>{{ fmtDuration(t) }}</td>
+              </tr>
+              <tr v-if="filteredTrips.length === 0">
+                <td colspan="10" class="logbook-empty">No {{ mode }} entries yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonCard, IonCardHeader, IonCardTitle, IonCardContent, onIonViewDidEnter, IonButton } from '@ionic/vue'
+import { ref, computed } from 'vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, onIonViewDidEnter, IonSegment, IonSegmentButton, IonLabel } from '@ionic/vue'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
+import { useRouter } from 'vue-router'
 
 import { Pie } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js'
 import { carsStore } from './classes/cars'
 import { svsStore } from './classes/svs'
-import HeaderButtons from '../components/HeaderButtons.vue'
 
 const API_URL = import.meta.env.VITE_API_URL
+const router = useRouter()
+const mode = ref<'day' | 'night'>('day')
 let status = ref('🔄')
 const totalDay = ref('')
 const totalNight = ref('')
@@ -165,6 +197,7 @@ type GpsPoint = {
 }
 
 type Trip = {
+  id: number
   start_time: number
   end_time: number
   start_odo: number
@@ -182,6 +215,21 @@ type Trip = {
 
 const trips = ref<Trip[]>([])
 
+const filteredTrips = computed(() =>
+  trips.value.filter((t) => t.day_night === mode.value).slice().reverse()
+)
+
+const fmtDate = (ms: number) => new Date(ms).toLocaleDateString()
+const fmtTime = (ms: number) =>
+  new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+const fmtDuration = (t: Trip) => {
+  const h = Math.floor((t.end_time - t.start_time) / 3600000)
+  const m = String(Math.floor(((t.end_time - t.start_time) / 60000) % 60)).padStart(2, '0')
+  return `${h}:${m}`
+}
+
+const openTrip = (t: Trip) => router.push(`/tabs/trip/${t.id}`)
+
 onIonViewDidEnter(load_dasbord)
 </script>
 
@@ -198,11 +246,84 @@ onIonViewDidEnter(load_dasbord)
   flex: 1;
 }
 
-.trips-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 24px;
+.mode-switch {
+  margin-top: 20px;
+}
+
+.logbook {
+  margin-top: 16px;
+  border: 2px solid #1a2a5e;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.logbook-title {
+  background: #1a2a5e;
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  padding: 8px 10px;
+}
+
+.logbook-sub {
+  display: block;
+  font-weight: 400;
+  font-size: 0.7rem;
+  opacity: 0.85;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.logbook-scroll {
+  overflow-x: auto;
+}
+
+.logbook-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 720px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 0.75rem;
+}
+
+.logbook-table th {
+  background: #1a2a5e;
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  padding: 6px 8px;
+  border: 1px solid #1a2a5e;
+  text-align: left;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.logbook-table td {
+  border: 1px solid #c4c4c4;
+  padding: 10px 8px;
+  white-space: nowrap;
+}
+
+.logbook-table tbody tr {
+  cursor: pointer;
+}
+
+.logbook-table tbody tr:nth-child(even) {
+  background: #f4f5f9;
+}
+
+.logbook-table tbody tr:hover {
+  background: #e6e9f5;
+}
+
+.logbook-empty {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  cursor: default;
 }
 </style> 

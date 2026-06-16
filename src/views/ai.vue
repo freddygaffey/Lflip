@@ -18,6 +18,7 @@
           <ion-icon :icon="chatbubblesOutline" class="empty-icon"></ion-icon>
           <h2>Your driving assistant</h2>
           <p>Ask about road rules, your logged trips, or licence requirements.</p>
+          <p class="tools-hint">Choose what data I can access in <strong>Settings</strong>.</p>
           <ion-button @click="newChat">
             <ion-icon :icon="add" slot="start"></ion-icon>
             Start a chat
@@ -55,6 +56,7 @@
         <div v-if="chatsStore.messages.value.length === 0 && !sending" class="thread-hint">
           <ion-icon :icon="chatbubblesOutline" class="empty-icon"></ion-icon>
           <p>Ask me anything about learning to drive.</p>
+          <p class="tools-hint">You can choose what data I'm allowed to access in <strong>Settings</strong>.</p>
         </div>
 
         <div v-for="m in chatsStore.messages.value" :key="m.id"
@@ -92,6 +94,7 @@
           <ion-icon :icon="listOutline" slot="icon-only"></ion-icon>
         </ion-button>
         <ion-textarea
+          ref="inputRef"
           v-model="prompt"
           placeholder="Ask about road rules, your trips, or licence info…"
           :auto-grow="true"
@@ -135,6 +138,7 @@ const activeChat = ref<Chat | null>(null)
 const prompt = ref('')
 const sending = ref(false)
 const contentRef = ref<InstanceType<typeof IonContent> | null>(null)
+const inputRef = ref<InstanceType<typeof IonTextarea> | null>(null)
 
 marked.setOptions({ breaks: true, gfm: true })
 
@@ -156,10 +160,17 @@ onMounted(async () => {
   await chatsStore.pull_chats()
 })
 
+async function focusInput() {
+  await nextTick()
+  // setFocus brings up the on-screen keyboard on mobile, unlike autofocus
+  await inputRef.value?.$el?.setFocus()
+}
+
 async function openChat(chat: Chat) {
   activeChat.value = chat
   await chatsStore.pull_messages(chat.id)
   await scrollToBottom(false)
+  await focusInput()
 }
 
 function closeChat() {
@@ -208,6 +219,7 @@ async function send() {
   } finally {
     sending.value = false
   }
+  await focusInput()
 }
 </script>
 
@@ -267,6 +279,10 @@ async function send() {
   color: var(--ion-color-medium-shade);
   margin: 32px 0;
 }
+.tools-hint {
+  font-size: 0.85em;
+  color: var(--ion-color-medium);
+}
 .row {
   display: flex;
   align-items: flex-end;
@@ -315,7 +331,8 @@ async function send() {
   border-bottom-right-radius: 4px;
 }
 .bubble-ai {
-  background: #ffffff;
+  max-width: 92%;
+  background: var(--ion-background-color-step-100, #f2f2f2);
   color: var(--ion-text-color);
   border-bottom-left-radius: 4px;
 }
@@ -345,6 +362,34 @@ async function send() {
 }
 .md pre code { background: none; padding: 0; }
 .md a { color: var(--ion-color-primary); }
+
+/* tables: scroll horizontally instead of overflowing the bubble */
+.md table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 0.88em;
+}
+.md th,
+.md td {
+  border: 1px solid var(--ion-color-step-200, rgba(128, 128, 128, 0.3));
+  padding: 5px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+.md th {
+  background: var(--ion-color-light-shade);
+  font-weight: 600;
+}
+.md blockquote {
+  margin: 8px 0;
+  padding: 2px 12px;
+  border-left: 3px solid var(--ion-color-medium);
+  color: var(--ion-color-medium-shade);
+}
 
 /* typing indicator */
 .typing {

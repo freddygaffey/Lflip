@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from markupsafe import escape
-from data import db, User, LicenseInfo, Trip, GpsPoint, Car, Sv, Chat, ChatMessage
+from data import db, User, LicenseInfo, Trip, GpsPoint, Car, Sv, Chat, ChatMessage, AiPreference
 import secrets
 from config import states, secret_key, TOKEN_LIMIT_5H, TOKEN_LIMIT_WEEK
-from utils import is_pwd_valid
+from utils import is_pwd_valid, is_email_valid
 from flask_cors import CORS
 from my_auth import gen_token, require_auth
 import time
@@ -75,6 +75,7 @@ def register():
     f_name = data.get("f_name")
     l_name = data.get("l_name")
 
+    if not is_email_valid(email): return jsonify({"message": "enter a valid email"}), 400
     if not is_pwd_valid(pwd): return jsonify({"message": "enter a valid pwd"}), 400
     pwd_hash = generate_password_hash(pwd)
     if User.query.filter_by(email=email).first():
@@ -121,8 +122,6 @@ def test():
 @require_auth
 def start_dashboard():
     return "top secret yay", 200
-    request.user_id 
-    query = db.select()
 
 @app.post("/api/is_auth")
 @require_auth
@@ -535,6 +534,39 @@ def ai_tokens_left():
         "tokens_left_week": max(TOKEN_LIMIT_WEEK - used_week, 0),
     }), 200
 
+################ ai pref congiuration
+def _get_or_create_ai_prefs(user_id: int) -> AiPreference:
+    prefs = AiPreference.query.filter_by(user_id=user_id).first()
+    if not prefs:
+        prefs = AiPreference(user_id=user_id)
+        db.session.add(prefs)
+        db.session.commit()
+    return prefs
+
+def _ai_prefs_json(prefs: AiPreference) -> dict:
+    return {field: getattr(prefs, field) for field in AiPreference.FIELDS}
+
+@app.get("/api/ai/preferences")
+@require_auth
+def get_ai_preferences():
+    prefs = _get_or_create_ai_prefs(int(request.user_id))
+    return jsonify(_ai_prefs_json(prefs)), 200
+
+@app.patch("/api/ai/preferences")
+@require_auth
+@handle_validation_error
+def update_ai_preferences():
+    prefs = _get_or_create_ai_prefs(int(request.user_id))
+    data = request.json or {}
+    for field in AiPreference.FIELDS:
+        if field in data:
+            setattr(prefs, field, bool(data[field]))
+    db.session.commit()
+    return jsonify(_ai_prefs_json(prefs)), 200
+
+
+
+
 if __name__ == "__main__":
     import argparse
     debug = False
@@ -548,6 +580,21 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     if args.debug: 
+        @app.post("/api/ai/reset_usage")
+        @require_auth
+        def reset_ai_usage():
+            # debug helper: the AI token "limit" is computed as LIMIT - sum(tokens_used),
+            # so zeroing this account's recorded AI usage effectively tops it back up.
+            chat_ids = [c.id for c in Chat.query.filter_by(user_id=int(request.user_id)).all()]
+            reset = 0
+            if chat_ids:
+                reset = ChatMessage.query.filter(
+                    ChatMessage.chat_id.in_(chat_ids),
+                    ChatMessage.is_ai == True,
+                ).update({"tokens_used": 0}, synchronize_session=False)
+                db.session.commit()
+            return jsonify({"message": "ok", "messages_reset": reset}), 200
+
         CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
         app.run(host="127.0.0.1", port=5001, debug=True) # TODO: PROD: remove befor producion
     else:

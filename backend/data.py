@@ -22,7 +22,7 @@ class User(db.Model, flask_login.UserMixin):
     l_name = db.Column(db.String(255), nullable=True)
     nickname = db.Column(db.String(100), nullable=True)
     email = db.Column(db.String(255), nullable=False,unique=True)
-    password_hash = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
     license_records = db.relationship("LicenseInfo", backref="account", lazy=True)
 
     def __init__(self, f_name, l_name, email, password_hash, license_info: "LicenseInfo | None", nickname=None):
@@ -204,6 +204,23 @@ class ChatMessage(db.Model):
     content = db.Column(db.Text, nullable=False)
     tokens_used = db.Column(db.Integer, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.now)
+
+class AiPreference(db.Model):
+    """Per-user toggles for which of their data the AI assistant may access.
+    Defaults to all-off (opt-in) so no data is shared until the user allows it."""
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, unique=True)
+
+    allow_trips = db.Column(db.Boolean, default=False, nullable=False)
+    allow_cars = db.Column(db.Boolean, default=False, nullable=False)
+    allow_supervisors = db.Column(db.Boolean, default=False, nullable=False)
+    allow_licence = db.Column(db.Boolean, default=False, nullable=False)
+    allow_profile = db.Column(db.Boolean, default=False, nullable=False)
+
+    owner = db.relationship("User", foreign_keys=[user_id])
+
+    # the boolean column names the API/clients exchange
+    FIELDS = ("allow_trips", "allow_cars", "allow_supervisors", "allow_licence", "allow_profile")
 
 # class Pair(db.Model):
 #     """Glue table linking supervising drivers with learner drivers."""

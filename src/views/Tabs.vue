@@ -17,6 +17,14 @@
           <ion-icon :ios="chatbubblesOutline" :md="chatbubblesSharp"></ion-icon>
           <ion-label>Assistant</ion-label>
         </ion-tab-button>
+        <ion-tab-button tab="settings" href="/tabs/settings">
+          <ion-icon :ios="settingsOutline" :md="settingsSharp"></ion-icon>
+          <ion-label>Settings</ion-label>
+        </ion-tab-button>
+        <ion-tab-button tab="debug" href="/tabs/debug">
+          <ion-icon :ios="bugOutline" :md="bugSharp"></ion-icon>
+          <ion-label>Debug</ion-label>
+        </ion-tab-button>
       </ion-tab-bar>
     </ion-tabs>
   </ion-page>
@@ -24,5 +32,8 @@
 
 <script setup lang="ts">
 import { IonPage, IonTabs, IonTabBar, IonTabButton, IonLabel, IonRouterOutlet, IonIcon } from '@ionic/vue'
-import { bookOutline, bookSharp, chatbubblesOutline, chatbubblesSharp } from 'ionicons/icons'
+import {
+  bookOutline, bookSharp, chatbubblesOutline, chatbubblesSharp,
+  settingsOutline, settingsSharp, bugOutline, bugSharp,
+} from 'ionicons/icons'
 </script>

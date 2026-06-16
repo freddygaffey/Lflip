@@ -2,6 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self';
+               script-src 'self';
+               style-src 'self' 'unsafe-inline';
+               img-src 'self' data: https:;
+               font-src 'self' data:;
+               connect-src 'self' https://dev.lflip.pebnum.com https://api.lflip.pebnum.com https://ai.lflip.pebnum.com;
+               object-src 'none';
+               base-uri 'self';
+               form-action 'self'"
+    />
     <title>L Flip</title>
 
     <base href="/" />

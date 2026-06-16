@@ -157,7 +157,13 @@ const save = async () => {
   current.end_odo = parseFloat(endOdo.value)
   current.day = isDay.value
   current.day_night = isDay.value ? 'day' : 'night'
+
   current.weather = weather.value
+  if (!weather.value) {
+    current.weather = 'sunny'
+    weather.value = 'sunny'
+  }
+
   if (current.end_time == null) {
     current.end_time = Date.now()
   }

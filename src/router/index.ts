@@ -11,6 +11,7 @@ import Debug from '../views/debug.vue'
 import Settings from '../views/settings.vue'
 import EndTrip from '../views/endTrip.vue'
 import Marketing from '../views/marketing.vue'
+import TripDetail from '../views/tripDetail.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -57,6 +58,10 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'dashboard',
         component: Dashboard,
+      },
+      {
+        path: 'trip/:id',
+        component: TripDetail,
       },
       {
         path: 'ai',

@@ -2,9 +2,6 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/tabs/dashboard"></ion-back-button>
-        </ion-buttons>
         <ion-title>Debug</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -18,6 +15,7 @@
       <ion-button @click="showRawTrips" color="medium">Show raw trips</ion-button>
       <ion-button @click="setServerToTrue" color="medium">overite trips</ion-button>
       <ion-button @click="showAllPrefs" color="medium">Show all preferences</ion-button>
+      <ion-button @click="topUpUsage" color="warning">Top up AI usage</ion-button>
       <ion-button @click="toggleSimulateNative" :color="simulateNative ? 'success' : 'medium'">
         Simulate native: {{ simulateNative ? 'ON' : 'OFF' }}
       </ion-button>
@@ -29,7 +27,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonButtons, IonBackButton, modalController } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, modalController } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { CapacitorHttp } from '@capacitor/core'
@@ -53,6 +51,15 @@ const openMasterDebug = async () => {
 const toggleSimulateNative = async () => {
   simulateNative.value = !simulateNative.value
   await Preferences.set({ key: 'simulate_native', value: String(simulateNative.value) })
+}
+
+const topUpUsage = async () => {
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  const r = await CapacitorHttp.post({
+    url: `${API_URL}/api/ai/reset_usage`,
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+  alert(r.status === 200 ? 'AI usage reset — limit topped up.' : `Failed (${r.status}).`)
 }
 
 const hitTest = async () => {

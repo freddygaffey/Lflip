@@ -1,0 +1,31 @@
+flowchart TB
+    FE["Frontend<br/>(Vue · Cloudflare)"]
+    OLLAMA["Ollama LLM<br/>127.0.0.1:11434<br/>gpt-oss:120b-cloud"]
+
+    subgraph AISERVER["AI server — Flask :5050 (server.py)"]
+        direction TB
+        CHAT["/api/ai/chat handler/"]
+        QUEUE["Ollama job queue<br/>single worker thread<br/>(one generation at a time)"]
+        RUNTIME["Tool runtime — execute_tool()<br/>permission check · fetch data · run"]
+        TOOLS["tools/ package<br/>parser → Context → run → format_for_ai<br/>trip_speed, weather_variance,<br/>route_diversity, … (+ geo.py)"]
+    end
+
+    subgraph MAIN["Main backend — Flask :5000 / :5001"]
+        direction TB
+        API["auth · token limits · chats/messages<br/>AiPreference<br/>/api/trips /api/cars /api/sv /api/state"]
+        DB[("Database")]
+    end
+
+    FE -->|"POST /api/ai/chat<br/>prompt · chat_id · token · X-Api-Url"| CHAT
+    CHAT -->|reply| FE
+
+    CHAT --> QUEUE
+    QUEUE -->|"messages + permitted tool schemas"| OLLAMA
+    OLLAMA -->|"text answer OR tool call"| QUEUE
+
+    CHAT --> RUNTIME
+    RUNTIME --> TOOLS
+
+    CHAT -->|"tokens_left? · history · save msgs<br/>AiPreferences · auto-name"| API
+    RUNTIME -->|"Bearer token (forwarded)<br/>fetch only required categories"| API
+    API --> DB

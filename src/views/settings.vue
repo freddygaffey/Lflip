@@ -2,9 +2,6 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button default-href="/tabs/dashboard"></ion-back-button>
-        </ion-buttons>
         <ion-title>Settings</ion-title>
       </ion-toolbar>
     </ion-header>
@@ -38,6 +35,25 @@
           <ion-label>Click to add supervisor</ion-label>
         </ion-item>
        </ion-list>
+
+       <h2>What the assistant can access</h2>
+       <ion-list>
+        <ion-item lines="none">
+          <ion-note>Choose which of your data the AI assistant is allowed to use when answering. Everything is off until you turn it on.</ion-note>
+        </ion-item>
+        <ion-item v-for="field in AI_PREF_FIELDS" :key="field.key">
+          <ion-label class="ion-text-wrap">
+            <h3>{{ field.label }}</h3>
+            <p>{{ field.description }}</p>
+          </ion-label>
+          <ion-toggle
+            slot="end"
+            :checked="aiPrefs[field.key]"
+            @ion-change="onPrefToggle(field.key, $event)"
+          ></ion-toggle>
+        </ion-item>
+       </ion-list>
+
     <ion-button @click="signOut">Sign Out</ion-button>
     </ion-content>
   </ion-page>
@@ -51,14 +67,14 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
-  IonButtons,
-  IonBackButton,
   IonButton,
   IonList,
   IonListHeader,
   IonItem,
   IonLabel,
   IonInput,
+  IonToggle,
+  IonNote,
   modalController,
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
@@ -69,6 +85,8 @@ import SvFormModal from './SvFormModal.vue'
 import { Capacitor } from '@capacitor/core'
 import { carsStore, type Car } from './classes/cars'
 import { svsStore, type Sv } from './classes/svs'
+import { aiPrefsStore, AI_PREF_FIELDS, type AiPrefs } from './classes/aiPrefs'
+import type { ToggleCustomEvent } from '@ionic/vue'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -98,9 +116,17 @@ async function onCarClick(car: Car | null) {
 const svs = svsStore.svs
 const newSv = ref({ full_name: '', licence_no: ''})
 
+const aiPrefs = aiPrefsStore.prefs
+
+async function onPrefToggle(key: keyof AiPrefs, ev: ToggleCustomEvent) {
+  await aiPrefsStore.set(key, ev.detail.checked)
+}
+
 onMounted(async () => {
+  await aiPrefsStore.load_cache()
   await carsStore.pull_cloud()
   await svsStore.pull_cloud()
+  await aiPrefsStore.pull_cloud()
 })
 
 async function onSvClick(sv: Sv | null) {

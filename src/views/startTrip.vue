@@ -3,7 +3,6 @@
     <ion-header>
       <ion-toolbar>
         <ion-title>Log Trip</ion-title>
-        <HeaderButtons />
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
@@ -53,7 +52,6 @@
 
 <script setup lang="ts">
   import { onIonViewWillEnter, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonList, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
-  import HeaderButtons from '../components/HeaderButtons.vue';
   import { Geolocation } from '@capacitor/geolocation'
   import { Capacitor } from '@capacitor/core'
   import { ref, watch } from 'vue';
