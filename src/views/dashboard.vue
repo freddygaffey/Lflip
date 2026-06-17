@@ -77,6 +77,7 @@ import { Pie } from 'vue-chartjs'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js'
 import { carsStore } from './classes/cars'
 import { svsStore } from './classes/svs'
+import type { Trip } from './classes/trips'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -189,29 +190,6 @@ async function pullTrips() {
   trips.value = synced
 }
 
-
-type GpsPoint = {
-  lat: number
-  lon: number
-  time: number
-}
-
-type Trip = {
-  id: number
-  start_time: number
-  end_time: number
-  start_odo: number
-  end_odo: number
-  day: boolean
-  day_night: 'day' | 'night'
-  weather: string
-  gps: GpsPoint[]
-  synced: boolean
-  car_id: number
-  sv_id: number
-  sv_name: string | null
-  sv_licence_no: string | null
-}
 
 const trips = ref<Trip[]>([])
 

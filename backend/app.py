@@ -197,26 +197,30 @@ def sync_trips():
 @app.delete("/api/trips")
 @require_auth
 def delete_trips():
-    Trip.query.filter_by(learner_id=int(request.user_id)).delete()
+    # delete per-object (not bulk) so the gps_points cascade fires
+    trips = Trip.query.filter_by(learner_id=int(request.user_id)).all()
+    for t in trips:
+        db.session.delete(t)
     db.session.commit()
     return jsonify({"message": "ok"}), 200
 
+@app.delete("/api/trips/<int:id>")
+@require_auth
+def delete_trip(id):
+    trip = Trip.query.filter_by(learner_id=int(request.user_id), id=int(id)).first()
+    if trip is not None:
+        db.session.delete(trip)
+        db.session.commit()
+    return jsonify({"message": "ok"}), 200
 
 @app.get("/api/trips")
 @require_auth
 def pull_trips():
+    # lightweight list: no gps points so the dashboard loads fast.
+    # gps is fetched per-trip via /api/trips/<id>/gps when a map is opened.
     trips = Trip.query.filter_by(learner_id=int(request.user_id)).all()
     value_json = []
     for t in trips:
-        gps = GpsPoint.query.filter_by(trip_id=int(t.id)).all()
-        gps_arr = []
-        for g in gps:
-            gps_arr.append({
-                "time": g.timestamp.timestamp() * 1000,
-                "lon": g.lon,
-                "lat": g.lat,
-                "speed": g.speed})
-
         td = {
             "id": t.id,
             "start_time": t.start_time.timestamp() * 1000,
@@ -228,12 +232,29 @@ def pull_trips():
             "car_id": t.car_id,
             "sv_id": t.sv_id,
             "sv_name": escape(t.sv_name) if t.sv_name else None,
-            "sv_licence_no": escape(t.sv_licence_no) if t.sv_licence_no else None,
-            "gps": gps_arr}
+            "sv_licence_no": escape(t.sv_licence_no) if t.sv_licence_no else None}
 
         value_json.append(td)
 
     return jsonify(value_json), 200
+
+
+@app.get("/api/trips/<int:trip_id>/gps")
+@require_auth
+def pull_trip_gps(trip_id):
+    # ownership check: only return gps for a trip belonging to this learner
+    trip = Trip.query.filter_by(id=trip_id, learner_id=int(request.user_id)).first()
+    if trip is None:
+        return jsonify({"error": "not found"}), 404
+
+    gps = GpsPoint.query.filter_by(trip_id=trip_id).all()
+    gps_arr = [{
+        "time": g.timestamp.timestamp() * 1000,
+        "lon": g.lon,
+        "lat": g.lat,
+        "speed": g.speed} for g in gps]
+
+    return jsonify(gps_arr), 200
 
 
 # i copied the car routes and just renamed  

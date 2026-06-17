@@ -127,7 +127,7 @@ class Trip(db.Model):
 
     supervising_driver = db.relationship("User", foreign_keys=[sv_id])
     learner_driver = db.relationship("User", foreign_keys=[learner_id])
-    gps_points = db.relationship("GpsPoint", backref="trip", lazy=True)
+    gps_points = db.relationship("GpsPoint", backref="trip", lazy=True, cascade="all, delete-orphan")
 
     @validates("date")
     def date_validate(self, key, date):

@@ -141,11 +141,72 @@ async function onSvClick(sv: Sv | null) {
   await model.present()
   await model.onWillDismiss()
 }
+type LocalTrip = { synced?: boolean }
+
+// how many locally-stored drives haven't made it to the cloud yet
+async function countUnsyncedTrips(): Promise<number> {
+  const { value } = await Preferences.get({ key: 'trips' })
+  const trips = JSON.parse(value ?? '[]') as LocalTrip[]
+  return trips.filter((t) => !t.synced).length
+}
+
+// push any unsynced drives to the backend. returns true only if everything synced.
+async function pushUnsyncedTrips(): Promise<boolean> {
+  const { value: tripsRaw } = await Preferences.get({ key: 'trips' })
+  const trips = JSON.parse(tripsRaw ?? '[]') as LocalTrip[]
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  try {
+    for (const trip of trips) {
+      if (trip.synced) continue
+      const response = await CapacitorHttp.post({
+        url: `${API_URL}/api/trips/push_trip`,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        data: { trip },
+      })
+      if (response.status === 200) trip.synced = true
+      else return false
+    }
+    return true
+  } catch {
+    return false
+  } finally {
+    // persist whatever managed to sync so a partial upload isn't lost
+    await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
+  }
+}
+
 async function signOut(){
+  const unsynced = await countUnsyncedTrips()
+
+  // offline: we can't sync, so warn before wiping anything that hasn't uploaded
   if (!navigator.onLine) {
-    alert("you need to be online to sign out as it will cause sync isues")
+    if (unsynced > 0) {
+      const ok = confirm(
+        `You're offline and ${unsynced} drive(s) haven't been uploaded yet. ` +
+        `Signing out will permanently delete them. Sign out anyway?`
+      )
+      if (!ok) return
+    }
+    await Preferences.clear()
+    router.push("/")
     return
   }
+
+  // online: sync first so nothing is lost on wipe
+  if (unsynced > 0) {
+    const synced = await pushUnsyncedTrips()
+    if (!synced) {
+      const force = confirm(
+        "Some drives couldn't be uploaded. Signing out now will permanently " +
+        "delete the unsaved drives. Sign out anyway?"
+      )
+      if (!force) return
+    }
+  }
+
   await Preferences.clear()
   router.push("/")
 }
