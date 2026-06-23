@@ -85,6 +85,11 @@ def register():
     db.session.add(user)
     db.session.commit()
 
+    # give every new user an all-off AiPreference row up front (opt-in: no data
+    # is shared with the assistant until they enable a category in Settings)
+    db.session.add(AiPreference(user_id=user.id))
+    db.session.commit()
+
     # token = str(gen_token(user.id))
     # response = jsonify({"message":"ok"})
     # response.set_cookie('auth_token', token, httponly=True, secure=False, samesite='Lax')

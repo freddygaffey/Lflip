@@ -423,7 +423,7 @@ async function send() {
   flex: 1 1 auto;
   min-width: 0;
   --background: var(--ion-color-light);
-  --color: var(--ion-text-color);
+  --color: var(--ion-color-light-contrast);
   --placeholder-color: var(--ion-color-medium);
   --placeholder-opacity: 1;
   --padding-start: 14px;

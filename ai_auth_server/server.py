@@ -9,7 +9,26 @@ import tools  # the AI-friendly tools package (ai_auth_server/tools)
 
 app = Flask(__name__)
 CORS(app)
-logging.basicConfig(level=logging.INFO)
+
+# verbose logging so the tool-calling flow can be diagnosed live in the terminal.
+# format shows the time + level + message; level is INFO so all the chat/tool
+# breadcrumbs below show up without needing DEBUG.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-7s %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger("ai_auth")
+# requests/urllib3 log a line per HTTP call at INFO which drowns out our own
+# output - quiet them down to warnings.
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+
+def _truncate(text, limit: int = 600) -> str:
+    """Shorten long strings for log lines so prompts/results stay readable."""
+    text = "" if text is None else str(text)
+    text = " ".join(text.split())
+    return text if len(text) <= limit else text[:limit] + f"... [+{len(text) - limit} chars]"
 
 # TODO: PROD: point these at the real hosts
 DEFAULT_MAIN_SERVER_URL = "http://127.0.0.1:5001"  # 5001 with `python app.py -d`, 5000 without
@@ -56,12 +75,15 @@ CONTEXT = (
     "English. If you cannot access the data needed, just say so."
 )
 
-# which backend endpoint supplies each data category a tool can require
+# which backend endpoint supplies each data category a tool can require.
+# note: "gps" has no bulk endpoint - the trips list is deliberately lightweight
+# (no points), so gps is fetched per-trip from /api/trips/<id>/gps and attached
+# to the parsed trips in build_ctx instead.
 CATEGORY_ENDPOINTS = {
-    "trips": "/api/trips",
+    "log": "/api/trips",
     "cars": "/api/cars",
     "supervisors": "/api/sv",
-    "licence": "/api/state",
+    "identity": "/api/state",
 }
 
 # ollama only handles one generation well at a time, so requests are
@@ -182,13 +204,44 @@ def fetch_category(category: str, main_url: str, token: str, cache: dict):
     return raw
 
 
+def attach_gps(ctx, main_url: str, token: str, cache: dict):
+    """Fetch GPS points per trip (not included in the lightweight /api/trips list)
+    and attach them to each parsed Trip, so GPS-based tools can read trip.gps.
+    Only called when a tool requires the "gps" category, i.e. the learner has
+    consented to location access."""
+    for trip in ctx.trips:
+        if trip.id is None:
+            continue
+        cache_key = f"gps:{trip.id}"
+        if cache_key not in cache:
+            raw = None
+            try:
+                r = requests.get(f"{main_url}/api/trips/{trip.id}/gps",
+                                 headers=forward_headers(token), timeout=10)
+                if r.status_code == 200:
+                    raw = r.json()
+            except requests.RequestException:
+                raw = None
+            cache[cache_key] = raw
+        trip.gps = tools.parser.parse_gps(cache[cache_key])
+    log.info("  attached gps for %d trip(s)", len(ctx.trips))
+
+
 def build_ctx(categories, main_url: str, token: str, cache: dict):
     """Build a parser.Context containing only the requested data categories."""
-    keymap = {"trips": "trips_raw", "cars": "cars_raw",
-              "supervisors": "svs_raw", "licence": "state_raw"}
+    keymap = {"log": "trips_raw", "cars": "cars_raw",
+              "supervisors": "svs_raw", "identity": "state_raw"}
+    # gps points hang off trips, so the trip log must be fetched whenever gps is
+    # needed even if the tool didn't list "log" explicitly.
+    fetch_categories = set(categories)
+    if "gps" in fetch_categories:
+        fetch_categories.add("log")
     kwargs = {keymap[c]: fetch_category(c, main_url, token, cache)
-              for c in categories if c in keymap}
-    return tools.parser.build_context(**kwargs)
+              for c in fetch_categories if c in keymap}
+    ctx = tools.parser.build_context(**kwargs)
+    if "gps" in categories:
+        attach_gps(ctx, main_url, token, cache)
+    return ctx
 
 
 def execute_tool(name: str, prefs: dict, main_url: str, token: str, cache: dict) -> str:
@@ -196,18 +249,22 @@ def execute_tool(name: str, prefs: dict, main_url: str, token: str, cache: dict)
     user has permitted every data category it needs. Returns a short text result
     (or a notice) to feed back to the model."""
     if name not in tools.TOOLS:
+        log.warning("  tool '%s' -> NO SUCH TOOL", name)
         return f"(no such tool: {name})"
     # permission check - the tool is only allowed if all its REQUIRES are enabled
     if name not in tools.allowed_tools(prefs):
         needed = ", ".join(tools.TOOLS[name].REQUIRES)
+        log.warning("  tool '%s' -> PERMISSION DENIED (needs: %s)", name, needed)
         return (f"(permission denied: the learner has not enabled access to "
                 f"{needed}; tell them they can turn it on in Settings)")
     ctx = build_ctx(tools.TOOLS[name].REQUIRES, main_url, token, cache)
     try:
         result = tools.run_tool(name, ctx)
-        return tools.TOOLS[name].format_for_ai(result)
+        summary = tools.TOOLS[name].format_for_ai(result)
+        log.info("  tool '%s' -> OK: %s", name, _truncate(summary))
+        return summary
     except Exception as e:  # a tool blowing up shouldn't kill the chat
-        logging.exception("tool %s failed", name)
+        log.exception("  tool '%s' -> FAILED: %s", name, e)
         return f"(tool {name} failed: {e})"
 
 
@@ -277,6 +334,14 @@ def chat():
     prefs = get_ai_prefs(MAIN_SERVER_URL, token)
     tool_schemas = tools.allowed_schemas(prefs)
 
+    allowed_names = sorted(tools.allowed_tools(prefs))
+    log.info("=" * 70)
+    log.info("CHAT chat_id=%s backend=%s", chat_id, MAIN_SERVER_URL)
+    log.info("PROMPT: %s", _truncate(prompt))
+    log.info("HISTORY: %d prior message(s)", len(history))
+    log.info("ALLOWED TOOLS (%d): %s", len(allowed_names),
+             ", ".join(allowed_names) or "(none)")
+
     # build the messages: system context, prior turns, then the new message
     messages = [{"role": "system", "content": CONTEXT}]
     messages += [
@@ -290,12 +355,15 @@ def chat():
     reply = ""
     tokens_used = 0
     fetch_cache: dict = {}
-    for _ in range(MAX_TOOL_ROUNDS):
+    for round_num in range(1, MAX_TOOL_ROUNDS + 1):
         budget = max_tokens - tokens_used
         if budget <= 0:
+            log.info("ROUND %d skipped - token budget exhausted", round_num)
             break
+        log.info("ROUND %d -> ollama (budget=%d tokens)", round_num, budget)
         job = run_ollama(messages, budget, tool_schemas)
         if job.error:
+            log.error("ROUND %d ollama FAILED: %s", round_num, job.error)
             return jsonify({"message": f"ollama request failed: {job.error}"}), 502
         msg = job.result.get("message", {}) or {}
         tokens_used += job.result.get("eval_count", 0)
@@ -303,24 +371,37 @@ def chat():
         calls = msg.get("tool_calls") or []
         if not calls:
             reply = msg.get("content", "")
+            log.info("ROUND %d -> TEXT reply (no tool calls): %s",
+                     round_num, _truncate(reply))
             break
 
         # record the assistant's tool request, then run each tool and feed it back
+        log.info("ROUND %d -> model requested %d tool call(s): %s",
+                 round_num, len(calls),
+                 ", ".join(c.get("function", {}).get("name", "?") for c in calls))
         messages.append(msg)
         for call in calls:
             fn = call.get("function", {}) or {}
             name = fn.get("name", "")
+            args = fn.get("arguments")
+            if args:
+                log.info("  call '%s' args=%s", name, _truncate(args, 300))
             summary = execute_tool(name, prefs, MAIN_SERVER_URL, token, fetch_cache)
             messages.append({"role": "tool", "content": summary, "tool_name": name})
     else:
         # used every tool round - ask once more with no tools to force an answer
+        log.info("MAX_TOOL_ROUNDS reached - forcing a final answer with no tools")
         job = run_ollama(messages, max(1, max_tokens - tokens_used))
         if not job.error and job.result:
             reply = job.result.get("message", {}).get("content", "")
             tokens_used += job.result.get("eval_count", 0)
 
     if not reply:
+        log.warning("no reply produced - using fallback message")
         reply = "Sorry, I couldn't produce an answer for that. Please try again."
+
+    log.info("DONE chat_id=%s tokens_used=%d reply_len=%d",
+             chat_id, tokens_used, len(reply))
 
     # record the ai's reply + token usage on the main server
     try:

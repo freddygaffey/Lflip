@@ -12,7 +12,7 @@ repeated the most-driven area is, and how far the typical trip ranges.
 A learner who only ever loops the same few streets has low route diversity even
 if they have lots of hours - a gap an examiner (or the AI) can flag.
 
-REQUIRES: trips
+REQUIRES: log, gps
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ DESCRIPTION = (
     "how far a typical trip ranges - to spot 'same few streets over and over' "
     "practice."
 )
-REQUIRES = ("trips",)
+REQUIRES = ("log", "gps")
 
 # trips whose centroids are within this many km of each other are treated as the
 # same driving "area". ~5 km roughly groups a suburb/town together.

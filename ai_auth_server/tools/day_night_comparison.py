@@ -6,7 +6,7 @@ so the day/night split is one of the most important things a learner tracks.
 This tool totals each side and, if the licence requirements are known, reports
 progress toward the night requirement.
 
-REQUIRES: trips   (licence is used if available, for the night requirement)
+REQUIRES: log   (licence is used if available, for the night requirement)
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ DESCRIPTION = (
     "trip length, distance) and, if licence requirements are known, how close "
     "they are to the required night hours."
 )
-REQUIRES = ("trips",)
+REQUIRES = ("log",)
 
 # model-facing function-calling spec; takes no arguments.
 SCHEMA = {

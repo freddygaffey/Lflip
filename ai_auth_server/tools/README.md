@@ -39,7 +39,10 @@ runs it server-side via `run_tool(name, ctx)`.
 ### Turning tools on and off
 
 `REQUIRES` categories line up with the per-user `AiPreference` flags in the main
-backend (`allow_trips`, `allow_cars`, `allow_supervisors`, `allow_licence`):
+backend (`allow_log`, `allow_gps`, `allow_cars`, `allow_supervisors`,
+`allow_identity`). Access is gated by data *type/sensitivity*: a trip's `log`
+(times/odo/weather) and its `gps` location trace are separate categories, so a
+learner can share their hours without sharing where they drove:
 
 * `allowed_tools(prefs)` → names of tools the user has consented to
 * `allowed_schemas(prefs)` → just those tools' `SCHEMA`s, ready for the model

@@ -14,7 +14,7 @@ Metrics produced:
   * duration_spread        - shortest / average / longest trip (hours)
   * variety_score          - 0-100 rough roll-up of the above
 
-REQUIRES: trips
+REQUIRES: log
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ DESCRIPTION = (
     "of the week, weather and trip length. Helps identify gaps (e.g. only ever "
     "drives on dry weekday afternoons)."
 )
-REQUIRES = ("trips",)
+REQUIRES = ("log",)
 
 # model-facing function-calling spec; takes no arguments.
 SCHEMA = {

@@ -5,7 +5,7 @@ Joins trips to the saved cars (by car_id) and totals trips / hours / distance
 for each vehicle, flags the most-used ("primary") car, and lists any trips that
 weren't linked to a saved car.
 
-REQUIRES: trips, cars
+REQUIRES: log, cars
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ DESCRIPTION = (
     "Summarises how much the learner has driven in each saved car (trips, "
     "hours, distance) and which vehicle is their main one."
 )
-REQUIRES = ("trips", "cars")
+REQUIRES = ("log", "cars")
 
 # model-facing function-calling spec; takes no arguments.
 SCHEMA = {

@@ -13,18 +13,28 @@ Every tool module exposes the same small interface:
     NAME          str            unique id
     DESCRIPTION   str            one-line description (good for function-calling)
     REQUIRES      tuple[str]     data categories it needs: any of
-                                 "trips", "cars", "supervisors", "licence"
+                                 "log", "gps", "cars", "supervisors", "identity"
     run(ctx)      -> dict        structured result
     format_for_ai(result) -> str compact, model-readable summary
 
 The REQUIRES categories line up with the per-user AiPreference flags in the
-main backend (allow_trips, allow_cars, allow_supervisors, allow_licence), so a
-tool can be skipped when the user hasn't granted access to the data it needs.
+main backend (allow_log, allow_gps, allow_cars, allow_supervisors,
+allow_identity), so a tool can be skipped when the user hasn't granted access to
+the data it needs. Access is gated by data type/sensitivity: a trip's "log"
+(times/odo/weather) and its "gps" location trace are separate categories.
 """
 
 from __future__ import annotations
 
+import logging
+import time
+
 from . import parser
+
+# child of the server's "ai_auth" logger so these lines inherit its handler,
+# level and format (see server.py logging.basicConfig). Tool runs are logged
+# centrally here rather than in each tool module so every tool is covered.
+log = logging.getLogger("ai_auth.tools")
 from . import (
     trip_speed,
     trip_remoteness,
@@ -55,12 +65,15 @@ TOOLS = {
     )
 }
 
-# map a REQUIRES category to the matching AiPreference flag name
+# map a REQUIRES category to the matching AiPreference flag name. access is gated
+# by data type/sensitivity: "log" is the non-location trip record, "gps" is the
+# separately-consented location trace, "identity" is the learner's own PII.
 PREF_FOR_CATEGORY = {
-    "trips": "allow_trips",
+    "log": "allow_log",
+    "gps": "allow_gps",
     "cars": "allow_cars",
     "supervisors": "allow_supervisors",
-    "licence": "allow_licence",
+    "identity": "allow_identity",
 }
 
 
@@ -79,7 +92,7 @@ def list_tools() -> list[dict]:
 
 def allowed_tools(prefs: dict) -> list[str]:
     """Names of tools whose required data categories are all permitted by the
-    given AiPreference dict (e.g. {"allow_trips": True, ...})."""
+    given AiPreference dict (e.g. {"allow_log": True, ...})."""
     names = []
     for name, m in TOOLS.items():
         if all(prefs.get(PREF_FOR_CATEGORY[c], False) for c in m.REQUIRES):
@@ -104,7 +117,17 @@ def run_tool(name: str, ctx) -> dict:
     """Run a single tool by name and return its structured result."""
     if name not in TOOLS:
         raise KeyError(f"unknown tool: {name}")
-    return TOOLS[name].run(ctx)
+    m = TOOLS[name]
+    log.info("tool %s: running (requires=%s)", name, ", ".join(m.REQUIRES))
+    start = time.perf_counter()
+    try:
+        result = m.run(ctx)
+    except Exception:
+        log.exception("tool %s: raised after %.1f ms",
+                      name, (time.perf_counter() - start) * 1000)
+        raise
+    log.info("tool %s: done in %.1f ms", name, (time.perf_counter() - start) * 1000)
+    return result
 
 
 def run_all(ctx, names=None) -> dict:
@@ -114,7 +137,7 @@ def run_all(ctx, names=None) -> dict:
     out = {}
     for name in names:
         m = TOOLS[name]
-        result = m.run(ctx)
+        result = run_tool(name, ctx)
         out[name] = {"result": result, "summary": m.format_for_ai(result)}
     return out
 
@@ -123,5 +146,5 @@ def summarise_for_ai(ctx, names=None) -> str:
     """One block of text combining the chosen tools' summaries - drop straight
     into a system/context message for the model."""
     names = names if names is not None else list(TOOLS)
-    blocks = [TOOLS[n].format_for_ai(TOOLS[n].run(ctx)) for n in names]
+    blocks = [TOOLS[n].format_for_ai(run_tool(n, ctx)) for n in names]
     return "\n\n".join(b for b in blocks if b)

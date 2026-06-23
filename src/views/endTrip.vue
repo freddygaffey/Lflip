@@ -13,10 +13,17 @@
         <ion-input v-model="endOdo" type="text" inputmode="numeric" placeholder="e.g. 12345"></ion-input>
       </ion-item>
 
-      <ion-item>
-        <ion-label>{{ isDay ? 'Day' : 'Night' }}</ion-label>
-        <ion-toggle v-model="isDay" slot="end"></ion-toggle>
-      </ion-item>
+      <ion-segment v-model="mode" class="mode-switch">
+        <ion-segment-button value="day">
+          <ion-label>Day</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="night">
+          <ion-label>Night</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <!-- this does padding for the toggles -->
+      <div> <p></p> </div> 
 
       <ion-item>
         <ion-label>Weather</ion-label>
@@ -36,8 +43,8 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonInput, IonToggle, IonSelect, IonSelectOption, IonNote } from '@ionic/vue'
-import { ref, onMounted } from 'vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonInput, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonNote } from '@ionic/vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { Geolocation } from '@capacitor/geolocation'
@@ -48,6 +55,11 @@ const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 const endOdo = ref('')
 const isDay = ref(true)
+// segment works in 'day'/'night' strings while the rest of the file uses isDay
+const mode = computed({
+  get: () => (isDay.value ? 'day' : 'night'),
+  set: (v) => { isDay.value = v === 'day' },
+})
 const weather = ref('')
 const weatherLoading = ref(false)
 

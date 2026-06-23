@@ -9,17 +9,19 @@ when we can and fall back to the name otherwise.
 Reports trips / hours supervised per person, the day-vs-night split they
 supervised, and who has done the most.
 
-REQUIRES: trips, supervisors
+REQUIRES: log, supervisors
 """
 
 from __future__ import annotations
+
+from .parser import first_name
 
 NAME = "supervisor_usage"
 DESCRIPTION = (
     "Summarises how many hours each supervising driver (e.g. a parent) has "
     "overseen, including their day/night split and who supervises most."
 )
-REQUIRES = ("trips", "supervisors")
+REQUIRES = ("log", "supervisors")
 
 # model-facing function-calling spec; takes no arguments.
 SCHEMA = {
@@ -38,12 +40,14 @@ SCHEMA = {
 
 
 def _key_and_name(trip, svs_by_id):
-    """Return a stable grouping key and a display name for a trip's supervisor."""
+    """Return a stable grouping key and a display name for a trip's supervisor.
+    Supervisors are exposed to the AI by first name only (their surname and
+    licence number are withheld - it's another person's data)."""
     sv = svs_by_id.get(trip.sv_id)
     if sv is not None:
-        return f"id:{sv.id}", (sv.full_name or f"supervisor {sv.id}")
+        return f"id:{sv.id}", (first_name(sv.full_name) or f"supervisor {sv.id}")
     if trip.sv_name:
-        return f"name:{trip.sv_name.strip().lower()}", trip.sv_name.strip()
+        return f"name:{trip.sv_name.strip().lower()}", (first_name(trip.sv_name) or "Unknown supervisor")
     return "unknown", "Unknown supervisor"
 
 

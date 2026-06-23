@@ -11,7 +11,7 @@ fog, snow, ...) and how their pace differs between dry and wet conditions.
 That makes it the right tool for "have I driven enough in the rain?" or "do I
 slow down in bad weather?" - questions driving_variance only answers coarsely.
 
-REQUIRES: trips
+REQUIRES: log
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ DESCRIPTION = (
     "(rain, storm, fog, snow) experience they have and whether they slow down "
     "in it."
 )
-REQUIRES = ("trips",)
+REQUIRES = ("log",)
 
 # weather descriptions (lower-cased) containing any of these words count as
 # "wet"/adverse conditions for the dry-vs-wet comparison.

@@ -7,9 +7,9 @@
     </ion-header>
     <ion-content class="ion-padding">
       <div class="charts-row">
-        <div class="chart-col"><Pie :data="DchartData" :options="DchartOptions"/><p>{{ totalDay }}/{{ capDay }}</p></div>
-        <div class="chart-col"><Pie :data="NchartData" :options="NchartOptions"/><p>{{ totalNight }}/{{ capNight }}</p></div>
-        <div class="chart-col"><Pie :data="TchartData" :options="TchartOptions"/><p>{{ total }}/{{ capTotal }}</p></div>
+        <div class="chart-col"><div class="chart-box"><Pie :data="DchartData" :options="DchartOptions"/></div><p>{{ totalDay }}/{{ capDay }}</p></div>
+        <div class="chart-col"><div class="chart-box"><Pie :data="NchartData" :options="NchartOptions"/></div><p>{{ totalNight }}/{{ capNight }}</p></div>
+        <div class="chart-col"><div class="chart-box"><Pie :data="TchartData" :options="TchartOptions"/></div><p>{{ total }}/{{ capTotal }}</p></div>
       </div>
 
       <ion-segment v-model="mode" class="mode-switch">
@@ -26,6 +26,7 @@
           Record of Driving Hours — {{ mode === 'day' ? 'Day' : 'Night' }}
           <span class="logbook-sub">with a supervising driver</span>
         </div>
+        <div class="logbook-scroll-wrap">
         <div class="logbook-scroll">
           <table class="logbook-table">
             <thead>
@@ -60,6 +61,7 @@
               </tr>
             </tbody>
           </table>
+        </div>
         </div>
       </div>
     </ion-content>
@@ -99,9 +101,9 @@ const DchartData = ref({ datasets: [{ data: [0, 90], backgroundColor: ['#C5BF10'
 const NchartData = ref({ datasets: [{ data: [0, 10], backgroundColor: ['#1D1D1D', '#E0E0E0'] }] })
 const TchartData = ref({ datasets: [{ data: [0, 100], backgroundColor: ['#36A225', '#E0E0E0'] }] })
 
-const DchartOptions = { responsive: true, plugins: { title: { display: true, text: 'Day Hours' } } }
-const NchartOptions = { responsive: true, plugins: { title: { display: true, text: 'Night Hours' } } }
-const TchartOptions = { responsive: true, plugins: { title: { display: true, text: 'Total Hours' } } }
+const DchartOptions = { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Day Hours' } } }
+const NchartOptions = { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Night Hours' } } }
+const TchartOptions = { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Total Hours' } } }
 
 const updateHours = async () => {
   const trips = JSON.parse((await Preferences.get({ key: "trips" })).value ?? '[]')
@@ -208,7 +210,12 @@ const fmtDuration = (t: Trip) => {
 
 const openTrip = (t: Trip) => router.push(`/tabs/trip/${t.id}`)
 
-onIonViewDidEnter(load_dasbord)
+onIonViewDidEnter(() => {
+  load_dasbord()
+  // on iOS the pie charts render mid page-transition with a wrong canvas size
+  // (off-centre until you scroll); nudge chart.js to re-measure once settled
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 100)
+})
 </script>
 
 <style scoped>
@@ -222,6 +229,12 @@ onIonViewDidEnter(load_dasbord)
 
 .chart-col {
   flex: 1;
+  min-width: 0;
+}
+
+.chart-box {
+  position: relative;
+  height: 120px;
 }
 
 .mode-switch {
@@ -254,6 +267,22 @@ onIonViewDidEnter(load_dasbord)
   letter-spacing: 0;
 }
 
+.logbook-scroll-wrap {
+  position: relative;
+}
+
+/* right-edge fade hints that the table scrolls sideways */
+.logbook-scroll-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.95));
+}
+
 .logbook-scroll {
   overflow-x: auto;
 }
@@ -261,10 +290,16 @@ onIonViewDidEnter(load_dasbord)
 .logbook-table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 720px;
+  min-width: 760px;
   background: #fff;
   color: #1a1a1a;
   font-size: 0.75rem;
+}
+
+/* fixed-ish column widths so the viewport cuts mid-column, peeking the next one */
+.logbook-table th,
+.logbook-table td {
+  min-width: 84px;
 }
 
 .logbook-table th {

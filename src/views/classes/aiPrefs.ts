@@ -8,29 +8,32 @@ import { Preferences } from '@capacitor/preferences'
 
 const API_URL = import.meta.env.VITE_API_URL
 
+// access is gated by data type/sensitivity, not by feature. a trip is split into
+// the log (times/odo/weather, low sensitivity) and its gps trace (location), so
+// you can share your hours without sharing where you drove.
 export type AiPrefs = {
-  allow_trips: boolean
+  allow_log: boolean
+  allow_gps: boolean
   allow_cars: boolean
   allow_supervisors: boolean
-  allow_licence: boolean
-  allow_profile: boolean
+  allow_identity: boolean
 }
 
 const DEFAULTS: AiPrefs = {
-  allow_trips: false,
+  allow_log: false,
+  allow_gps: false,
   allow_cars: false,
   allow_supervisors: false,
-  allow_licence: false,
-  allow_profile: false,
+  allow_identity: false,
 }
 
 // label + description for each toggle, used to render the settings UI
 export const AI_PREF_FIELDS: { key: keyof AiPrefs; label: string; description: string }[] = [
-  { key: 'allow_trips', label: 'Driving log', description: 'Your logged trips, hours and odometer readings' },
-  { key: 'allow_cars', label: 'Cars', description: 'Your saved vehicles' },
-  { key: 'allow_supervisors', label: 'Supervising drivers', description: 'Names and licence numbers of your supervisors' },
-  { key: 'allow_licence', label: 'Licence info', description: 'Your licence number, state and date of birth' },
-  { key: 'allow_profile', label: 'Profile', description: 'Your name and email address' },
+  { key: 'allow_log', label: 'Driving log', description: 'Your trip times, hours, odometer and conditions (day/night, weather)' },
+  { key: 'allow_gps', label: 'Trip locations', description: 'The GPS routes of your trips, where you actually drove' },
+  { key: 'allow_cars', label: 'Cars', description: 'Your saved vehicles and number plates' },
+  { key: 'allow_supervisors', label: 'Supervising drivers', description: 'The first name of each supervisor (licence numbers are never shared)' },
+  { key: 'allow_identity', label: 'Identity', description: 'Your name, email, state and date of birth' },
 ]
 
 class AiPreferences {

@@ -13,7 +13,7 @@ unambiguous, so this is a reliable signal for the *kind* of driving:
 This says nothing about *where* the trip was - that's what `trip_remoteness`
 does using real GPS coordinates. This tool is purely about speed/pace.
 
-REQUIRES: trips
+REQUIRES: log
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ DESCRIPTION = (
     "medium, and high/open-road bands. Useful for seeing whether they have "
     "practised slow stop-start driving as well as faster open-road driving."
 )
-REQUIRES = ("trips",)
+REQUIRES = ("log",)
 
 # model-facing function-calling spec; takes no arguments.
 SCHEMA = {

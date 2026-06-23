@@ -14,28 +14,27 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <div v-if="trip">
-        <div v-show="hasGps" ref="mapEl" class="trip-map"></div>
-        <div v-show="hasGps" class="speed-legend">
+      <div v-if="trip" class="trip-wrap">
+        <div v-if="loadingGps" class="gps-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+          <span>Loading GPS data…</span>
+        </div>
+        <div v-show="!loadingGps && hasGps" ref="mapEl" class="trip-map"></div>
+        <div v-show="!loadingGps && hasGps" class="speed-legend">
           <span>Slower</span>
           <div class="speed-bar"></div>
           <span>Faster</span>
         </div>
-        <p v-if="!hasGps" class="no-gps">No GPS data recorded for this trip.</p>
+        <p v-if="!loadingGps && !hasGps" class="no-gps">No GPS data recorded for this trip.</p>
 
-        <ion-card>
-          <ion-card-content>
-            <p>Date: {{ fmtDate(trip.start_time) }}</p>
-            <p>Duration: {{ fmtDuration(trip) }}</p>
-            <p>Length: {{ trip.end_odo - trip.start_odo }} km</p>
-            <p>Start odo: {{ trip.start_odo }}</p>
-            <p>End odo: {{ trip.end_odo }}</p>
-            <p>Car: {{ carsStore.get_car_by_id(trip.car_id)?.nickname ?? 'None saved' }}</p>
-            <p>Supervising driver: {{ trip.sv_name ?? svsStore.get_sv_by_id(trip.sv_id)?.full_name }}</p>
-            <p>Supervising number: {{ trip.sv_licence_no ?? svsStore.get_sv_by_id(trip.sv_id)?.licence_no }}</p>
-            <p>Weather: {{ trip.weather }}</p>
-          </ion-card-content>
-        </ion-card>
+        <table class="stats-table">
+          <tbody>
+            <tr><th>Distance</th><td>{{ distanceKm }} km</td></tr>
+            <tr><th>Duration</th><td>{{ fmtDuration(trip) }}</td></tr>
+            <tr><th>Average speed</th><td>{{ avgSpeed }} km/h</td></tr>
+          </tbody>
+        </table>
+
       </div>
       <div v-else>
         <p>Trip not found.</p>
@@ -45,8 +44,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onUnmounted } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonCard, IonCardContent, onIonViewDidEnter } from '@ionic/vue'
+import { ref, computed, nextTick, onUnmounted } from 'vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonSpinner, onIonViewDidEnter } from '@ionic/vue'
 import { trashOutline } from 'ionicons/icons'
 import { Preferences } from '@capacitor/preferences'
 import { CapacitorHttp } from '@capacitor/core'
@@ -64,16 +63,27 @@ const router = useRouter()
 const trip = ref<Trip | null>(null)
 const mapEl = ref<HTMLElement | null>(null)
 const hasGps = ref(false)
+const loadingGps = ref(false)
 const deleting = ref(false)
 let map: LeafletNS.Map | null = null
-
-const fmtDate = (ms: number) => new Date(ms).toLocaleDateString()
 
 const fmtDuration = (t: Trip) => {
   const h = Math.floor((t.end_time - t.start_time) / 3600000)
   const m = String(Math.floor(((t.end_time - t.start_time) / 60000) % 60)).padStart(2, '0')
   return `${h}:${m}`
 }
+
+// simple: distance from odometers, time from start/end timestamps
+const distanceKm = computed(() =>
+  trip.value ? Math.round((trip.value.end_odo - trip.value.start_odo) * 10) / 10 : 0
+)
+
+const avgSpeed = computed(() => {
+  const t = trip.value
+  if (!t) return 0
+  const hours = (t.end_time - t.start_time) / 3600000
+  return hours > 0 ? Math.round((t.end_odo - t.start_odo) / hours) : 0
+})
 
 const renderMap = async () => {
   // ionic caches the page, so this can run again on re-entry; tear down the old map
@@ -155,9 +165,14 @@ const load = async () => {
   trip.value = trips.find((t) => t.id === id) ?? null
   await Promise.all([carsStore.pull_cloud(), svsStore.pull_cloud()])
 
-  // locally-created (unsynced) trips already carry gps; synced ones don't, so fetch it
-  if (trip.value && (!trip.value.gps || trip.value.gps.length === 0)) {
-    await fetchGps(trip.value)
+  loadingGps.value = true
+  try {
+    // locally-created (unsynced) trips already carry gps; synced ones don't, so fetch it
+    if (trip.value && (!trip.value.gps || trip.value.gps.length === 0)) {
+      await fetchGps(trip.value)
+    }
+  } finally {
+    loadingGps.value = false
   }
   await renderMap()
 }
@@ -201,11 +216,38 @@ onUnmounted(() => { map?.remove(); map = null })
 </script>
 
 <style scoped>
+.trip-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 .trip-map {
-  height: 240px;
+  flex: 1;
+  min-height: 320px;
   border-radius: 8px;
   margin-bottom: 8px;
   z-index: 0;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 16px;
+  font-size: 0.9rem;
+}
+
+.stats-table th,
+.stats-table td {
+  border: 1px solid var(--ion-color-step-200, #ddd);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.stats-table th {
+  width: 45%;
+  font-weight: 600;
+  color: var(--ion-color-medium, #666);
 }
 
 .speed-legend {
@@ -227,5 +269,17 @@ onUnmounted(() => { map?.remove(); map = null })
 .no-gps {
   color: var(--ion-color-medium, #888);
   font-style: italic;
+}
+
+.gps-loading {
+  flex: 1;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--ion-color-medium, #888);
+  font-size: 0.9rem;
 }
 </style>

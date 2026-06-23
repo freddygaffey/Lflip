@@ -211,16 +211,20 @@ class AiPreference(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, unique=True)
 
-    allow_trips = db.Column(db.Boolean, default=False, nullable=False)
-    allow_cars = db.Column(db.Boolean, default=False, nullable=False)
-    allow_supervisors = db.Column(db.Boolean, default=False, nullable=False)
-    allow_licence = db.Column(db.Boolean, default=False, nullable=False)
-    allow_profile = db.Column(db.Boolean, default=False, nullable=False)
+    # the assistant's data access is gated by data *type/sensitivity*, not by
+    # endpoint. a trip record is split: the log (times/odo/weather) is low-
+    # sensitivity, but its gps trace (where they actually drove) is location-
+    # sensitive and toggled separately.
+    allow_log = db.Column(db.Boolean, default=False, nullable=False)         # trip times, odo, day/night, weather
+    allow_gps = db.Column(db.Boolean, default=False, nullable=False)         # gps points / route / locations
+    allow_cars = db.Column(db.Boolean, default=False, nullable=False)        # car nickname + plate
+    allow_supervisors = db.Column(db.Boolean, default=False, nullable=False) # supervisor first name only
+    allow_identity = db.Column(db.Boolean, default=False, nullable=False)    # learner name, email, state, DOB
 
     owner = db.relationship("User", foreign_keys=[user_id])
 
     # the boolean column names the API/clients exchange
-    FIELDS = ("allow_trips", "allow_cars", "allow_supervisors", "allow_licence", "allow_profile")
+    FIELDS = ("allow_log", "allow_gps", "allow_cars", "allow_supervisors", "allow_identity")
 
 # class Pair(db.Model):
 #     """Glue table linking supervising drivers with learner drivers."""

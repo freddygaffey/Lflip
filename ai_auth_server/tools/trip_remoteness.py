@@ -12,7 +12,7 @@ Trips without GPS can't be placed, so they're counted separately as "unknown".
 
 This is the geography counterpart to `trip_speed` (which only looks at pace).
 
-REQUIRES: trips
+REQUIRES: log, gps
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ DESCRIPTION = (
     "regional, remote, ...) from their GPS coordinates. Useful for seeing "
     "whether they have driven outside the city / in regional or remote areas."
 )
-REQUIRES = ("trips",)
+REQUIRES = ("log", "gps")
 
 # model-facing function-calling spec; takes no arguments.
 SCHEMA = {

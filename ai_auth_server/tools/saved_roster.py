@@ -8,10 +8,12 @@ the saved cars and supervisors and reports each one's usage - which is allowed
 to be zero. That makes it the right tool for "what cars / supervisors do I have
 saved?" or "which of my supervisors haven't I driven with yet?".
 
-REQUIRES: trips, cars, supervisors
+REQUIRES: log, cars, supervisors
 """
 
 from __future__ import annotations
+
+from .parser import first_name
 
 NAME = "saved_roster"
 DESCRIPTION = (
@@ -19,7 +21,7 @@ DESCRIPTION = (
     "with each one's trip/hour usage (which may be zero), so unused cars and "
     "supervisors are still shown."
 )
-REQUIRES = ("trips", "cars", "supervisors")
+REQUIRES = ("log", "cars", "supervisors")
 
 # model-facing function-calling spec; takes no arguments.
 SCHEMA = {
@@ -51,11 +53,12 @@ def run(ctx) -> dict:
         }
         for c in ctx.cars
     }
+    # supervisors are exposed by first name only; surname and licence number are
+    # withheld (another person's data).
     supervisors = {
         s.id: {
             "sv_id": s.id,
-            "name": s.full_name or f"supervisor {s.id}",
-            "licence_no": s.licence_no,
+            "name": first_name(s.full_name) or f"supervisor {s.id}",
             "trips": 0,
             "hours": 0.0,
         }

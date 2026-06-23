@@ -53,6 +53,16 @@ def loads(raw):
     return None
 
 
+def first_name(name) -> str | None:
+    """Reduce a supervisor's full name to just their first name. Supervising
+    drivers are only ever exposed to the AI by first name (privacy: it's another
+    person's data and the surname/licence number are withheld)."""
+    if not name:
+        return None
+    parts = str(name).strip().split()
+    return parts[0] if parts else None
+
+
 def ms_to_dt(ms) -> datetime | None:
     """Convert a millisecond epoch (the backend's timestamp format) to a
     datetime, tolerating None / bad values."""
@@ -190,6 +200,29 @@ class Context:
 # --------------------------------------------------------------------------- #
 # parsing entry points
 # --------------------------------------------------------------------------- #
+def parse_gps(raw) -> list[GpsPoint]:
+    """Parse a raw GPS-point array (each {time, lat, lon, speed}) into GpsPoints,
+    skipping any malformed entries. Used both inline when a trip carries its own
+    gps[] and when the AI server fetches gps separately per trip."""
+    data = loads(raw) or []
+    if not isinstance(data, list):
+        return []
+    points: list[GpsPoint] = []
+    for g in data:
+        if not isinstance(g, dict):
+            continue
+        try:
+            points.append(GpsPoint(
+                time=ms_to_dt(g.get("time")),
+                lat=float(g.get("lat")),
+                lon=float(g.get("lon")),
+                speed=g.get("speed"),
+            ))
+        except (TypeError, ValueError):
+            continue
+    return points
+
+
 def parse_trips(raw) -> list[Trip]:
     data = loads(raw) or []
     if not isinstance(data, list):
@@ -198,19 +231,7 @@ def parse_trips(raw) -> list[Trip]:
     for t in data:
         if not isinstance(t, dict):
             continue
-        gps = []
-        for g in (t.get("gps") or []):
-            if not isinstance(g, dict):
-                continue
-            try:
-                gps.append(GpsPoint(
-                    time=ms_to_dt(g.get("time")),
-                    lat=float(g.get("lat")),
-                    lon=float(g.get("lon")),
-                    speed=g.get("speed"),
-                ))
-            except (TypeError, ValueError):
-                continue
+        gps = parse_gps(t.get("gps"))
         trips.append(Trip(
             id=t.get("id"),
             start=ms_to_dt(t.get("start_time")),

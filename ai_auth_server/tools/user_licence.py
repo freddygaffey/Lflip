@@ -7,7 +7,7 @@ This is the "who is this learner and what do they need" tool - it gives the AI
 the rules that apply to *this* user so its advice is state-correct rather than
 generic.
 
-REQUIRES: licence   (trips are used if available, to compute progress)
+REQUIRES: identity   (trips are used if available, to compute progress)
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ DESCRIPTION = (
     "for that state, their age if known, and progress toward the total and "
     "night hour requirements."
 )
-REQUIRES = ("licence",)
+REQUIRES = ("identity",)
 
 # model-facing function-calling spec; takes no arguments.
 SCHEMA = {
