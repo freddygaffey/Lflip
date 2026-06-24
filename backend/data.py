@@ -22,7 +22,7 @@ class User(db.Model, flask_login.UserMixin):
     l_name = db.Column(db.String(255), nullable=True)
     nickname = db.Column(db.String(100), nullable=True)
     email = db.Column(db.String(255), nullable=False,unique=True)
-    password_hash = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
     license_records = db.relationship("LicenseInfo", backref="account", lazy=True)
 
     def __init__(self, f_name, l_name, email, password_hash, license_info: "LicenseInfo | None", nickname=None):
@@ -127,7 +127,7 @@ class Trip(db.Model):
 
     supervising_driver = db.relationship("User", foreign_keys=[sv_id])
     learner_driver = db.relationship("User", foreign_keys=[learner_id])
-    gps_points = db.relationship("GpsPoint", backref="trip", lazy=True)
+    gps_points = db.relationship("GpsPoint", backref="trip", lazy=True, cascade="all, delete-orphan")
 
     @validates("date")
     def date_validate(self, key, date):
@@ -186,6 +186,45 @@ class GpsPoint(db.Model):
         if not utils.is_lon_valid(lon):
             raise ValueError(f"{key} must be between -180 and 180")
         return lon
+
+class Chat(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    chat_name = db.Column(db.String(100), nullable=True)
+    hidden = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+    owner = db.relationship("User", foreign_keys=[user_id])
+    messages = db.relationship("ChatMessage", backref="chat", lazy=True)
+
+class ChatMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    chat_id = db.Column(db.Integer, db.ForeignKey("chat.id"), nullable=False)
+    is_ai = db.Column(db.Boolean, nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    tokens_used = db.Column(db.Integer, nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+
+class AiPreference(db.Model):
+    """Per-user toggles for which of their data the AI assistant may access.
+    Defaults to all-off (opt-in) so no data is shared until the user allows it."""
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, unique=True)
+
+    # the assistant's data access is gated by data *type/sensitivity*, not by
+    # endpoint. a trip record is split: the log (times/odo/weather) is low-
+    # sensitivity, but its gps trace (where they actually drove) is location-
+    # sensitive and toggled separately.
+    allow_log = db.Column(db.Boolean, default=False, nullable=False)         # trip times, odo, day/night, weather
+    allow_gps = db.Column(db.Boolean, default=False, nullable=False)         # gps points / route / locations
+    allow_cars = db.Column(db.Boolean, default=False, nullable=False)        # car nickname + plate
+    allow_supervisors = db.Column(db.Boolean, default=False, nullable=False) # supervisor first name only
+    allow_identity = db.Column(db.Boolean, default=False, nullable=False)    # learner name, email, state, DOB
+
+    owner = db.relationship("User", foreign_keys=[user_id])
+
+    # the boolean column names the API/clients exchange
+    FIELDS = ("allow_log", "allow_gps", "allow_cars", "allow_supervisors", "allow_identity")
 
 # class Pair(db.Model):
 #     """Glue table linking supervising drivers with learner drivers."""

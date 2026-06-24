@@ -35,6 +35,25 @@
           <ion-label>Click to add supervisor</ion-label>
         </ion-item>
        </ion-list>
+
+       <h2>What the assistant can access</h2>
+       <ion-list>
+        <ion-item lines="none">
+          <ion-note>Choose which of your data the AI assistant is allowed to use when answering. Everything is off until you turn it on.</ion-note>
+        </ion-item>
+        <ion-item v-for="field in AI_PREF_FIELDS" :key="field.key">
+          <ion-label class="ion-text-wrap">
+            <h3>{{ field.label }}</h3>
+            <p>{{ field.description }}</p>
+          </ion-label>
+          <ion-toggle
+            slot="end"
+            :checked="aiPrefs[field.key]"
+            @ion-change="onPrefToggle(field.key, $event)"
+          ></ion-toggle>
+        </ion-item>
+       </ion-list>
+
     <ion-button @click="signOut">Sign Out</ion-button>
     </ion-content>
   </ion-page>
@@ -54,6 +73,8 @@ import {
   IonItem,
   IonLabel,
   IonInput,
+  IonToggle,
+  IonNote,
   modalController,
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
@@ -64,6 +85,8 @@ import SvFormModal from './SvFormModal.vue'
 import { Capacitor } from '@capacitor/core'
 import { carsStore, type Car } from './classes/cars'
 import { svsStore, type Sv } from './classes/svs'
+import { aiPrefsStore, AI_PREF_FIELDS, type AiPrefs } from './classes/aiPrefs'
+import type { ToggleCustomEvent } from '@ionic/vue'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
@@ -76,8 +99,10 @@ async function onCarClick(car: Car | null) {
     alert("you need to be online to edit cars")
     return
   }
-  if (!Capacitor.isNativePlatform() && car === null) {
-    alert("sorry you cant make a car you need to be on a phone");
+  const { value } = await Preferences.get({ key: 'simulate_native' })
+  const native_override = value === 'true'
+  if (!Capacitor.isNativePlatform() && !native_override && car === null) {
+    alert("Adding a car pairs it with your L-plate hardware over Bluetooth, which needs the phone app. Open L Flip on your phone to add a car (or enable \"Simulate native\" in debug).")
     return;
   }
   const model = await modalController.create({
@@ -91,9 +116,17 @@ async function onCarClick(car: Car | null) {
 const svs = svsStore.svs
 const newSv = ref({ full_name: '', licence_no: ''})
 
+const aiPrefs = aiPrefsStore.prefs
+
+async function onPrefToggle(key: keyof AiPrefs, ev: ToggleCustomEvent) {
+  await aiPrefsStore.set(key, ev.detail.checked)
+}
+
 onMounted(async () => {
+  await aiPrefsStore.load_cache()
   await carsStore.pull_cloud()
   await svsStore.pull_cloud()
+  await aiPrefsStore.pull_cloud()
 })
 
 async function onSvClick(sv: Sv | null) {
@@ -108,11 +141,72 @@ async function onSvClick(sv: Sv | null) {
   await model.present()
   await model.onWillDismiss()
 }
+type LocalTrip = { synced?: boolean }
+
+// how many locally-stored drives haven't made it to the cloud yet
+async function countUnsyncedTrips(): Promise<number> {
+  const { value } = await Preferences.get({ key: 'trips' })
+  const trips = JSON.parse(value ?? '[]') as LocalTrip[]
+  return trips.filter((t) => !t.synced).length
+}
+
+// push any unsynced drives to the backend. returns true only if everything synced.
+async function pushUnsyncedTrips(): Promise<boolean> {
+  const { value: tripsRaw } = await Preferences.get({ key: 'trips' })
+  const trips = JSON.parse(tripsRaw ?? '[]') as LocalTrip[]
+  const { value: token } = await Preferences.get({ key: 'auth_token' })
+  try {
+    for (const trip of trips) {
+      if (trip.synced) continue
+      const response = await CapacitorHttp.post({
+        url: `${API_URL}/api/trips/push_trip`,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        data: { trip },
+      })
+      if (response.status === 200) trip.synced = true
+      else return false
+    }
+    return true
+  } catch {
+    return false
+  } finally {
+    // persist whatever managed to sync so a partial upload isn't lost
+    await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
+  }
+}
+
 async function signOut(){
+  const unsynced = await countUnsyncedTrips()
+
+  // offline: we can't sync, so warn before wiping anything that hasn't uploaded
   if (!navigator.onLine) {
-    alert("you need to be online to sign out as it will cause sync isues")
+    if (unsynced > 0) {
+      const ok = confirm(
+        `You're offline and ${unsynced} drive(s) haven't been uploaded yet. ` +
+        `Signing out will permanently delete them. Sign out anyway?`
+      )
+      if (!ok) return
+    }
+    await Preferences.clear()
+    router.push("/")
     return
   }
+
+  // online: sync first so nothing is lost on wipe
+  if (unsynced > 0) {
+    const synced = await pushUnsyncedTrips()
+    if (!synced) {
+      const force = confirm(
+        "Some drives couldn't be uploaded. Signing out now will permanently " +
+        "delete the unsaved drives. Sign out anyway?"
+      )
+      if (!force) return
+    }
+  }
+
   await Preferences.clear()
   router.push("/")
 }

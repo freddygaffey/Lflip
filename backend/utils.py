@@ -16,8 +16,8 @@ def is_pwd_valid(pwd) -> str | None:
     s_char_count = 0
     for i in pwd:
         if i in letters: lower_count += 1
-        if i in letters.upper: upper_count += 1
-        if i in chr: s_char_count += 1
+        if i in letters.upper(): upper_count += 1
+        if i in chars: s_char_count += 1
     if not (lower_count >= 1): return None
     if not (upper_count >= 1): return None
     if not (s_char_count >= 1): return None
@@ -104,4 +104,36 @@ def is_date_not_future(date) -> bool:
     return date <= date_type.today() if date is not None else True
 
 
+
+############# geo passer ###############
+# this is for the llm tooling
+
+import json
+import urllib.request
+import urllib.parse
+
+def get_remoteness_area(lat: float, lon: float) -> str | None:
+    """Classify a lat/lon point into its ABS Remoteness Area (e.g. 'Inner Regional Australia') via the ABS ArcGIS REST API."""
+    if not is_lat_valid(lat) or not is_lon_valid(lon): return None
+
+    params = {
+        "geometry": f"{lon},{lat}",
+        "geometryType": "esriGeometryPoint",
+        "inSR": "4326",
+        "spatialRel": "esriSpatialRelIntersects",
+        "outFields": "RA_NAME_2016",
+        "returnGeometry": "false",
+        "f": "json",
+    }
+    url = "https://geo.abs.gov.au/arcgis/rest/services/ASGS2016/RA/MapServer/0/query?" + urllib.parse.urlencode(params)
+
+    try:
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            data = json.load(resp)
+    except Exception:
+        return None
+
+    features = data.get("features") or []
+    if not features: return None
+    return features[0]["attributes"].get("ra_name_2016")
 

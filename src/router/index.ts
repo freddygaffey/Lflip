@@ -1,16 +1,19 @@
 import { createRouter, createWebHashHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
+// login is the first screen shown, so keep it eager; everything else is
+// lazy-loaded so the initial bundle (and the cold-start black screen) is small
 import Login from '../views/login.vue'
-import Register from '../views/register.vue'
-import Tabs from '../views/Tabs.vue'
-import StartTrip from '../views/startTrip.vue'
-import Dashboard from '../views/dashboard.vue'
-import Ai from '../views/ai.vue'
-import Logger from '../views/logger.vue'
-import Debug from '../views/debug.vue'
-import Settings from '../views/settings.vue'
-import EndTrip from '../views/endTrip.vue'
-import Marketing from '../views/marketing.vue'
+const Register = () => import('../views/register.vue')
+const Tabs = () => import('../views/Tabs.vue')
+const StartTrip = () => import('../views/startTrip.vue')
+const Dashboard = () => import('../views/dashboard.vue')
+const Ai = () => import('../views/ai.vue')
+const Logger = () => import('../views/logger.vue')
+const Debug = () => import('../views/debug.vue')
+const Settings = () => import('../views/settings.vue')
+const EndTrip = () => import('../views/endTrip.vue')
+const Marketing = () => import('../views/marketing.vue')
+const TripDetail = () => import('../views/tripDetail.vue')
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -57,6 +60,10 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'dashboard',
         component: Dashboard,
+      },
+      {
+        path: 'trip/:id',
+        component: TripDetail,
       },
       {
         path: 'ai',

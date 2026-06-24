@@ -5,40 +5,56 @@
         <ion-title>Log Trip</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content>
-      <ion-button @click="start" :disabled="!canStart">Start</ion-button>
-      <ion-input v-model="start_odo" placeholder="start odo (km)" type="text" inputmode="numeric"></ion-input>
-    <ion-item>
-      <ion-select label="Car" label-placement="floating" placeholder="Pick a car" v-model="selectedCarId">
-        <ion-select-option value="null">Guest Car</ion-select-option>
-        <ion-select-option 
-        v-for="(c, i) in cars"
-        :key="c.id"
-        :value="c.id"
-         >{{ c.nickname }}</ion-select-option>
-      </ion-select>
-    </ion-item>
-    <ion-item>
-    <ion-select label="Supervising Driver" label-placement="floating" placeholder="Pick a driver" v-model="selectedSvId">
-        <ion-select-option :value="null">Guest Driver</ion-select-option>
-        <ion-select-option 
-        v-for="(sv, i) in svs"
-        :key="sv.id"
-        :value="sv.id"
-         >{{ sv.full_name }}</ion-select-option>
-      </ion-select>
-    </ion-item>
-    <ion-input v-if="selectedSvId === null" v-model="guestName" placeholder="enter full name as on licence"></ion-input>
-    <ion-input v-if="selectedSvId === null" v-model="guestLicence" placeholder="enter licence number"></ion-input>
+    <ion-content class="ion-padding">
+      <div class="trip-form">
+        <div class="start-circle-wrap">
+          <button class="start-circle" :disabled="!canStart" @click="start">
+            Start<br />Trip
+          </button>
+        </div>
+
+        <ion-list lines="none" class="trip-list">
+          <ion-item>
+            <ion-input v-model="start_odo" label="Start Odo (km)" label-placement="floating" type="text" inputmode="numeric" placeholder="e.g. 12345"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-select label="Car" label-placement="stacked" placeholder="Pick a car" interface="popover" v-model="selectedCarId">
+              <ion-select-option value="null">Guest Car</ion-select-option>
+              <ion-select-option
+              v-for="(c, i) in cars"
+              :key="c.id"
+              :value="c.id"
+               >{{ c.nickname }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-select label="Supervising Driver" label-placement="stacked" placeholder="Pick a driver" interface="popover" v-model="selectedSvId">
+              <ion-select-option :value="null">Guest Driver</ion-select-option>
+              <ion-select-option
+              v-for="(sv, i) in svs"
+              :key="sv.id"
+              :value="sv.id"
+               >{{ sv.full_name }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-item v-if="selectedSvId === null">
+            <ion-input v-model="guestName" label="Full name (as on licence)" label-placement="floating"></ion-input>
+          </ion-item>
+          <ion-item v-if="selectedSvId === null">
+            <ion-input v-model="guestLicence" label="Licence number" label-placement="floating"></ion-input>
+          </ion-item>
+        </ion-list>
+      </div>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-  import { IonButton, onIonViewWillEnter ,IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
+  import { onIonViewWillEnter, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonList, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
   import { Geolocation } from '@capacitor/geolocation'
   import { Capacitor } from '@capacitor/core'
-  import { ref } from 'vue';
+  import { ref, watch } from 'vue';
   import { Preferences } from '@capacitor/preferences'
   import { useRouter } from 'vue-router';
   import { carsStore } from './classes/cars';
@@ -55,6 +71,12 @@
       alert('You need to be on a phone to start a trip (or enable "Simulate native" in debug).')
       router.push('/marketing')
     }
+
+    // prefill the start odo from the most recently finished trip's end odo
+    const { value: tripsValue } = await Preferences.get({ key: 'trips' })
+    const trips = tripsValue ? JSON.parse(tripsValue) : []
+    const lastTrip = trips.filter((t: any) => t.end_odo != null).pop()
+    if (lastTrip) start_odo.value = String(lastTrip.end_odo)
   })
 
 
@@ -75,7 +97,18 @@
   })
 
   const router = useRouter()
-  
+
+  // when a car is picked, prefill the start odo with that car's last known end odo
+  watch(selectedCarId, async (carId) => {
+    if (carId === null) return
+    const { value: tripsValue } = await Preferences.get({ key: 'trips' })
+    const trips = tripsValue ? JSON.parse(tripsValue) : []
+    const lastTrip = trips
+      .filter((t: any) => t.car_id === carId && t.end_odo != null)
+      .pop()
+    if (lastTrip) start_odo.value = String(lastTrip.end_odo)
+  })
+
     // const { value } = await Preferences.get({key: 'odo'})
     // const odo = parseFloat(value ?? "0")
     // await Preferences.set({
@@ -121,6 +154,49 @@
     // posT.value = `${pos.coords.latitude}, ${pos.coords.longitude}`
   }
 </script>
+
+<style scoped>
+.trip-form {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.trip-list {
+  background: transparent;
+}
+
+.start-circle-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.start-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: none;
+  background: var(--lp-green);
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.4;
+  box-shadow: 0 6px 20px rgba(54, 162, 37, 0.4);
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.start-circle:active {
+  transform: scale(0.97);
+}
+
+.start-circle:disabled {
+  background: var(--ion-color-medium);
+  box-shadow: none;
+  opacity: 0.6;
+}
+</style>
 
 <!--
 [trip 1,trip 2,...]

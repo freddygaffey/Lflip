@@ -1,43 +1,45 @@
 <template>
   <ion-page>
-    <ion-content :fullscreen="true" class="bg">
+    <ion-content :fullscreen="true">
       <div class="hero">
-        <div class="badge">L</div>
-        <h1 class="title">L&nbsp;Plate</h1>
+        <div class="lplate">L</div>
+        <h1 class="title">L&nbsp;Flip</h1>
         <p class="tag">The pocket logbook for learner drivers.</p>
-        <p class="sub">Tap to start. Drive. We log the rest — hours, GPS, day vs night, supervisor — automatically.</p>
+        <p class="sub">Tap to start. Drive. We log the rest — hours, GPS, day vs&nbsp;night and supervisor — automatically.</p>
 
         <div class="cta">
-          <a class="store" href="#" @click.prevent="comingSoon">📱 App Store</a>
-          <a class="store" href="#" @click.prevent="comingSoon">▶ Google Play</a>
+          <a class="store" href="#" @click.prevent="comingSoon">App&nbsp;Store</a>
+          <a class="store" href="#" @click.prevent="comingSoon">Google&nbsp;Play</a>
         </div>
         <p class="hint">You're on the web preview — grab the app on your phone to start logging.</p>
       </div>
 
       <div class="features">
         <div class="card">
-          <div class="emoji">📍</div>
+          <div class="icon icon-blue">📍</div>
           <h3>GPS auto-tracking</h3>
           <p>Every trip mapped without lifting a finger.</p>
         </div>
         <div class="card">
-          <div class="emoji">🌙</div>
+          <div class="icon icon-dark">🌙</div>
           <h3>Day &amp; night counter</h3>
           <p>Hits the 10-hour night requirement before you do.</p>
         </div>
         <div class="card">
-          <div class="emoji">👨‍🏫</div>
+          <div class="icon icon-green">✓</div>
           <h3>Supervisor sign-off</h3>
           <p>Linked to your licensed driver — no paperwork.</p>
         </div>
         <div class="card">
-          <div class="emoji">🤖</div>
+          <div class="icon icon-yellow">AI</div>
           <h3>AI driving tips</h3>
           <p>Chat-based coaching tuned to your real data.</p>
         </div>
       </div>
 
-      <ion-button expand="block" class="back" @click="router.push('/tabs')">← Back to the app</ion-button>
+      <div class="footer">
+        <ion-button expand="block" class="back" @click="router.push('/tabs')">← Back to the app</ion-button>
+      </div>
     </ion-content>
   </ion-page>
 </template>
@@ -48,46 +50,52 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const comingSoon = () => {
-  alert('L Plate is still in development and not ready for release yet. If you\'d like a demo, please email the developer at porthole-heave-owl@duck.com.')
+  alert('L Flip is still in development and not ready for release yet. If you\'d like a demo, please email the developer at porthole-heave-owl@duck.com.')
 }
 </script>
 
 <style scoped>
-.bg {
-  --background: linear-gradient(160deg, #ff4d6d 0%, #7209b7 55%, #3a0ca3 100%);
+ion-content {
+  --background: #f4f5f9;
 }
+
+/* ===== Hero — navy "official logbook" band ===== */
 .hero {
   text-align: center;
-  padding: 64px 24px 32px;
+  padding: 64px 24px 56px;
   color: #fff;
+  background: #1a2a5e;
 }
-.badge {
+
+/* a real Australian L-plate: yellow square, black L */
+.lplate {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 88px;
   height: 88px;
-  border-radius: 24px;
-  background: #ffd60a;
-  color: #1a1a2e;
-  font-size: 52px;
+  border-radius: 12px;
+  background: var(--lp-yellow);
+  color: var(--lp-dark);
+  font-size: 60px;
   font-weight: 900;
-  font-family: Impact, sans-serif;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   margin-bottom: 20px;
 }
+
 .title {
-  font-size: 64px;
-  font-weight: 900;
+  font-size: 56px;
+  font-weight: 800;
   margin: 0 0 8px;
-  letter-spacing: -2px;
-  text-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  letter-spacing: -1.5px;
 }
 .tag {
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 600;
   margin: 0 0 12px;
-  opacity: 0.95;
+  color: var(--lp-yellow);
 }
 .sub {
   font-size: 16px;
@@ -96,54 +104,94 @@ const comingSoon = () => {
   opacity: 0.85;
   line-height: 1.5;
 }
+
 .cta {
   display: flex;
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 .store {
-  background: #000;
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 999px;
+  background: var(--lp-yellow);
+  color: var(--lp-dark);
+  padding: 12px 22px;
+  border-radius: 8px;
   text-decoration: none;
   font-weight: 700;
   font-size: 15px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.store:hover { transform: translateY(-2px); }
+.store:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
 .hint {
   font-size: 13px;
   opacity: 0.7;
-  margin-top: 16px;
+  margin: 0;
 }
 
+/* ===== Features — clean document-style cards ===== */
 .features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
-  padding: 16px 20px 8px;
+  padding: 24px 20px 8px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* mobile: centered 2 x 2 grid */
+@media (max-width: 640px) {
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 460px;
+  }
 }
 .card {
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 18px;
+  background: #fff;
+  border: 1px solid #d7dbe8;
+  border-top: 3px solid #1a2a5e;
+  border-radius: 6px;
   padding: 20px;
-  color: #fff;
+  color: #1a1a1a;
 }
-.card h3 { margin: 8px 0 6px; font-size: 18px; }
-.card p { margin: 0; font-size: 14px; opacity: 0.85; line-height: 1.4; }
-.emoji { font-size: 32px; }
+.card h3 {
+  margin: 12px 0 6px;
+  font-size: 17px;
+  color: #1a2a5e;
+}
+.card p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.45;
+}
 
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 22px;
+  font-weight: 800;
+}
+.icon-blue   { background: var(--lp-blue);   color: #fff; }
+.icon-dark   { background: var(--lp-dark);   color: #fff; }
+.icon-green  { background: var(--lp-green);  color: #fff; }
+.icon-yellow { background: var(--lp-yellow); color: var(--lp-dark); font-size: 16px; }
+
+/* ===== Footer ===== */
+.footer {
+  max-width: 760px;
+  margin: 0 auto;
+}
 .back {
   margin: 24px 20px 32px;
-  --background: rgba(255,255,255,0.9);
-  --color: #3a0ca3;
-  --border-radius: 14px;
+  --border-radius: 8px;
   font-weight: 700;
 }
 </style>

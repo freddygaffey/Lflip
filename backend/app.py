@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from markupsafe import escape
-from data import db, User, LicenseInfo, Trip, GpsPoint, Car, Sv
+from data import db, User, LicenseInfo, Trip, GpsPoint, Car, Sv, Chat, ChatMessage, AiPreference
 import secrets
-from config import states, secret_key
-from utils import is_pwd_valid
+from config import states, secret_key, TOKEN_LIMIT_5H, TOKEN_LIMIT_WEEK
+from utils import is_pwd_valid, is_email_valid
 from flask_cors import CORS
 from my_auth import gen_token, require_auth
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import func
 from functools import wraps
 
 import sys
@@ -74,6 +75,7 @@ def register():
     f_name = data.get("f_name")
     l_name = data.get("l_name")
 
+    if not is_email_valid(email): return jsonify({"message": "enter a valid email"}), 400
     if not is_pwd_valid(pwd): return jsonify({"message": "enter a valid pwd"}), 400
     pwd_hash = generate_password_hash(pwd)
     if User.query.filter_by(email=email).first():
@@ -81,6 +83,11 @@ def register():
 
     user = User(f_name=f_name, l_name=l_name, email=email, password_hash=pwd_hash, license_info=None)
     db.session.add(user)
+    db.session.commit()
+
+    # give every new user an all-off AiPreference row up front (opt-in: no data
+    # is shared with the assistant until they enable a category in Settings)
+    db.session.add(AiPreference(user_id=user.id))
     db.session.commit()
 
     # token = str(gen_token(user.id))
@@ -120,8 +127,6 @@ def test():
 @require_auth
 def start_dashboard():
     return "top secret yay", 200
-    request.user_id 
-    query = db.select()
 
 @app.post("/api/is_auth")
 @require_auth
@@ -197,26 +202,30 @@ def sync_trips():
 @app.delete("/api/trips")
 @require_auth
 def delete_trips():
-    Trip.query.filter_by(learner_id=int(request.user_id)).delete()
+    # delete per-object (not bulk) so the gps_points cascade fires
+    trips = Trip.query.filter_by(learner_id=int(request.user_id)).all()
+    for t in trips:
+        db.session.delete(t)
     db.session.commit()
     return jsonify({"message": "ok"}), 200
 
+@app.delete("/api/trips/<int:id>")
+@require_auth
+def delete_trip(id):
+    trip = Trip.query.filter_by(learner_id=int(request.user_id), id=int(id)).first()
+    if trip is not None:
+        db.session.delete(trip)
+        db.session.commit()
+    return jsonify({"message": "ok"}), 200
 
 @app.get("/api/trips")
 @require_auth
 def pull_trips():
+    # lightweight list: no gps points so the dashboard loads fast.
+    # gps is fetched per-trip via /api/trips/<id>/gps when a map is opened.
     trips = Trip.query.filter_by(learner_id=int(request.user_id)).all()
     value_json = []
     for t in trips:
-        gps = GpsPoint.query.filter_by(trip_id=int(t.id)).all()
-        gps_arr = []
-        for g in gps:
-            gps_arr.append({
-                "time": g.timestamp.timestamp() * 1000,
-                "lon": g.lon,
-                "lat": g.lat,
-                "speed": g.speed})
-
         td = {
             "id": t.id,
             "start_time": t.start_time.timestamp() * 1000,
@@ -228,12 +237,29 @@ def pull_trips():
             "car_id": t.car_id,
             "sv_id": t.sv_id,
             "sv_name": escape(t.sv_name) if t.sv_name else None,
-            "sv_licence_no": escape(t.sv_licence_no) if t.sv_licence_no else None,
-            "gps": gps_arr}
+            "sv_licence_no": escape(t.sv_licence_no) if t.sv_licence_no else None}
 
         value_json.append(td)
 
     return jsonify(value_json), 200
+
+
+@app.get("/api/trips/<int:trip_id>/gps")
+@require_auth
+def pull_trip_gps(trip_id):
+    # ownership check: only return gps for a trip belonging to this learner
+    trip = Trip.query.filter_by(id=trip_id, learner_id=int(request.user_id)).first()
+    if trip is None:
+        return jsonify({"error": "not found"}), 404
+
+    gps = GpsPoint.query.filter_by(trip_id=trip_id).all()
+    gps_arr = [{
+        "time": g.timestamp.timestamp() * 1000,
+        "lon": g.lon,
+        "lat": g.lat,
+        "speed": g.speed} for g in gps]
+
+    return jsonify(gps_arr), 200
 
 
 # i copied the car routes and just renamed  
@@ -404,6 +430,168 @@ def delete_car(car_id):
     db.session.commit()
     return jsonify({"message": "ok"}), 200
 
+######### ai chat bot funcnality #############
+@app.get("/api/chats")
+@require_auth
+def list_chats():
+    # only list chats that actually have messages - skip blank/abandoned ones
+    chats = Chat.query.filter(
+        Chat.user_id == int(request.user_id),
+        Chat.hidden == False,
+        Chat.messages.any(),
+    ).all()
+    return jsonify([{
+        "id": c.id,
+        "chat_name": escape(c.chat_name) if c.chat_name else None,
+        "created_at": c.created_at.timestamp() * 1000 if c.created_at else None,
+    } for c in chats]), 200
+
+@app.post("/api/chats")
+@require_auth
+@handle_validation_error
+def create_chat():
+    data = request.json or {}
+    chat = Chat(
+        user_id=int(request.user_id),
+        chat_name=data.get("chat_name"),
+    )
+    db.session.add(chat)
+    db.session.commit()
+
+    return jsonify({
+        "id": chat.id,
+        "chat_name": escape(chat.chat_name) if chat.chat_name else None,
+        "created_at": chat.created_at.timestamp() * 1000 if chat.created_at else None,
+    }), 200
+
+@app.patch("/api/chats/<int:chat_id>")
+@require_auth
+@handle_validation_error
+def update_chat(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=int(request.user_id)).first()
+    if not chat:
+        return jsonify({"message": "not found"}), 404
+
+    data = request.json or {}
+    if "chat_name" in data:
+        name = (data.get("chat_name") or "").strip()
+        chat.chat_name = name[:100] if name else None
+        db.session.commit()
+
+    return jsonify({
+        "id": chat.id,
+        "chat_name": escape(chat.chat_name) if chat.chat_name else None,
+        "created_at": chat.created_at.timestamp() * 1000 if chat.created_at else None,
+    }), 200
+
+@app.delete("/api/chats/<int:chat_id>")
+@require_auth
+def delete_chat(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=int(request.user_id)).first()
+    if not chat:
+        return jsonify({"message": "not found"}), 404
+    chat.hidden = True
+    db.session.commit()
+    return jsonify({"message": "ok"}), 200
+
+@app.get("/api/chats/<int:chat_id>/messages")
+@require_auth
+def list_chat_messages(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=int(request.user_id)).first()
+    if not chat:
+        return jsonify({"message": "not found"}), 404
+
+    messages = ChatMessage.query.filter_by(chat_id=chat.id).order_by(ChatMessage.timestamp.asc()).all()
+    return jsonify([{
+        "id": m.id,
+        "is_ai": m.is_ai,
+        "content": escape(m.content),
+        "tokens_used": m.tokens_used,
+        "timestamp": m.timestamp.timestamp() * 1000 if m.timestamp else None,
+    } for m in messages]), 200
+
+@app.post("/api/chats/<int:chat_id>/messages")
+@require_auth
+@handle_validation_error
+def create_chat_message(chat_id):
+    chat = Chat.query.filter_by(id=chat_id, user_id=int(request.user_id)).first()
+    if not chat:
+        return jsonify({"message": "not found"}), 404
+
+    data = request.json or {}
+    content = data.get("content")
+    is_ai = data.get("is_ai")
+    if content is None or is_ai is None:
+        return jsonify({"message": "content and is_ai required"}), 400
+
+    message = ChatMessage(
+        chat_id=chat.id,
+        is_ai=bool(is_ai),
+        content=content,
+        tokens_used=data.get("tokens_used"),
+    )
+    db.session.add(message)
+    db.session.commit()
+
+    return jsonify({
+        "id": message.id,
+        "is_ai": message.is_ai,
+        "content": escape(message.content),
+        "tokens_used": message.tokens_used,
+        "timestamp": message.timestamp.timestamp() * 1000 if message.timestamp else None,
+    }), 200
+
+
+@app.get("/api/ai/tokens_left")
+@require_auth
+def ai_tokens_left():
+    now = datetime.now()
+    used_5h = db.session.query(func.sum(ChatMessage.tokens_used)) \
+        .join(Chat, Chat.id == ChatMessage.chat_id) \
+        .filter(Chat.user_id == int(request.user_id), ChatMessage.is_ai == True, ChatMessage.timestamp >= now - timedelta(hours=5)) \
+        .scalar() or 0
+    used_week = db.session.query(func.sum(ChatMessage.tokens_used)) \
+        .join(Chat, Chat.id == ChatMessage.chat_id) \
+        .filter(Chat.user_id == int(request.user_id), ChatMessage.is_ai == True, ChatMessage.timestamp >= now - timedelta(days=7)) \
+        .scalar() or 0
+
+    return jsonify({
+        "tokens_left_5h": max(TOKEN_LIMIT_5H - used_5h, 0),
+        "tokens_left_week": max(TOKEN_LIMIT_WEEK - used_week, 0),
+    }), 200
+
+################ ai pref congiuration
+def _get_or_create_ai_prefs(user_id: int) -> AiPreference:
+    prefs = AiPreference.query.filter_by(user_id=user_id).first()
+    if not prefs:
+        prefs = AiPreference(user_id=user_id)
+        db.session.add(prefs)
+        db.session.commit()
+    return prefs
+
+def _ai_prefs_json(prefs: AiPreference) -> dict:
+    return {field: getattr(prefs, field) for field in AiPreference.FIELDS}
+
+@app.get("/api/ai/preferences")
+@require_auth
+def get_ai_preferences():
+    prefs = _get_or_create_ai_prefs(int(request.user_id))
+    return jsonify(_ai_prefs_json(prefs)), 200
+
+@app.patch("/api/ai/preferences")
+@require_auth
+@handle_validation_error
+def update_ai_preferences():
+    prefs = _get_or_create_ai_prefs(int(request.user_id))
+    data = request.json or {}
+    for field in AiPreference.FIELDS:
+        if field in data:
+            setattr(prefs, field, bool(data[field]))
+    db.session.commit()
+    return jsonify(_ai_prefs_json(prefs)), 200
+
+
+
 
 if __name__ == "__main__":
     import argparse
@@ -418,6 +606,21 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     if args.debug: 
+        @app.post("/api/ai/reset_usage")
+        @require_auth
+        def reset_ai_usage():
+            # debug helper: the AI token "limit" is computed as LIMIT - sum(tokens_used),
+            # so zeroing this account's recorded AI usage effectively tops it back up.
+            chat_ids = [c.id for c in Chat.query.filter_by(user_id=int(request.user_id)).all()]
+            reset = 0
+            if chat_ids:
+                reset = ChatMessage.query.filter(
+                    ChatMessage.chat_id.in_(chat_ids),
+                    ChatMessage.is_ai == True,
+                ).update({"tokens_used": 0}, synchronize_session=False)
+                db.session.commit()
+            return jsonify({"message": "ok", "messages_reset": reset}), 200
+
         CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
         app.run(host="127.0.0.1", port=5001, debug=True) # TODO: PROD: remove befor producion
     else:

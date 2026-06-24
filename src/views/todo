@@ -4,14 +4,14 @@
 - make the time work save utc then dispty from the firt porint 
 
 - make ai do somting (like add parent)
-- make it secure uuse a cooky 
-- html escapes 
-- sanitiation 
-- data validation (password fomat)
+- make it secure use a cooky 
+- html escapes  ✅
+- sanitiation  ✅
+- data validation (password fomat) ✅
 
 - css 
 
-CONTIUE WITH LOD BOOK 
+CONTIUE WITH LOG BOOK 
 
 DO THE TESTING STUFF 
 VIDEO max 2x speed 

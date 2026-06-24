@@ -1,4 +1,11 @@
 secret_key = 'd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686fd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686f'
+# this is commited to a privit repo 
+# TODO: put this in e env file 
+
+# ai token usage limits - generous because gpt-oss is a reasoning model that
+# spends a lot of tokens "thinking", and tool calls add several turns per reply
+TOKEN_LIMIT_5H = 100000
+TOKEN_LIMIT_WEEK = 500000
 
 class State(object):
     def __init__(self, total_hours, night_hours):

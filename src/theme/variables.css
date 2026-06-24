@@ -1,2 +1,151 @@
 /* For information on how to create your own theme, please refer to:
 http://ionicframework.com/docs/theming/ */
+
+:root {
+  /* ===== L-Plate colour scheme ===== */
+  --lp-red: #b90413;
+  --lp-yellow: #c5bf10;
+  --lp-green: #36a225;
+  --lp-dark: #1d1d1d;
+  --lp-blue: #4232b4;
+
+  /** primary -> blue **/
+  --ion-color-primary: #4232b4;
+  --ion-color-primary-rgb: 66, 50, 180;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #3a2c9e;
+  --ion-color-primary-tint: #5547bc;
+
+  /** secondary -> dark **/
+  --ion-color-secondary: #1d1d1d;
+  --ion-color-secondary-rgb: 29, 29, 29;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #191919;
+  --ion-color-secondary-tint: #333333;
+
+  /** tertiary -> yellow **/
+  --ion-color-tertiary: #c5bf10;
+  --ion-color-tertiary-rgb: 197, 191, 16;
+  --ion-color-tertiary-contrast: #1d1d1d;
+  --ion-color-tertiary-contrast-rgb: 29, 29, 29;
+  --ion-color-tertiary-shade: #ada80e;
+  --ion-color-tertiary-tint: #cbc628;
+
+  /** success -> green **/
+  --ion-color-success: #36a225;
+  --ion-color-success-rgb: 54, 162, 37;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #2f8f21;
+  --ion-color-success-tint: #4aac3b;
+
+  /** warning -> yellow **/
+  --ion-color-warning: #c5bf10;
+  --ion-color-warning-rgb: 197, 191, 16;
+  --ion-color-warning-contrast: #1d1d1d;
+  --ion-color-warning-contrast-rgb: 29, 29, 29;
+  --ion-color-warning-shade: #ada80e;
+  --ion-color-warning-tint: #cbc628;
+
+  /** danger -> red **/
+  --ion-color-danger: #b90413;
+  --ion-color-danger-rgb: 185, 4, 19;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #a30411;
+  --ion-color-danger-tint: #c01d2a;
+
+  /** dark **/
+  --ion-color-dark: #1d1d1d;
+  --ion-color-dark-rgb: 29, 29, 29;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #1a1a1a;
+  --ion-color-dark-tint: #343434;
+
+  /** medium **/
+  --ion-color-medium: #8b8b8b;
+  --ion-color-medium-rgb: 139, 139, 139;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #7a7a7a;
+  --ion-color-medium-tint: #969696;
+
+  /** light **/
+  --ion-color-light: #f4f4f4;
+  --ion-color-light-rgb: 244, 244, 244;
+  --ion-color-light-contrast: #1d1d1d;
+  --ion-color-light-contrast-rgb: 29, 29, 29;
+  --ion-color-light-shade: #d7d7d7;
+  --ion-color-light-tint: #f5f5f5;
+
+  /** general page background/text **/
+  --ion-background-color: #f4f4f4;
+  --ion-text-color: #1d1d1d;
+
+  --ion-toolbar-background: #1d1d1d;
+  --ion-toolbar-color: #ffffff;
+
+  --ion-item-background: #ffffff;
+
+  --ion-card-background: #ffffff;
+
+  /** consistent corner radius for a clean, ergonomic feel **/
+  --lp-radius: 14px;
+}
+
+/* ===== Global element tweaks ===== */
+
+ion-card {
+  border-radius: var(--lp-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+ion-item {
+  --border-radius: var(--lp-radius);
+  --padding-start: 16px;
+  margin-bottom: 8px;
+}
+
+ion-button {
+  --border-radius: var(--lp-radius);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+ion-toolbar {
+  --min-height: 56px;
+}
+
+/* tab bar */
+ion-tab-bar {
+  --background: #1d1d1d;
+  border-top: none;
+}
+
+ion-tab-button {
+  --color: #8b8b8b;
+  --color-selected: var(--lp-green);
+}
+
+/* Strava-style "record" icon: ring with a filled dot inside */
+.lp-record-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.lp-record-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--lp-green);
+}

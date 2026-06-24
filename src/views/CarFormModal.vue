@@ -21,10 +21,18 @@
       label-placement="stacked"
     />
     <ion-input
+      v-if="!noPlates"
       v-model="form.plate"
-      label="Plate"
+      label="Licence Plate"
       label-placement="stacked"
     />
+    <ion-item lines="none">
+      <ion-checkbox v-model="noPlates" slot="start"></ion-checkbox>
+      <ion-label>I don't have L-plates yet</ion-label>
+    </ion-item>
+    <p v-if="noPlates" class="no-plates-hint">
+      You can buy L-plates at <a href="https://example.com" target="_blank" rel="noopener">example.com</a>.
+    </p>
     <ion-input
       v-model="form.ble_device_name"
       label="Device"
@@ -89,6 +97,7 @@ import {
   IonListHeader,
   IonItem,
   IonLabel,
+  IonCheckbox,
 } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
 import { carsStore, type Car } from './classes/cars'
@@ -104,6 +113,8 @@ const form = ref({
   plate: props.car?.plate ?? '',
   ble_device_name: props.car?.ble_device_name ?? '',
 })
+
+const noPlates = ref(false)
 
 const found = ref<Found[]>([])
 const scanning = ref(false)
@@ -204,7 +215,7 @@ const save = async () => {
   }
   const payload = {
     nickname: form.value.nickname,
-    plate: form.value.plate || null,
+    plate: noPlates.value ? null : (form.value.plate || null),
     ble_device_name: form.value.ble_device_name || null,
   }
 
@@ -216,3 +227,11 @@ const save = async () => {
   dismiss('save')
 }
 </script>
+
+<style scoped>
+.no-plates-hint {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin: 0 16px 12px;
+}
+</style>

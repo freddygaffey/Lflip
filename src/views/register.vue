@@ -5,13 +5,23 @@
           <ion-title>Register</ion-title>
         </ion-toolbar>
       </ion-header>
-      <ion-content>
-        <ion-input v-model="f_name" placeholder="first name" type="text"></ion-input>
-        <ion-input v-model="l_name" placeholder="last name" type="text"></ion-input>
-        <ion-input v-model="email" placeholder="email" type="email"></ion-input>
-        <ion-input v-model="password" placeholder="password" type="password"></ion-input>
-        <ion-select v-model="state" placeholder="Select state" interface="popover">
-            <select v-model="state" slot="lable">
+      <ion-content class="ion-padding">
+        <div class="auth-card">
+          <ion-list lines="none" class="auth-list">
+            <ion-item>
+              <ion-input v-model="f_name" label="First name" label-placement="stacked" type="text"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input v-model="l_name" label="Last name" label-placement="stacked" type="text"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input v-model="email" label="Email" label-placement="stacked" placeholder="you@example.com" type="email"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input v-model="password" label="Password" label-placement="stacked" placeholder="••••••••" type="password"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-select v-model="state" label="State" label-placement="stacked" placeholder="Select state" interface="popover">
                 <ion-select-option value="act">ACT</ion-select-option>
                 <ion-select-option value="nsw">NSW</ion-select-option>
                 <ion-select-option value="vic">VIC</ion-select-option>
@@ -20,17 +30,22 @@
                 <ion-select-option value="wa">WA</ion-select-option>
                 <ion-select-option value="tas">TAS</ion-select-option>
                 <ion-select-option value="nt">NT</ion-select-option>
-            </select>
-        </ion-select>
-        <ion-input v-model="license_number" placeholder="license number (optinal)" type="text"></ion-input>
-        <ion-button @click="signUp">sign up</ion-button>
-        <ion-button router-link="/login">Go to login</ion-button>
+              </ion-select>
+            </ion-item>
+            <ion-item>
+              <ion-input v-model="license_number" label="Licence number (optional)" label-placement="stacked" type="text"></ion-input>
+            </ion-item>
+          </ion-list>
+
+          <ion-button expand="block" class="ion-margin-top" @click="signUp">Sign up</ion-button>
+          <ion-button expand="block" fill="clear" router-link="/login">Already have an account? Log in</ion-button>
+        </div>
       </ion-content>
     </ion-page>
   </template>
   
   <script setup lang="ts">
-    import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonSelect, IonSelectOption } from '@ionic/vue';
+    import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
     import { ref } from 'vue'
     import { useRouter } from 'vue-router'
     import { CapacitorHttp } from '@capacitor/core'
@@ -78,3 +93,15 @@
       router.push('/login') // login will cashe all need data and then redirect you to /tabs/dasbord
     }
   </script>
+
+<style scoped>
+.auth-card {
+  max-width: 420px;
+  margin: 0 auto;
+  padding-top: 24px;
+}
+
+.auth-list {
+  background: transparent;
+}
+</style>
