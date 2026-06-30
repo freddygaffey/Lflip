@@ -1,4 +1,9 @@
 // protocol.h — the SHARED "contract" between master and edge firmware.
+// Freddy Gaffey
+// how this works: the edge broadcasts on FF:FF:FF:FF:FF:FF (everyone hears it).
+// a master in pairing mode sees the sender's MAC, saves it as its paired edge,
+// and replies to confirm. the edge reads the master's MAC from that reply, and
+// from then on they talk directly by MAC. (plaintext — no encryption.)
 //
 // Both firmwares #include this. ESP-NOW copies these bytes verbatim from one
 // chip to the other, so the layout MUST be identical on both sides — hence one
@@ -7,30 +12,24 @@
 #include <stdint.h>
 
 // Bump if you change any struct below, so a mismatched board ignores garbage.
-constexpr uint8_t PROTO_VERSION = 2;
+// v4: added UNPAIR (master tells an edge to disconnect and go back to pairing).
+// v5: added SERVO_CAL (app jogs/saves a plate's servo end-points).
+constexpr uint8_t PROTO_VERSION = 5;
 
 // All boards must agree on one Wi-Fi channel for ESP-NOW.
 constexpr uint8_t ESPNOW_CHANNEL = 1;
-
-// Length of the ESP-NOW keys (fixed by the hardware at 16 bytes).
-constexpr uint8_t KEY_LEN = 16;
-
-// Product-wide Primary Master Key. Same in every board's firmware. It only
-// protects the per-system LMK at rest; the LMK (exchanged at pairing) is what
-// actually encrypts traffic. 16 bytes exactly.
-const uint8_t ESPNOW_PMK[KEY_LEN] = {
-  'L','f','l','i','p','-','P','M','K','-','v','2','-','x','x','x'
-};
 
 // Desired / actual position of the plates (they all move together).
 enum class PlateState : uint8_t { DOWN = 0, UP = 1 };
 
 // Every packet starts with version + type so the receiver knows what it got.
 enum class MsgType : uint8_t {
-  PAIR_REQ = 1,   // edge   -> master  (broadcast, unencrypted) "pair me"
-  PAIR_ACK = 2,   // master -> edge    (unicast,  unencrypted)  carries the LMK
-  POLL     = 3,   // edge   -> master  (unicast,  encrypted)    "what should I be?"
-  CMD      = 4,   // master -> edge    (unicast,  encrypted)    "be this"
+  PAIR_REQ = 1,   // edge   -> master  (broadcast) "pair request"
+  PAIR_ACK = 2,   // master -> edge    (unicast)   "pair accepted"
+  POLL     = 3,   // edge   -> master  (unicast)   "status update"
+  CMD      = 4,   // master -> edge    (unicast)   "command"
+  UNPAIR   = 5,   // master -> edge    (unicast)   "forget me, go back to pairing"
+  SERVO_CAL = 6,  // master -> edge    (unicast)   "jog/save a servo end-point"
 };
 
 // edge -> master, broadcast: asks to be paired.
@@ -39,14 +38,14 @@ struct __attribute__((packed)) PairReqMsg {
   MsgType type;      // = MsgType::PAIR_REQ
 };
 
-// master -> edge, unicast: confirms pairing and hands over the system key.
+// master -> edge, unicast: confirms pairing. The edge learns the master's MAC
+// from the packet's sender address, so the body is just version + type.
 struct __attribute__((packed)) PairAckMsg {
   uint8_t version;       // = PROTO_VERSION
   MsgType type;          // = MsgType::PAIR_ACK
-  uint8_t lmk[KEY_LEN];  // the per-system encryption key to use from now on
 };
 
-// edge -> master, encrypted unicast: poll for the desired state.
+// edge -> master, unicast: poll for the desired state.
 struct __attribute__((packed)) PollMsg {
   uint8_t    version;    // = PROTO_VERSION
   MsgType    type;       // = MsgType::POLL
@@ -54,9 +53,39 @@ struct __attribute__((packed)) PollMsg {
   PlateState current;    // what this edge currently believes it is
 };
 
-// master -> edge, encrypted unicast: the command reply.
+// master -> edge, unicast: the command reply.
 struct __attribute__((packed)) CmdMsg {
   uint8_t    version;    // = PROTO_VERSION
   MsgType    type;       // = MsgType::CMD
   PlateState desired;    // the state the edge should move to
 };
+
+// master -> edge, unicast: "disconnect". The master is forgetting all its
+// pairings; tell each edge to drop us and start broadcasting for a new master.
+struct __attribute__((packed)) UnpairMsg {
+  uint8_t version;       // = PROTO_VERSION
+  MsgType type;          // = MsgType::UNPAIR
+};
+
+// master -> edge, unicast: servo calibration. Lets the app jog one plate's servo
+// live and save the safe end-points (just shy of the mechanical stops).
+//   action 0 = jog to `us` (live preview)   1 = save `us` as the DOWN end-point
+//   action 2 = save `us` as the UP end-point   3 = end session / power servo off
+struct __attribute__((packed)) ServoCalMsg {
+  uint8_t  version;      // = PROTO_VERSION
+  MsgType  type;         // = MsgType::SERVO_CAL
+  uint8_t  action;       // 0 jog / 1 save-down / 2 save-up / 3 off
+  uint16_t us;           // pulse width in microseconds
+};
+
+
+
+
+
+
+
+
+
+
+
+
