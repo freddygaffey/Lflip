@@ -44,17 +44,27 @@
       {{ scanning ? 'Scanning…' : 'Scan for BLE devices' }}
     </ion-button>
 
-    <ion-list v-if="found.length">
+    <ion-list v-if="visibleDevices.length">
       <ion-list-header>
         <ion-label>Found devices</ion-label>
       </ion-list-header>
-      <ion-item v-for="d in found" :key="d.deviceId" button @click="pick(d)">
+      <ion-item v-for="d in visibleDevices" :key="d.deviceId" button @click="pick(d)">
         <ion-label>
           <h3>{{ d.name || 'Unnamed' }}</h3>
           <p>{{ d.deviceId }}</p>
         </ion-label>
       </ion-item>
     </ion-list>
+    <p v-else-if="found.length && !showAllDevices" class="cal-hint">
+      No L-plate devices found yet.
+    </p>
+    <!-- L-plate masters advertise as "LP-…"; hide everything else behind a link. -->
+    <p v-if="!showAllDevices && otherCount" class="show-more">
+      <a @click="showAllDevices = true">Show {{ otherCount }} other device{{ otherCount === 1 ? '' : 's' }}</a>
+    </p>
+    <p v-else-if="showAllDevices && otherCount" class="show-more">
+      <a @click="showAllDevices = false">Show only L-plates</a>
+    </p>
 
     <!-- Test the L-plates: connect to the master and toggle the servos. -->
     <ion-list-header class="ion-margin-top">
@@ -70,6 +80,46 @@
       Plates DOWN
     </ion-button>
 
+    <!-- Calibrate each plate's servo travel (just shy of its mechanical stops). -->
+    <ion-list-header class="ion-margin-top">
+      <ion-label>Calibrate plates</ion-label>
+    </ion-list-header>
+    <ion-button expand="block" fill="outline" :disabled="plateBusy" @click="loadEdges">
+      {{ edges.length ? 'Refresh plates' : 'Connect & load plates' }}
+    </ion-button>
+    <p v-if="edgesMsg" class="cal-hint">{{ edgesMsg }}</p>
+
+    <template v-for="e in edges" :key="e.i">
+      <ion-item lines="full">
+        <ion-label>
+          <h3>Plate #{{ e.i }}</h3>
+          <p>{{ e.mac }} · currently {{ e.cur ? 'UP' : 'DOWN' }}</p>
+        </ion-label>
+        <ion-button slot="end" size="small" fill="outline"
+                    :color="calIdx === e.i ? 'success' : 'medium'"
+                    @click="calIdx === e.i ? endCal() : startCal(e.i)">
+          {{ calIdx === e.i ? 'Close' : 'Calibrate' }}
+        </ion-button>
+      </ion-item>
+      <div v-if="calIdx === e.i" class="cal">
+        <p class="cal-hint">
+          Drag to move this plate, stopping just <i>before</i> it grinds on each stop.
+          Set the DOWN and UP positions, then tap Close. Saved on the board.
+        </p>
+        <ion-range :min="500" :max="2500" :step="25" :value="calUs" @ionChange="onCalRange">
+          <ion-label slot="start">500</ion-label>
+          <ion-label slot="end">2500</ion-label>
+        </ion-range>
+        <div class="cal-row"><span>Pulse</span><b>{{ calUs }} µs</b></div>
+        <div class="calbtns">
+          <ion-button size="small" fill="outline" @click="nudge(-25)">−25</ion-button>
+          <ion-button size="small" fill="outline" @click="nudge(25)">+25</ion-button>
+          <ion-button size="small" color="primary" @click="saveCal(1)">Set DOWN</ion-button>
+          <ion-button size="small" color="primary" @click="saveCal(2)">Set UP</ion-button>
+        </div>
+      </div>
+    </template>
+
     <ion-button
       expand="block"
       class="ion-margin-top"
@@ -82,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import {
   modalController,
   alertController,
@@ -98,10 +148,11 @@ import {
   IonItem,
   IonLabel,
   IonCheckbox,
+  IonRange,
 } from '@ionic/vue'
 import { Capacitor } from '@capacitor/core'
 import { carsStore, type Car } from './classes/cars'
-import { plateLink } from './classes/plates'
+import { plateLink, type PlateEdge } from './classes/plates'
 
 type Found = { deviceId: string; name?: string }
 
@@ -118,6 +169,14 @@ const noPlates = ref(false)
 
 const found = ref<Found[]>([])
 const scanning = ref(false)
+
+// L-plate masters advertise as "LP-…". By default only show those; the rest are
+// hidden behind a "Show more" link so the list isn't a wall of random BLE gear.
+const showAllDevices = ref(false)
+const isLP = (d: Found) => (d.name ?? '').toUpperCase().startsWith('LP')
+const lpDevices = computed(() => found.value.filter(isLP))
+const otherCount = computed(() => found.value.length - lpDevices.value.length)
+const visibleDevices = computed(() => showAllDevices.value ? found.value : lpDevices.value)
 
 // ── L-plate test ────────────────────────────────────────────────────────────
 // Reuses the shared plateLink (src/views/classes/plates.ts). On demand it
@@ -152,11 +211,72 @@ async function sendPlates(state: 0 | 1) {
   }
 }
 
+// ── Plate servo calibration ───────────────────────────────────────────────────
+// Lists this car's paired plates and lets you jog each servo to set its safe
+// end-points (saved on the board). Reuses the same live BLE link as the test.
+const edges = ref<PlateEdge[]>([])
+const edgesMsg = ref('')
+const calIdx = ref<number | null>(null)
+const calUs = ref(1500)
+
+// Connect (if needed) and read which plates are paired to this car's master.
+async function loadEdges() {
+  if (plateBusy.value) return
+  if (!form.value.ble_device_name) { edgesMsg.value = "Scan and pick this car's device first."; return }
+  plateBusy.value = true
+  edgesMsg.value = ''
+  try {
+    if (!plateLink.connected.value) await plateLink.connect(currentCar())
+    const s = await plateLink.readStatus()
+    edges.value = s.e ?? []
+    if (!edges.value.length) edgesMsg.value = 'No plates paired to this car yet.'
+  } catch (e) {
+    edgesMsg.value = 'could not load plates: ' + e
+  } finally {
+    plateBusy.value = false
+  }
+}
+
+const startCal = async (i: number) => {
+  calIdx.value = i
+  calUs.value = 1500
+  try { await plateLink.calibrate(i, 0, calUs.value) }
+  catch (e) { edgesMsg.value = 'cal failed: ' + e }
+}
+const jog = async () => {
+  if (calIdx.value === null) return
+  try { await plateLink.calibrate(calIdx.value, 0, calUs.value) }
+  catch (e) { edgesMsg.value = 'jog failed: ' + e }
+}
+const onCalRange = async (ev: CustomEvent) => {
+  calUs.value = Number((ev.detail as { value: number }).value)
+  await jog()
+}
+const nudge = async (d: number) => {
+  calUs.value = Math.max(500, Math.min(2500, calUs.value + d))
+  await jog()
+}
+// action 1 = save current pulse as DOWN, 2 = save as UP (persisted on the edge).
+const saveCal = async (action: 1 | 2) => {
+  if (calIdx.value === null) return
+  try {
+    await plateLink.calibrate(calIdx.value, action, calUs.value)
+    edgesMsg.value = (action === 1 ? 'DOWN' : 'UP') + ' set to ' + calUs.value + 'µs'
+  } catch (e) { edgesMsg.value = 'save failed: ' + e }
+}
+const endCal = async () => {
+  const i = calIdx.value
+  calIdx.value = null
+  if (i === null) return
+  try { await plateLink.calibrate(i, 3) } catch { /* servo also auto-powers-off */ }
+}
+
 // Drop the link when the modal closes.
-onUnmounted(() => { plateLink.disconnect() })
+onUnmounted(() => { calIdx.value = null; plateLink.disconnect() })
 
 const scan = async () => {
   scanning.value = true
+  showAllDevices.value = false
   found.value = []
   try {
     const { BleClient } = await import('@capacitor-community/bluetooth-le')
@@ -234,4 +354,10 @@ const save = async () => {
   color: var(--ion-color-medium);
   margin: 0 16px 12px;
 }
+.cal-hint { font-size: 13px; color: var(--ion-color-medium); margin: 6px 16px; }
+.cal { padding: 4px 14px 12px; border-bottom: 1px solid var(--ion-color-light); }
+.cal-row { display: flex; justify-content: space-between; padding: 2px 0; }
+.calbtns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.show-more { margin: 6px 16px; font-size: 14px; }
+.show-more a { color: var(--ion-color-primary); cursor: pointer; text-decoration: underline; }
 </style>
