@@ -6,6 +6,13 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
+      <!-- First-run: no car yet → guide the user into setup instead of an empty logbook. -->
+      <div v-if="needsSetup" class="getting-started">
+        <h2>👋 Let's get you set up</h2>
+        <p>Add your car and pair its L-plates, then you can start logging drives.</p>
+        <ion-button expand="block" @click="goAddCar">Add your car</ion-button>
+      </div>
+
       <div class="charts-row">
         <div class="chart-col"><div class="chart-box"><Pie :data="DchartData" :options="DchartOptions"/></div><p>{{ totalDay }}/{{ capDay }}</p></div>
         <div class="chart-col"><div class="chart-box"><Pie :data="NchartData" :options="NchartOptions"/></div><p>{{ totalNight }}/{{ capNight }}</p></div>
@@ -70,7 +77,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, onIonViewDidEnter, IonSegment, IonSegmentButton, IonLabel } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, onIonViewDidEnter, IonSegment, IonSegmentButton, IonLabel, IonButton } from '@ionic/vue'
 import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
 import { useRouter } from 'vue-router'
@@ -83,6 +90,13 @@ import type { Trip } from './classes/trips'
 
 const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
+
+// First-run nudge: a freshly signed-up user has no car yet. Show a "get started"
+// card that sends them to Settings → Add car (where they pair + calibrate).
+const cars = carsStore.cars
+const needsSetup = computed(() => cars.value.length === 0)
+const goAddCar = () => router.push('/tabs/settings')
+
 const mode = ref<'day' | 'night'>('day')
 let status = ref('🔄')
 const totalDay = ref('')
@@ -211,6 +225,7 @@ const fmtDuration = (t: Trip) => {
 const openTrip = (t: Trip) => router.push(`/tabs/trip/${t.id}`)
 
 onIonViewDidEnter(() => {
+  carsStore.load_cache()   // instant local car list so the setup card is correct on entry
   load_dasbord()
   // on iOS the pie charts render mid page-transition with a wrong canvas size
   // (off-centre until you scroll); nudge chart.js to re-measure once settled
@@ -219,6 +234,17 @@ onIonViewDidEnter(() => {
 </script>
 
 <style scoped>
+
+.getting-started {
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: center;
+  background: var(--ion-color-light);
+}
+.getting-started h2 { margin: 0 0 6px; font-size: 18px; }
+.getting-started p { margin: 0 0 12px; color: var(--ion-color-medium); font-size: 14px; }
 
 .charts-row {
   display: flex;

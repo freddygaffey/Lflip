@@ -40,6 +40,12 @@ const email = ref('')
 const password = ref('')
 const passOk = ref('')
 
+// first-time users get the intro carousel; returning users go straight in
+const routeAfterAuth = async () => {
+  const { value: seen } = await Preferences.get({ key: 'hasSeenIntro' })
+  router.push(seen === 'true' ? '/tabs/dashboard' : '/welcome')
+}
+
 const isAuth = async () => {
   const { value: token } = await Preferences.get({ key: 'auth_token' })
   const response = await CapacitorHttp.post({
@@ -48,10 +54,10 @@ const isAuth = async () => {
   })
  console.log('login response', response.status, response.data)
  console.log("found token will redirect you");
- 
+
   if (response.status === 200) {
     fetchState()
-    router.push('/tabs/dashboard')
+    routeAfterAuth()
   }
 }
 const fetchState = async () => {
@@ -80,7 +86,7 @@ const signIn = async () => {
   if (response.status === 200) {
     await Preferences.set({ key: 'auth_token', value: response.data.token })
     await fetchState()
-    router.push('/tabs/dashboard')
+    await routeAfterAuth()
   }
   // this will do offline cashing
   carsStore.pull_cloud()

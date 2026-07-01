@@ -28,6 +28,10 @@
                >{{ c.nickname }}</ion-select-option>
             </ion-select>
           </ion-item>
+          <p class="trip-hint" v-if="!cars.length || !svs.length">
+            No setup needed — pick <strong>Guest</strong> for the car or driver to log a drive right now.
+            Add your own in <strong>Settings</strong> to save them and pair L-plate hardware.
+          </p>
           <ion-item>
             <ion-select label="Supervising Driver" label-placement="stacked" placeholder="Pick a driver" interface="popover" v-model="selectedSvId">
               <ion-select-option :value="null">Guest Driver</ion-select-option>
@@ -163,6 +167,14 @@
 
 .trip-list {
   background: transparent;
+}
+
+.trip-hint {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ion-color-medium);
+  margin: 8px 4px 0;
+  padding: 0 12px;
 }
 
 .start-circle-wrap {

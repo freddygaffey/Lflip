@@ -14,6 +14,7 @@ const Settings = () => import('../views/settings.vue')
 const EndTrip = () => import('../views/endTrip.vue')
 const Marketing = () => import('../views/marketing.vue')
 const TripDetail = () => import('../views/tripDetail.vue')
+const Welcome = () => import('../views/welcome.vue')
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -29,6 +30,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/welcome',
+    name: 'Welcome',
+    component: Welcome
   },
   {
     path: '/log',
