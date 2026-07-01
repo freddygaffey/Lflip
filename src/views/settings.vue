@@ -169,6 +169,14 @@ async function pushUnsyncedTrips(): Promise<boolean> {
   }
 }
 
+// wipe local data on sign-out, but keep the "seen the intro" flag so the
+// welcome carousel doesn't replay every time the same person logs back in
+async function clearKeepingIntro() {
+  const { value: seenIntro } = await Preferences.get({ key: 'hasSeenIntro' })
+  await Preferences.clear()
+  if (seenIntro) await Preferences.set({ key: 'hasSeenIntro', value: seenIntro })
+}
+
 async function signOut(){
   const unsynced = await countUnsyncedTrips()
 
@@ -181,7 +189,7 @@ async function signOut(){
       )
       if (!ok) return
     }
-    await Preferences.clear()
+    await clearKeepingIntro()
     router.push("/")
     return
   }

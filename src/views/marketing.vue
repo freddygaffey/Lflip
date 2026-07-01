@@ -11,7 +11,15 @@
           <a class="store" href="#" @click.prevent="comingSoon">App&nbsp;Store</a>
           <a class="store" href="#" @click.prevent="comingSoon">Google&nbsp;Play</a>
         </div>
-        <p class="hint">You're on the web preview — grab the app on your phone to start logging.</p>
+        <div class="phone-only">
+          <span class="phone-only__icon">📱</span>
+          <p class="phone-only__text">
+            <strong>Drives can only be logged in the phone app.</strong>
+            Logging uses your phone's GPS (and Bluetooth for smart L-plates), so it
+            can't run in a browser. This page is just a preview — install L&nbsp;Flip
+            on your phone to start logging.
+          </p>
+        </div>
       </div>
 
       <div class="features">
@@ -126,10 +134,34 @@ ion-content {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0,0,0,0.3);
 }
-.hint {
-  font-size: 13px;
-  opacity: 0.7;
+/* phone-only notice — makes it clear logging needs the app, not the web */
+.phone-only {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  max-width: 420px;
+  margin: 4px auto 0;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+}
+.phone-only__icon {
+  font-size: 22px;
+  line-height: 1.4;
+}
+.phone-only__text {
   margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+.phone-only__text strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--lp-yellow);
+  font-size: 14px;
 }
 
 /* ===== Features — clean document-style cards ===== */

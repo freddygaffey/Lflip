@@ -40,12 +40,18 @@ const email = ref('')
 const password = ref('')
 const passOk = ref('')
 
+// first-time users get the intro carousel; returning users go straight in
+const routeAfterAuth = async () => {
+  const { value: seen } = await Preferences.get({ key: 'hasSeenIntro' })
+  router.push(seen === 'true' ? '/tabs/dashboard' : '/welcome')
+}
+
 const isAuth = async () => {
   const response = await api.post('/api/dashboard')
   console.log('auth check', response.status)
   if (response.status === 200) {
     fetchState()
-    router.push('/tabs/dashboard')
+    routeAfterAuth()
   }
 }
 const fetchState = async () => {
@@ -63,7 +69,7 @@ const signIn = async () => {
   passOk.value = response.data.message
   if (response.status === 200) {
     await fetchState()
-    router.push('/tabs/dashboard')
+    await routeAfterAuth()
   }
   // this will do offline cashing
   carsStore.pull_cloud()
