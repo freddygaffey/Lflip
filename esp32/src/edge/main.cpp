@@ -28,13 +28,33 @@ constexpr int PIN_SERVO_PWM = D10;  // servo control signal (PWM)
 // centred range so a fresh, uncalibrated board can't slam into a stop.
 constexpr int SERVO_US_MIN  = 500;     // absolute clamp — never command outside
 constexpr int SERVO_US_MAX  = 2500;    // these (servo's electrical limits)
-constexpr int SERVO_DOWN_US_DEFAULT = 1300;   // plate down / closed
-constexpr int SERVO_UP_US_DEFAULT   = 1700;   // plate up / open
-constexpr uint32_t SERVO_TRAVEL_MS = 600;   // hold servo power while the arm travels
+// Three positions: L face, CENTER (edge-on / off), P face. Safe centred defaults
+// until calibrated; the user dials each to its real spot from the app.
+constexpr int SERVO_L_US_DEFAULT      = 1300;
+constexpr int SERVO_CENTER_US_DEFAULT = 1500;
+constexpr int SERVO_P_US_DEFAULT      = 1700;
+// Motion is RAMPED (stepped) rather than a single slam to the target. Moving
+// slowly limits the servo's peak current so it can't brown out the shared rail
+// (there is no power MOSFET fitted — the servo runs straight off the ESP's rail),
+// and it makes the travel smooth. Tune STEP_MS up = gentler/slower.
+constexpr int      SERVO_STEP_US   = 15;    // pulse increment per ramp step
+constexpr uint32_t SERVO_STEP_MS   = 12;    // delay per step (speed -> peak current)
+constexpr uint32_t SERVO_SETTLE_MS = 120;   // hold at target before releasing PWM
+constexpr uint32_t SERVO_BOOT_DELAY_MS = 1500;  // don't drive the servo until ~1.5s after boot
 
-// Calibrated end-points, loaded from flash (fall back to the safe defaults).
-int downUs = SERVO_DOWN_US_DEFAULT;
-int upUs   = SERVO_UP_US_DEFAULT;
+// Calibrated positions, loaded from flash (fall back to the safe defaults).
+int lUs      = SERVO_L_US_DEFAULT;
+int centerUs = SERVO_CENTER_US_DEFAULT;
+int pUs      = SERVO_P_US_DEFAULT;
+
+// Map a logical plate position to its calibrated servo pulse.
+static int usForState(PlateState s) {
+  switch (s) {
+    case PlateState::L: return lUs;
+    case PlateState::P: return pUs;
+    default:            return centerUs;   // CENTER
+  }
+}
 
 Servo plateServo;
 
@@ -54,11 +74,11 @@ uint32_t connectStart = 0;   // millis() when CONNECTING began (for the 60s wind
 Preferences prefs;
 bool       paired = false;
 uint8_t    masterMac[6];
-PlateState myState = PlateState::DOWN;
+PlateState myState = PlateState::CENTER;   // boot to the "off" position
 
 // filled by the recv callback, acted on in loop()
 volatile bool       gotCmd    = false;
-volatile PlateState cmdWant   = PlateState::DOWN;
+volatile PlateState cmdWant   = PlateState::CENTER;
 volatile bool       gotAck    = false;
 volatile bool       gotUnpair = false;   // master told us to disconnect
 uint8_t             ackMaster[6];
@@ -82,19 +102,22 @@ static void loadConfig() {
   prefs.begin("lplate", true);
   paired = prefs.getBool("paired", false);
   prefs.getBytes("mmac", masterMac, 6);
-  downUs = prefs.getUShort("downUs", SERVO_DOWN_US_DEFAULT);   // calibrated end-points
-  upUs   = prefs.getUShort("upUs",   SERVO_UP_US_DEFAULT);
+  lUs      = prefs.getUShort("lUs",      SERVO_L_US_DEFAULT);        // calibrated positions
+  centerUs = prefs.getUShort("centerUs", SERVO_CENTER_US_DEFAULT);
+  pUs      = prefs.getUShort("pUs",      SERVO_P_US_DEFAULT);
   prefs.end();
-  Serial.printf("paired=%s  servo down=%dus up=%dus\n", paired ? "yes" : "no", downUs, upUs);
+  Serial.printf("paired=%s  servo L=%dus C=%dus P=%dus\n",
+                paired ? "yes" : "no", lUs, centerUs, pUs);
 }
 
-// Persist just the servo end-points (called when calibration saves one).
+// Persist the servo positions (called when calibration saves one).
 static void saveServoCal() {
   prefs.begin("lplate", false);
-  prefs.putUShort("downUs", downUs);
-  prefs.putUShort("upUs",   upUs);
+  prefs.putUShort("lUs",      lUs);
+  prefs.putUShort("centerUs", centerUs);
+  prefs.putUShort("pUs",      pUs);
   prefs.end();
-  Serial.printf("saved servo cal: down=%dus up=%dus\n", downUs, upUs);
+  Serial.printf("saved servo cal: L=%dus C=%dus P=%dus\n", lUs, centerUs, pUs);
 }
 
 static void factoryReset() {
@@ -182,20 +205,30 @@ static void sendPoll() {
 // The PWM line is forced LOW before cutting power so it can't backfeed the
 // unpowered servo through its signal pin.
 static void movePlate(PlateState s) {
-  const int us = (s == PlateState::UP) ? upUs : downUs;
-  Serial.printf("  -> moving plate to %u (%d us)\n", (unsigned)s, us);
+  const int target = usForState(s);
+  int cur = usForState(myState);                    // assume we're at our last position
+  Serial.printf("  -> moving plate %u -> %u (%d->%d us)\n",
+                (unsigned)myState, (unsigned)s, cur, target);
 
-  digitalWrite(PIN_SERVO_PWR, HIGH);              // power the servo
-  delay(20);                                      // let the rail settle
-  plateServo.attach(PIN_SERVO_PWM, SERVO_US_MIN, SERVO_US_MAX);   // start PWM
-  plateServo.writeMicroseconds(us);
-  delay(SERVO_TRAVEL_MS);                          // wait for the arm to arrive
+  digitalWrite(PIN_SERVO_PWR, HIGH);               // inert without a MOSFET; correct if one is fitted
+  plateServo.attach(PIN_SERVO_PWM, SERVO_US_MIN, SERVO_US_MAX);
+  plateServo.writeMicroseconds(cur);               // start where we are -> no jump to the middle
 
-  plateServo.detach();                            // stop PWM
+  // Ramp gently to the target. Small steps = low angular speed = low peak current,
+  // so an always-powered servo can't sag the rail into a brownout. Also smooth.
+  const int step = (target >= cur) ? SERVO_STEP_US : -SERVO_STEP_US;
+  while (abs(target - cur) > SERVO_STEP_US) {
+    cur += step;
+    plateServo.writeMicroseconds(cur);
+    delay(SERVO_STEP_MS);
+  }
+  plateServo.writeMicroseconds(target);
+  delay(SERVO_SETTLE_MS);
+
+  plateServo.detach();                             // release: no signal -> analog servo relaxes (low draw)
   pinMode(PIN_SERVO_PWM, OUTPUT);
-  digitalWrite(PIN_SERVO_PWM, LOW);               // no signal-line backfeed
-  digitalWrite(PIN_SERVO_PWR, LOW);               // cut power; mechanical rest holds
-
+  digitalWrite(PIN_SERVO_PWM, LOW);                // idle the signal line
+  digitalWrite(PIN_SERVO_PWR, LOW);
   myState = s;
 }
 
@@ -207,9 +240,8 @@ static void movePlate(PlateState s) {
 // (checkCalTimeout) so a stalled servo can't sit there draining the cell.
 static void servoJog(int us) {
   us = constrain(us, SERVO_US_MIN, SERVO_US_MAX);
-  if (!calLive) {                                 // first jog — power it up
-    digitalWrite(PIN_SERVO_PWR, HIGH);
-    delay(20);
+  if (!calLive) {                                 // first jog — attach and drive
+    digitalWrite(PIN_SERVO_PWR, HIGH);            // inert without a MOSFET
     plateServo.attach(PIN_SERVO_PWM, SERVO_US_MIN, SERVO_US_MAX);
     calLive = true;
   }
@@ -230,14 +262,16 @@ static void servoCalOff() {
 }
 
 // Apply a calibration request that arrived over the air (set by the callback).
-// action: 0 = live jog,  1 = save this µs as DOWN,  2 = save as UP,  3 = end/power-off.
+// action: 0 = live jog, 1 = save µs as L, 2 = save as P, 4 = save as CENTER,
+//         3 = end/power-off.
 static void handleCal() {
   if (!gotCal) return;
   gotCal = false;
   switch (calAction) {
     case 0: servoJog(calUs); break;
-    case 1: downUs = constrain((int)calUs, SERVO_US_MIN, SERVO_US_MAX); saveServoCal(); break;
-    case 2: upUs   = constrain((int)calUs, SERVO_US_MIN, SERVO_US_MAX); saveServoCal(); break;
+    case 1: lUs      = constrain((int)calUs, SERVO_US_MIN, SERVO_US_MAX); saveServoCal(); break;
+    case 2: pUs      = constrain((int)calUs, SERVO_US_MIN, SERVO_US_MAX); saveServoCal(); break;
+    case 4: centerUs = constrain((int)calUs, SERVO_US_MIN, SERVO_US_MAX); saveServoCal(); break;
     case 3: servoCalOff(); break;
   }
 }
@@ -291,7 +325,7 @@ static void forgetMaster() {
 // Bench testing without a physical button: type a letter in the serial monitor.
 //   p = re-pair (forget master)   r = factory reset   s = status
 //   c = start servo calibration; then +/- = ±25us, ]/[ = ±100us,
-//       d = save current as DOWN, u = save current as UP, x = finish
+//       l/m/p = save current as L / Center / P, x = finish
 void handleSerial() {
   if (!Serial.available()) return;
   char c = Serial.read();
@@ -303,8 +337,9 @@ void handleSerial() {
       case '-': servoJog(calUs - 25);  return;
       case ']': servoJog(calUs + 100); return;
       case '[': servoJog(calUs - 100); return;
-      case 'd': downUs = calUs; saveServoCal(); return;   // save DOWN end-point
-      case 'u': upUs   = calUs; saveServoCal(); return;   // save UP end-point
+      case 'l': lUs      = calUs; saveServoCal(); return;   // save L
+      case 'm': centerUs = calUs; saveServoCal(); return;   // save Center (middle)
+      case 'p': pUs      = calUs; saveServoCal(); return;   // save P
       case 'x': servoCalOff(); return;
     }
   }
@@ -313,8 +348,8 @@ void handleSerial() {
     case 'p': forgetMaster();   break;
     case 'r': factoryReset();   break;
     case 'c': servoJog(1500);   break;            // start calibration, centred
-    case 's': Serial.printf("status: paired=%d, myState=%u, down=%dus up=%dus\n",
-                            paired, (unsigned)myState, downUs, upUs); break;
+    case 's': Serial.printf("status: paired=%d, myState=%u, L=%dus C=%dus P=%dus\n",
+                            paired, (unsigned)myState, lUs, centerUs, pUs); break;
   }
 }
 
@@ -401,7 +436,12 @@ static void runOnline() {
   if (gotCmd) {
     Serial.printf("CMD reply: desired=%u (we are %u)\n",
                   (unsigned)cmdWant, (unsigned)myState);
-    if (cmdWant != myState) { movePlate(cmdWant); lastMove = millis(); }
+    // Don't drive the servo for the first ~1.5s after boot: let the rail settle
+    // so the boot inrush + a move can't coincide and brown us out (and so a
+    // brownout can't turn into a move-reset-move loop).
+    if (cmdWant != myState && millis() > SERVO_BOOT_DELAY_MS) {
+      movePlate(cmdWant); lastMove = millis();
+    }
   } else {
     Serial.println("no reply (master out of range?)");
   }
@@ -410,7 +450,9 @@ static void runOnline() {
   // again, so stay responsive (poll fast). When idle, slow right down to save
   // battery. (We can't react faster than this to the FIRST press after idle —
   // the edge only learns of a change when it polls.)
-  bool recentlyActive = (lastMove != 0) && (millis() - lastMove < 5000);
+  // Poll fast right after boot (so the first move lands ~1.5s in) and for a few
+  // seconds after any move; otherwise slow down to save power.
+  bool recentlyActive = (lastMove != 0 && millis() - lastMove < 5000) || millis() < 4000;
   uint32_t wait = recentlyActive ? 250 : POLL_EVERY;
   delay(wait);
 }
