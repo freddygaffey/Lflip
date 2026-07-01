@@ -62,7 +62,7 @@ def is_licence_no_valid(licence_no,state) -> str | None:
 def is_email_valid(email) -> str | None:
     import re
     email = str(email)
-    pattern = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     if not re.match(pattern, email): return None
     return email
 
