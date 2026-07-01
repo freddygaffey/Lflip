@@ -37,7 +37,7 @@
       <div v-if="st" class="stat">
         <div class="row"><span>UID</span><b>{{ st.uid }}</b></div>
         <div class="row"><span>Uptime</span><b>{{ st.up }}s</b></div>
-        <div class="row"><span>Desired plate</span><b>{{ st.desired ? 'UP' : 'DOWN' }}</b></div>
+        <div class="row"><span>Desired plate</span><b>{{ plateName(st.desired) }}</b></div>
         <div class="row"><span>Discovery mode</span><b :class="{ on: st.pairing }">{{ st.pairing ? 'ON (listening)' : 'off' }}</b></div>
         <div class="row"><span>Paired edges</span><b :class="{ bad: st.edges === 0 }">{{ st.edges }}</b></div>
         <div class="row"><span>Flip</span><b :class="flipClass(st.flip)">{{ st.flip }}</b></div>
@@ -54,7 +54,7 @@
               <h3>#{{ e.i }} · {{ e.mac }}</h3>
               <p>
                 last poll: <b :class="ageClass(e.age)">{{ ageText(e.age) }}</b>
-                · batt: {{ e.mv }}mV · state: {{ e.cur ? 'UP' : 'DOWN' }}
+                · batt: {{ e.mv }}mV · state: {{ plateName(e.cur) }}
               </p>
             </ion-label>
             <ion-button slot="end" size="small" fill="outline"
@@ -78,8 +78,9 @@
             <div class="calbtns">
               <ion-button size="small" fill="outline" @click="nudge(-25)">−25</ion-button>
               <ion-button size="small" fill="outline" @click="nudge(25)">+25</ion-button>
-              <ion-button size="small" color="primary" @click="saveCal(1)">Set DOWN</ion-button>
-              <ion-button size="small" color="primary" @click="saveCal(2)">Set UP</ion-button>
+              <ion-button size="small" color="primary" @click="saveCal(1)">Set L</ion-button>
+              <ion-button size="small" color="primary" @click="saveCal(4)">Set Center</ion-button>
+              <ion-button size="small" color="primary" @click="saveCal(2)">Set P</ion-button>
             </div>
           </div>
         </template>
@@ -106,8 +107,9 @@
         {{ st && st.pairing ? 'Discovering… (tap an edge above)' : 'Enter discovery (60s)' }}
       </ion-button>
       <ion-button expand="block" fill="outline" @click="stopPair">Stop pairing</ion-button>
-      <ion-button expand="block" fill="outline" @click="plates(1)">Plates UP</ion-button>
-      <ion-button expand="block" fill="outline" @click="plates(0)">Plates DOWN</ion-button>
+      <ion-button expand="block" fill="outline" @click="plates(0)">Plates → L</ion-button>
+      <ion-button expand="block" fill="outline" @click="plates(1)">Plates → Center (off)</ion-button>
+      <ion-button expand="block" fill="outline" @click="plates(2)">Plates → P</ion-button>
       <ion-button expand="block" color="danger" @click="reset">Factory reset master</ion-button>
 
       <p v-if="msg" class="hint">{{ msg }}</p>
@@ -196,12 +198,13 @@ const nudge = async (d: number) => {
   calUs.value = Math.max(500, Math.min(2500, calUs.value + d))
   await jog()
 }
-// action 1 = save current pulse as DOWN, 2 = save as UP. Persisted on the edge.
-const saveCal = async (action: 1 | 2) => {
+// action 1 = save as L, 2 = save as P, 4 = save as Center. Persisted on the edge.
+const saveCal = async (action: 1 | 2 | 4) => {
   if (calIdx.value === null) return
+  const label = action === 1 ? 'L' : action === 2 ? 'P' : 'Center'
   try {
     await plateLink.calibrate(calIdx.value, action, calUs.value)
-    msg.value = (action === 1 ? 'DOWN' : 'UP') + ' set to ' + calUs.value + 'µs'
+    msg.value = label + ' set to ' + calUs.value + 'µs'
   } catch (e) { msg.value = 'save failed: ' + e }
 }
 const endCal = async () => {
@@ -223,8 +226,10 @@ const stopPair = async () => {
   try { await plateLink.stopPairing(); msg.value = 'pairing off' }
   catch (e) { msg.value = 'cmd failed: ' + e }
 }
-const plates = async (s: 0 | 1) => {
-  try { await plateLink.setPlates(s); msg.value = 'sent plates ' + (s ? 'UP' : 'DOWN') }
+// 0 = L, 1 = Center (off), 2 = P
+const plateName = (n: number) => n === 0 ? 'L' : n === 2 ? 'P' : 'Center'
+const plates = async (s: 0 | 1 | 2) => {
+  try { await plateLink.setPlates(s); msg.value = 'sent plates → ' + plateName(s) }
   catch (e) { msg.value = 'cmd failed: ' + e }
 }
 const reset = async () => {

@@ -101,8 +101,8 @@ class PlateLink {
     })
   }
 
-  // Toggle: 1 = plates up, 0 = plates down. Uses the live connection.
-  async setPlates(state: 0 | 1) {
+  // Commanded plate position: 0 = L, 1 = Center (off), 2 = P. Uses the live link.
+  async setPlates(state: 0 | 1 | 2) {
     if (!this.connected.value || !this.deviceId) throw new Error('plates not connected')
     const { BleClient, numbersToDataView } = await import('@capacitor-community/bluetooth-le')
     await BleClient.write(this.deviceId, PLATE_SERVICE, PLATE_CHAR, numbersToDataView([state]))
@@ -177,12 +177,13 @@ class PlateLink {
     await BleClient.write(this.deviceId, PLATE_SERVICE, PLATE_CMD, numbersToDataView([4, ...bytes]))
   }
 
-  // Servo calibration for ONE paired edge (front/back plate), addressed by its
-  // index in status.e[]. The master relays this to that edge over ESP-NOW.
-  //   action 0 = jog to `us` (live preview)   1 = save `us` as DOWN end-point
-  //   action 2 = save `us` as UP end-point    3 = end session / power servo off
+  // Servo calibration for ONE paired edge (plate), addressed by its index in
+  // status.e[]. The master relays this to that edge over ESP-NOW.
+  //   action 0 = jog to `us` (live preview)   1 = save `us` as L position
+  //   action 2 = save `us` as P position      4 = save `us` as CENTER position
+  //   action 3 = end session / power servo off
   // `us` is the servo pulse width in microseconds (clamped on the edge to 500-2500).
-  async calibrate(edgeIdx: number, action: 0 | 1 | 2 | 3, us = 1500) {
+  async calibrate(edgeIdx: number, action: 0 | 1 | 2 | 3 | 4, us = 1500) {
     if (!this.connected.value || !this.deviceId) throw new Error('not connected')
     const u = Math.max(500, Math.min(2500, Math.round(us)))
     const { BleClient, numbersToDataView } = await import('@capacitor-community/bluetooth-le')
