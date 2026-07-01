@@ -46,7 +46,7 @@ uint32_t     edgeLastSeen[MAX_EDGES] = {0};   // millis() of last POLL, 0 = neve
 uint16_t     edgeBattMv[MAX_EDGES]   = {0};   // last reported battery mV
 uint8_t      edgeCur[MAX_EDGES]      = {0};    // last reported plate state
 
-volatile PlateState desiredState = PlateState::DOWN;   // set by the phone
+volatile PlateState desiredState = PlateState::CENTER;   // set by the phone (boot = off)
 volatile uint32_t   desiredSince = 0;                 // millis() when it last changed
 bool      pairing = false;
 uint32_t  pairingStart = 0;
@@ -269,12 +269,14 @@ void initEspNow() {
 // ── BLE ──────────────────────────────────────────────────────────────────────
 NimBLECharacteristic* statChar = nullptr;   // status JSON, pushed to the app
 
-// Plate state write: 0 = down, 1 = up.
+// Plate state write: 0 = L, 1 = CENTER (off), 2 = P.
 class PlateCharCallbacks : public NimBLECharacteristicCallbacks {
   void onWrite(NimBLECharacteristic* c) override {
     std::string v = c->getValue();
     if (v.empty()) return;
-    PlateState want = ((uint8_t)v[0] == 0) ? PlateState::DOWN : PlateState::UP;
+    uint8_t b = (uint8_t)v[0];
+    if (b > 2) return;                                   // ignore out-of-range
+    PlateState want = (PlateState)b;
     if (want != desiredState) desiredSince = millis();   // start the flip clock
     desiredState = want;
     Serial.printf("BLE write -> desired=%u\n", (unsigned)desiredState);

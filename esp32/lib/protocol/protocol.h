@@ -14,13 +14,17 @@
 // Bump if you change any struct below, so a mismatched board ignores garbage.
 // v4: added UNPAIR (master tells an edge to disconnect and go back to pairing).
 // v5: added SERVO_CAL (app jogs/saves a plate's servo end-points).
-constexpr uint8_t PROTO_VERSION = 5;
+// v6: PlateState is now 3-way (L / CENTER / P) with a calibrated Center.
+constexpr uint8_t PROTO_VERSION = 6;
 
 // All boards must agree on one Wi-Fi channel for ESP-NOW.
 constexpr uint8_t ESPNOW_CHANNEL = 1;
 
 // Desired / actual position of the plates (they all move together).
-enum class PlateState : uint8_t { DOWN = 0, UP = 1 };
+// The plate is a 3-position flap: one face shows L, the other shows P, and
+// CENTER is edge-on (neither shown / "off"). Each position maps to a per-edge
+// calibrated servo pulse; the user decides which physical spot is L vs P.
+enum class PlateState : uint8_t { L = 0, CENTER = 1, P = 2 };
 
 // Every packet starts with version + type so the receiver knows what it got.
 enum class MsgType : uint8_t {
