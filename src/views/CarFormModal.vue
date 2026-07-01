@@ -73,11 +73,14 @@
     <ion-item lines="none">
       <ion-label>{{ plateStatus }}</ion-label>
     </ion-item>
-    <ion-button expand="block" fill="outline" :disabled="plateBusy" @click="sendPlates(1)">
-      Plates UP
-    </ion-button>
     <ion-button expand="block" fill="outline" :disabled="plateBusy" @click="sendPlates(0)">
-      Plates DOWN
+      Plates → L
+    </ion-button>
+    <ion-button expand="block" fill="outline" :disabled="plateBusy" @click="sendPlates(1)">
+      Plates → Center (off)
+    </ion-button>
+    <ion-button expand="block" fill="outline" :disabled="plateBusy" @click="sendPlates(2)">
+      Plates → P
     </ion-button>
 
     <!-- Calibrate each plate's servo travel (just shy of its mechanical stops). -->
@@ -93,7 +96,7 @@
       <ion-item lines="full">
         <ion-label>
           <h3>Plate #{{ e.i }}</h3>
-          <p>{{ e.mac }} · currently {{ e.cur ? 'UP' : 'DOWN' }}</p>
+          <p>{{ e.mac }} · currently {{ plateName(e.cur) }}</p>
         </ion-label>
         <ion-button slot="end" size="small" fill="outline"
                     :color="calIdx === e.i ? 'success' : 'medium'"
@@ -104,7 +107,7 @@
       <div v-if="calIdx === e.i" class="cal">
         <p class="cal-hint">
           Drag to move this plate, stopping just <i>before</i> it grinds on each stop.
-          Set the DOWN and UP positions, then tap Close. Saved on the board.
+          Set the L, Center and P positions, then tap Close. Saved on the board.
         </p>
         <ion-range :min="500" :max="2500" :step="25" :value="calUs" @ionChange="onCalRange">
           <ion-label slot="start">500</ion-label>
@@ -114,8 +117,9 @@
         <div class="calbtns">
           <ion-button size="small" fill="outline" @click="nudge(-25)">−25</ion-button>
           <ion-button size="small" fill="outline" @click="nudge(25)">+25</ion-button>
-          <ion-button size="small" color="primary" @click="saveCal(1)">Set DOWN</ion-button>
-          <ion-button size="small" color="primary" @click="saveCal(2)">Set UP</ion-button>
+          <ion-button size="small" color="primary" @click="saveCal(1)">Set L</ion-button>
+          <ion-button size="small" color="primary" @click="saveCal(4)">Set Center</ion-button>
+          <ion-button size="small" color="primary" @click="saveCal(2)">Set P</ion-button>
         </div>
       </div>
     </template>
@@ -197,8 +201,9 @@ function currentCar(): Car {
   } as Car
 }
 
-// Toggle: 1 = plates up, 0 = plates down.
-async function sendPlates(state: 0 | 1) {
+// 0 = L, 1 = Center (off), 2 = P
+const plateName = (n: number) => n === 0 ? 'L' : n === 2 ? 'P' : 'Center'
+async function sendPlates(state: 0 | 1 | 2) {
   if (plateBusy.value) return
   plateBusy.value = true
   try {
@@ -256,12 +261,13 @@ const nudge = async (d: number) => {
   calUs.value = Math.max(500, Math.min(2500, calUs.value + d))
   await jog()
 }
-// action 1 = save current pulse as DOWN, 2 = save as UP (persisted on the edge).
-const saveCal = async (action: 1 | 2) => {
+// action 1 = save as L, 2 = save as P, 4 = save as Center (persisted on the edge).
+const saveCal = async (action: 1 | 2 | 4) => {
   if (calIdx.value === null) return
+  const label = action === 1 ? 'L' : action === 2 ? 'P' : 'Center'
   try {
     await plateLink.calibrate(calIdx.value, action, calUs.value)
-    edgesMsg.value = (action === 1 ? 'DOWN' : 'UP') + ' set to ' + calUs.value + 'µs'
+    edgesMsg.value = label + ' set to ' + calUs.value + 'µs'
   } catch (e) { edgesMsg.value = 'save failed: ' + e }
 }
 const endCal = async () => {
