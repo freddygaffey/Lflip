@@ -18,6 +18,7 @@
 
           <ion-button expand="block" class="ion-margin-top" @click="signIn">Sign in</ion-button>
           <ion-button expand="block" fill="clear" router-link="/register">Create an account</ion-button>
+          <ion-button expand="block" fill="outline" @click="makeDemoAccount">Try a demo account</ion-button>
 
           <p class="auth-message" v-if="passOk">{{ passOk }}</p>
         </div>
@@ -67,6 +68,31 @@ const signIn = async () => {
   // this will do offline cashing
   carsStore.pull_cloud()
   svsStore.pull_cloud()
+}
+
+// One-tap throwaway account for demos: registers a fresh dummy user that
+// passes the backend checks (unique email; password needs 8+ chars with an
+// upper, a lower and a special character), fills the form, then signs in.
+const makeDemoAccount = async () => {
+  passOk.value = ''
+  const suffix = Math.random().toString(36).slice(2, 8)
+  const demoEmail = `demo-${suffix}@example.com`
+  const demoPwd = 'Demo!drive99'
+  try {
+    const response = await api.post('/api/register', {
+      email: demoEmail, pwd: demoPwd, f_name: 'Demo',
+      l_name: 'Driver', state: 'act', licence_no: '',
+    })
+    if (response.status !== 200) {
+      passOk.value = response.data?.message ?? 'could not create demo account'
+      return
+    }
+    email.value = demoEmail
+    password.value = demoPwd
+    await signIn()
+  } catch {
+    passOk.value = "can't reach the server, try again"
+  }
 }
 </script>
 
