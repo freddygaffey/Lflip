@@ -71,8 +71,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, onIonViewDidEnter, IonSegment, IonSegmentButton, IonLabel } from '@ionic/vue'
-import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
+import { api } from './classes/api'
 import { useRouter } from 'vue-router'
 
 import { Pie } from 'vue-chartjs'
@@ -81,7 +81,6 @@ import { carsStore } from './classes/cars'
 import { svsStore } from './classes/svs'
 import type { Trip } from './classes/trips'
 
-const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 const mode = ref<'day' | 'night'>('day')
 let status = ref('🔄')
@@ -125,20 +124,12 @@ const updateHours = async () => {
 const uploadTrips = async () => {
   const { value: tripsRaw } = await Preferences.get({ key: 'trips' })
   const trips = JSON.parse(tripsRaw ?? '[]')
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
   type LocalTrip = { synced?: boolean }
     const unsynced = (trips as LocalTrip[]).filter((trip) => !trip.synced)
     for (const trip of unsynced) {
       // TODO: FIX: this is kind of a hack but it works should use a try except
       status.value = "📵" 
-      const response = await CapacitorHttp.post({
-        url: `${API_URL}/api/trips/push_trip`,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        data: { trip },
-      })
+      const response = await api.post('/api/trips/push_trip', { trip })
       if (response.status === 200) trip.synced = true
       else {
         return false}
@@ -166,19 +157,10 @@ const load_dasbord = async () => {
 }
 
 async function pullTrips() {
-  const tokenPref = await Preferences.get({ key: 'auth_token' })
-  const token = tokenPref.value
-
-  const res = await CapacitorHttp.get({
-    url: `${API_URL}/api/trips`,
-    headers: { Authorization: `Bearer ${token}` },
-  })
+  const res = await api.get('/api/trips')
   if (res.status !== 200) return
 
-  let remote = res.data
-  if (typeof remote === 'string') {
-    remote = JSON.parse(remote)
-  }
+  const remote = res.data
 
   // mark every trip from the server as already synced
   const synced = []

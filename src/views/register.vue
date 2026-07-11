@@ -48,10 +48,8 @@
     import { IonButton, IonInput, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonList, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
     import { ref } from 'vue'
     import { useRouter } from 'vue-router'
-    import { CapacitorHttp } from '@capacitor/core'
-    import { Preferences } from '@capacitor/preferences'
+    import { api, login } from './classes/api'
     const router = useRouter()
-    const API_URL = import.meta.env.VITE_API_URL
   
     const f_name = ref('')
     const l_name = ref('')
@@ -61,31 +59,17 @@
     const license_number = ref('')
   
     const signIn = async () => {
-      const r = await CapacitorHttp.post({
-        url: `${API_URL}/api/login`,
-        headers: { 'Content-Type': 'application/json' },
-        data: { email: email.value, password: password.value }
-      })
-      if (r.status === 200) {
-        await Preferences.set({ key: 'auth_token', value: r.data.token })
-      }
+      await login(email.value, password.value)
     }
     const add_info = async () => {
-      const { value: token } = await Preferences.get({ key: 'auth_token' })
-      const r = await CapacitorHttp.post({
-        url: `${API_URL}/api/set_licence`,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        data: { state: state.value, licence_no: license_number.value }
-      })
+      const r = await api.post('/api/set_licence', { state: state.value, licence_no: license_number.value })
       console.log(r.data)
     }
     const signUp = async () => {
-      const response = await CapacitorHttp.post({
-        url: `${API_URL}/api/register`,
-        headers: { 'Content-Type': 'application/json' },
-        data: { email: email.value, pwd: password.value, f_name: f_name.value,
-                l_name: l_name.value, state: state.value,
-                licence_no: license_number.value }
+      const response = await api.post('/api/register', {
+        email: email.value, pwd: password.value, f_name: f_name.value,
+        l_name: l_name.value, state: state.value,
+        licence_no: license_number.value,
       })
       if (response.status !== 200) { console.error('register failed', response.data); return; }
       await signIn();

@@ -30,10 +30,9 @@ import { ref, onMounted } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, modalController } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
-import { CapacitorHttp } from '@capacitor/core'
+import { api } from './classes/api'
 import MasterDebugModal from './MasterDebugModal.vue'
 
-const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 const rawTripsText = ref('')
 const simulateNative = ref(false)
@@ -54,18 +53,12 @@ const toggleSimulateNative = async () => {
 }
 
 const topUpUsage = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const r = await CapacitorHttp.post({
-    url: `${API_URL}/api/ai/reset_usage`,
-    headers: { 'Authorization': `Bearer ${token}` },
-  })
+  const r = await api.post('/api/ai/reset_usage')
   alert(r.status === 200 ? 'AI usage reset — limit topped up.' : `Failed (${r.status}).`)
 }
 
 const hitTest = async () => {
-  const mumRes = await CapacitorHttp.post({
-  url: `${API_URL}/api/test`
-  })
+  await api.post('/api/test')
  }
 
 const showAllPrefs = async () => {
@@ -103,35 +96,16 @@ const signOut = async () => {
 }
 
 const seedTrips = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
-
   // wipe existing trips so old single-point routes don't get pulled back alongside the new ones
-  await CapacitorHttp.delete({ url: `${API_URL}/api/trips`, headers })
+  await api.delete('/api/trips')
   await Preferences.remove({ key: 'trips' })
 
-  const mumRes = await CapacitorHttp.post({
-    url: `${API_URL}/api/sv`,
-    headers,
-    data: { full_name: 'Sarah Whitman', licence_no: '0481726' },
-  })
-  const dadRes = await CapacitorHttp.post({
-    url: `${API_URL}/api/sv`,
-    headers,
-    data: { full_name: 'Mark Whitman', licence_no: '0392845' },
-  })
+  const mumRes = await api.post('/api/sv', { full_name: 'Sarah Whitman', licence_no: '0481726' })
+  const dadRes = await api.post('/api/sv', { full_name: 'Mark Whitman', licence_no: '0392845' })
   const mum = mumRes.data
   const dad = dadRes.data
-  const carRes = await CapacitorHttp.post({
-    url: `${API_URL}/api/cars`,
-    headers,
-    data: { nickname: "Mum's Corolla", plate: 'YMC42N' },
-  })
-  const carRes2 = await CapacitorHttp.post({
-    url: `${API_URL}/api/cars`,
-    headers,
-    data: { nickname: "Dad's Hilux", plate: 'CXR88K' },
-  })
+  const carRes = await api.post('/api/cars', { nickname: "Mum's Corolla", plate: 'YMC42N' })
+  const carRes2 = await api.post('/api/cars', { nickname: "Dad's Hilux", plate: 'CXR88K' })
   const car = carRes.data
   const car2 = carRes2.data
 
@@ -176,11 +150,7 @@ const seedTrips = async () => {
   alert(`Seeded Mum (id=${mum.id}), Dad (id=${dad.id}), 2 cars, and 5 trips (local only, synced: false).`)
 }
 const setServerToTrue = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const r = await CapacitorHttp.get({
-    url: `${API_URL}/api/trips`,
-    headers: { 'Authorization': `Bearer ${token}` }
-  })
+  const r = await api.get('/api/trips')
   type ServerTrip = {
     id: number
     start_time: number
@@ -206,22 +176,16 @@ const setServerToTrue = async () => {
   alert(`Overwrote local trips with ${localTrips.length} from server.`)
 }
 const deleteCars = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  await CapacitorHttp.delete({
-    url: `${API_URL}/api/cars`,
-    headers: { 'Authorization': `Bearer ${token}` }
-  })
+  await api.delete('/api/cars')
   alert('All cars deleted!')
 }
 
 const nukeAllData = async () => {
   if (!confirm('Nuke ALL data? This deletes every trip, car, supervisor, and local pref.')) return
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  const headers = { 'Authorization': `Bearer ${token}` }
   await Promise.all([
-    CapacitorHttp.delete({ url: `${API_URL}/api/trips`, headers }),
-    CapacitorHttp.delete({ url: `${API_URL}/api/cars`, headers }),
-    CapacitorHttp.delete({ url: `${API_URL}/api/sv`, headers }),
+    api.delete('/api/trips'),
+    api.delete('/api/cars'),
+    api.delete('/api/sv'),
   ])
   const { keys } = await Preferences.keys()
   for (const k of keys) {
@@ -232,12 +196,8 @@ const nukeAllData = async () => {
 }
 
 const deleteTrips = async () => {
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
   await Preferences.remove({ key: 'trips' })
-  await CapacitorHttp.delete({
-    url: `${API_URL}/api/trips`,
-    headers: { 'Authorization': `Bearer ${token}` }
-  })
+  await api.delete('/api/trips')
   alert('Deleted!')
 }
 </script>

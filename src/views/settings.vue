@@ -79,7 +79,7 @@ import {
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
-import { CapacitorHttp } from '@capacitor/core'
+import { api } from './classes/api'
 import CarFormModal from './CarFormModal.vue'
 import SvFormModal from './SvFormModal.vue'
 import { Capacitor } from '@capacitor/core'
@@ -88,7 +88,6 @@ import { svsStore, type Sv } from './classes/svs'
 import { aiPrefsStore, AI_PREF_FIELDS, type AiPrefs } from './classes/aiPrefs'
 import type { ToggleCustomEvent } from '@ionic/vue'
 
-const API_URL = import.meta.env.VITE_API_URL
 const router = useRouter()
 
 const cars = carsStore.cars
@@ -154,18 +153,10 @@ async function countUnsyncedTrips(): Promise<number> {
 async function pushUnsyncedTrips(): Promise<boolean> {
   const { value: tripsRaw } = await Preferences.get({ key: 'trips' })
   const trips = JSON.parse(tripsRaw ?? '[]') as LocalTrip[]
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
   try {
     for (const trip of trips) {
       if (trip.synced) continue
-      const response = await CapacitorHttp.post({
-        url: `${API_URL}/api/trips/push_trip`,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        data: { trip },
-      })
+      const response = await api.post('/api/trips/push_trip', { trip })
       if (response.status === 200) trip.synced = true
       else return false
     }

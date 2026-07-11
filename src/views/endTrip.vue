@@ -49,8 +49,7 @@ import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { Geolocation } from '@capacitor/geolocation'
 import { CapacitorHttp } from '@capacitor/core'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { api } from './classes/api'
 
 const router = useRouter()
 const endOdo = ref('')
@@ -181,19 +180,11 @@ const save = async () => {
   }
   await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
 
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
-  if (token && navigator.onLine) {
+  if (navigator.onLine) {
     type LocalTrip = { synced?: boolean }
     const unsynced = (trips as LocalTrip[]).filter((trip) => !trip.synced)
     for (const trip of unsynced) {
-      const response = await CapacitorHttp.post({
-        url: `${API_URL}/api/trips/push_trip`,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        data: { trip },
-      })
+      const response = await api.post('/api/trips/push_trip', { trip })
       if (response.status === 200) trip.synced = true
       else {trips.synced = false}
     }

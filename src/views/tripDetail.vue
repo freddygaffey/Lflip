@@ -48,7 +48,7 @@ import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonButton, IonIcon, IonSpinner, onIonViewDidEnter } from '@ionic/vue'
 import { trashOutline } from 'ionicons/icons'
 import { Preferences } from '@capacitor/preferences'
-import { CapacitorHttp } from '@capacitor/core'
+import { api } from './classes/api'
 import { useRoute, useRouter } from 'vue-router'
 // leaflet is loaded lazily inside renderMap() so the ~150KB map library is
 // split into its own chunk and only downloaded when a trip map is actually shown
@@ -57,7 +57,6 @@ import { carsStore } from './classes/cars'
 import { svsStore } from './classes/svs'
 import type { Trip } from './classes/trips'
 
-const API_URL = import.meta.env.VITE_API_URL
 const route = useRoute()
 const router = useRouter()
 const trip = ref<Trip | null>(null)
@@ -144,16 +143,10 @@ const renderMap = async () => {
 // the trips list is lightweight (no gps), so fetch this trip's points on demand
 const fetchGps = async (t: Trip) => {
   if (!navigator.onLine) return
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
   try {
-    const res = await CapacitorHttp.get({
-      url: `${API_URL}/api/trips/${t.id}/gps`,
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const res = await api.get(`/api/trips/${t.id}/gps`)
     if (res.status !== 200) return
-    let data = res.data
-    if (typeof data === 'string') data = JSON.parse(data)
-    t.gps = data
+    t.gps = res.data
   } catch {
     // offline or error: leave gps empty so the view shows "no GPS data"
   }
@@ -187,12 +180,8 @@ const deleteTrip = async () => {
 
   deleting.value = true
   const id = trip.value.id
-  const { value: token } = await Preferences.get({ key: 'auth_token' })
   try {
-    const res = await CapacitorHttp.delete({
-      url: `${API_URL}/api/trips/${id}`,
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const res = await api.delete(`/api/trips/${id}`)
     if (res.status !== 200) {
       alert('Could not delete the trip. Please try again.')
       return
