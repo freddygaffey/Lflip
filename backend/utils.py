@@ -108,9 +108,8 @@ def is_date_not_future(date) -> bool:
 ############# geo passer ###############
 # this is for the llm tooling
 
-import json
-import urllib.request
 import urllib.parse
+import requests
 
 def get_remoteness_area(lat: float, lon: float) -> str | None:
     """Classify a lat/lon point into its ABS Remoteness Area (e.g. 'Inner Regional Australia') via the ABS ArcGIS REST API."""
@@ -128,8 +127,8 @@ def get_remoteness_area(lat: float, lon: float) -> str | None:
     url = "https://geo.abs.gov.au/arcgis/rest/services/ASGS2016/RA/MapServer/0/query?" + urllib.parse.urlencode(params)
 
     try:
-        with urllib.request.urlopen(url, timeout=10) as resp:
-            data = json.load(resp)
+        resp = requests.get(url, timeout=10)
+        data = resp.json()
     except Exception:
         return None
 
