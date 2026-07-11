@@ -3,10 +3,8 @@
 // follows the same pattern as svs.ts / cars.ts
 
 import { ref } from 'vue'
-import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { api } from './api'
 
 // access is gated by data type/sensitivity, not by feature. a trip is split into
 // the log (times/odo/weather, low sensitivity) and its gps trace (location), so
@@ -39,11 +37,6 @@ export const AI_PREF_FIELDS: { key: keyof AiPrefs; label: string; description: s
 class AiPreferences {
   prefs = ref<AiPrefs>({ ...DEFAULTS })
 
-  private async headers() {
-    const { value: token } = await Preferences.get({ key: 'auth_token' })
-    return { Authorization: `Bearer ${token}` }
-  }
-
   private async save_cache() {
     await Preferences.set({ key: 'ai_prefs', value: JSON.stringify(this.prefs.value) })
   }
@@ -54,11 +47,9 @@ class AiPreferences {
   }
 
   async pull_cloud() {
-    const headers = await this.headers()
-    const res = await CapacitorHttp.get({ url: `${API_URL}/api/ai/preferences`, headers })
+    const res = await api.get('/api/ai/preferences')
     if (res.status !== 200) return
-    const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
-    this.prefs.value = { ...DEFAULTS, ...data }
+    this.prefs.value = { ...DEFAULTS, ...res.data }
     await this.save_cache()
   }
 
@@ -66,15 +57,9 @@ class AiPreferences {
   async set(key: keyof AiPrefs, value: boolean) {
     this.prefs.value[key] = value
     await this.save_cache()
-    const headers = { ...(await this.headers()), 'Content-Type': 'application/json' }
-    const res = await CapacitorHttp.patch({
-      url: `${API_URL}/api/ai/preferences`,
-      headers,
-      data: { [key]: value },
-    })
+    const res = await api.patch('/api/ai/preferences', { [key]: value })
     if (res.status === 200) {
-      const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
-      this.prefs.value = { ...DEFAULTS, ...data }
+      this.prefs.value = { ...DEFAULTS, ...res.data }
       await this.save_cache()
     }
   }
