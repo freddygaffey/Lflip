@@ -1,4 +1,6 @@
-secret_key = 'd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686fd44b1948f232719742fe027e617e99681763eecf36f4899faf72485e6ade686f'
+import os
+secret_key = os.environ.get("SECRET_KEY")
+
 # this is commited to a privit repo 
 # TODO: put this in e env file 
 
