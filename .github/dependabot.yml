@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Frontend — package.json / package-lock.json at repo root
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Main Flask API
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+
+  # AI auth/proxy server
+  - package-ecosystem: "pip"
+    directory: "/ai_auth_server"
+    schedule:
+      interval: "weekly"
+
+  # Keep CodeQL / other GitHub Actions workflows up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
