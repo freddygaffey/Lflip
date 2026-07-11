@@ -1,4 +1,5 @@
-.env.local
+# env files may hold secrets — never commit them
+.env*
 ai_auth_server/.env
 /android/*
 
