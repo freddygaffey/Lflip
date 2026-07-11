@@ -56,7 +56,8 @@ def login():
             "nickname": escape(user.nickname),
             "email": escape(user.email),
             "token": token})
-        response.set_cookie('auth_token', token, httponly=True, secure=True, samesite='Lax')
+        response.set_cookie('auth_token', token, httponly=True, secure=True,
+                            samesite='Lax', domain='.lflip.pebnum.com')
         return response, 200
     else:
         return jsonify({"message": "invalid credentials"}), 401
