@@ -69,7 +69,6 @@ def logout():
 @handle_validation_error
 def register():
     data = request.json
-    print(data)
     email = data.get("email")
     pwd = data.get("pwd")
     f_name = data.get("f_name")
