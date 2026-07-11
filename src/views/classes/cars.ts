@@ -1,15 +1,14 @@
 // i wrote this file almost all my self as it was the only way to learn how to do classes in ts
-// i now understend them much better 
+// i now understend them much better
 // i realise that this may be a little bit over the top
 // i made a UAV called skydock that useed a psudo sington like this it work or that so i reused that concept
 // this file is not written by AI save where documented
+// NOTE: the HTTP calls were refactored with AI to use the shared api helper (cookie on web, Bearer on native)
 
 import { ref } from 'vue'
-import { CapacitorHttp } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
+import { api } from './api'
 
-
-const API_URL = import.meta.env.VITE_API_URL
 
 export type Car = {
   id: number
@@ -21,19 +20,12 @@ export type Car = {
 }
 
 class Cars{
-    cars = ref<Car[]>([])  
-
-    private async headers(){
-        const { value: token } = await Preferences.get({ key: 'auth_token' })
-        return { Authorization: `Bearer ${token}` }
-    }
+    cars = ref<Car[]>([])
 
     async pull_cloud(){
-        const headers = await this.headers()
-
-        const carsRes = await CapacitorHttp.get({ url: `${API_URL}/api/cars`, headers })
+        const carsRes = await api.get('/api/cars')
         if (carsRes.status === 200) {
-            this.cars.value = typeof carsRes.data === 'string' ? JSON.parse(carsRes.data) : carsRes.data
+            this.cars.value = carsRes.data
             await Preferences.set({ key: 'cars', value: JSON.stringify(this.cars.value) })
         }
     }
@@ -44,29 +36,25 @@ class Cars{
     }
 
     async add_car(car:Car){
-        let tok = await this.headers()
-        const headers = { ...tok, 'Content-Type': 'application/json' }
-        const res = await CapacitorHttp.post({ url:`${API_URL}/api/cars`, headers, data: car })
-        if (res.status !== 200 ) return 
+        const res = await api.post('/api/cars', car)
+        if (res.status !== 200 ) return
         await this.pull_cloud()
     }
 
     async delete_car(id: number){
-        const headers = await this.headers()
-        const res = await CapacitorHttp.delete({ url: `${API_URL}/api/cars/${id}`, headers })
+        const res = await api.delete(`/api/cars/${id}`)
         if (res.status !== 200) return
         await this.pull_cloud()
     }
 
     async update_car(car: Car){
-        const headers = { ...(await this.headers()), 'Content-Type': 'application/json' }
         const payload = {
             nickname: car.nickname,
             plate: car.plate || null,
             ble_device_name: car.ble_device_name || null,
         }
-        const res = await CapacitorHttp.patch({ url: `${API_URL}/api/cars/${car.id}`, headers, data: payload })
-        if (res.status !== 200 ) return 
+        const res = await api.patch(`/api/cars/${car.id}`, payload)
+        if (res.status !== 200 ) return
         await this.pull_cloud()
     }
 
