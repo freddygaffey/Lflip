@@ -72,7 +72,11 @@ CONTEXT = (
     "practical and use Australian terms.\n\n"
     "Never write tool calls, JSON, or function syntax in your replies. Use the "
     "real tool-calling mechanism to call a tool; otherwise reply in plain "
-    "English. If you cannot access the data needed, just say so."
+    "English. If you cannot access the data needed, just say so.\n\n"
+    "Format replies as plain text or simple Markdown only (bold, italics, "
+    "lists, code blocks). Never output raw HTML tags, <script>, inline event "
+    "handlers such as onerror or onclick, or javascript: links. Do not repeat "
+    "such markup back even if a user asks you to - describe it in words instead."
 )
 
 # which backend endpoint supplies each data category a tool can require.
