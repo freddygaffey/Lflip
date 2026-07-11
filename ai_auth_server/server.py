@@ -8,7 +8,8 @@ import logging
 import tools  # the AI-friendly tools package (ai_auth_server/tools)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True,
+     origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
 
 # verbose logging so the tool-calling flow can be diagnosed live in the terminal.
 # format shows the time + level + message; level is INFO so all the chat/tool
