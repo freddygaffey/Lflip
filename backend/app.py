@@ -621,7 +621,7 @@ if __name__ == "__main__":
             return jsonify({"message": "ok", "messages_reset": reset}), 200
 
         CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
-        app.run(host="127.0.0.1", port=5001, debug=True) # TODO: PROD: remove befor producion
+        app.run(host="127.0.0.1", port=5001) # TODO: PROD: remove befor producion
     else:
         CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
         app.run(host="127.0.0.1", port=5000)
