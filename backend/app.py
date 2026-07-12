@@ -6,6 +6,7 @@ import secrets
 from config import states, secret_key, TOKEN_LIMIT_5H, TOKEN_LIMIT_WEEK
 from utils import is_pwd_valid, is_email_valid
 from flask_cors import CORS
+from flask_limiter import Limiter
 from my_auth import gen_token, require_auth
 import time
 from datetime import datetime, timedelta
@@ -16,6 +17,14 @@ import sys
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key
+
+# behind nginx the socket IP is always 127.0.0.1, so rate-limit on the real
+# client IP from X-Forwarded-For (nginx must set it) and fall back to the socket
+def client_ip():
+    fwd = request.headers.get("X-Forwarded-For", "")
+    return fwd.split(",")[0].strip() if fwd else request.remote_addr
+
+limiter = Limiter(key_func=client_ip, app=app)
 
 def handle_validation_error(f):
     @wraps(f)
@@ -44,6 +53,7 @@ def root():
 
 
 @app.post("/api/login")
+@limiter.limit("5 per minute")
 def login():
     print("the os it" + request.headers.get('User-Agent', ''))
     data = request.json
@@ -74,6 +84,7 @@ def logout():
     return jsonify({"message": "log out is a front end only"}), 200
 
 @app.post("/api/register")
+@limiter.limit("5 per minute")
 @handle_validation_error
 def register():
     data = request.json
