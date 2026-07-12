@@ -22,9 +22,16 @@ def handle_validation_error(f):
     def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
+
+        # this is ok as i will call value errors these are made by message
+        # thay are allredy safe like "you passowrd or user name is inforect" ect
         except ValueError as e:
             db.session.rollback()
             return jsonify({"message": str(e)}), 400
+        except Exception:
+            db.session.rollback()
+            app.logger.exception("unhandled error in %s", f.__name__)
+            return jsonify({"message": "server error"}), 500
     return wrapper
 
 ########################################################
