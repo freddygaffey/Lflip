@@ -108,3 +108,17 @@ Approving a Trip DFD
 Low-fidelity wireframe of the main dashboard with the AI chatbot for road rules questions, progress gauges (day, total, night hours), and the drives table showing log time, distance, supervising driver, hard braking count, and approval state.
 
 Dashboard Storyboard
+
+## Deployment Architecture
+
+The system is deployed across Cloudflare and a VPS:
+
+- **Frontend** (Vue + Ionic + Capacitor, built to `dist/`) — hosted on **Cloudflare Pages**, auto-deployed on `git push`, served at `https://lflip.pebnum.com`.
+- **VPS** (`lflip-flask`, Ubuntu) — **nginx** reverse-proxies each subdomain (on :443, Let's Encrypt certs) to a local Flask service:
+  - `api.lflip.pebnum.com` → `:5000` — main API (`backend/app.py`)
+  - `dev.lflip.pebnum.com` → `:5001` — dev/staging API (the endpoint the deployed frontend calls)
+  - `ai.lflip.pebnum.com` → `:5050` — AI assistant server (`ai_auth_server/server.py`), backed by a local **Ollama** (gpt-oss) on `:11434`
+- **Auth** — JWT, delivered as an httpOnly cookie scoped to `.lflip.pebnum.com` (shared across the subdomains) on web, and as a Bearer token on native (Capacitor).
+- **Database** — SQLite (`instance/database.db`).
+
+Deploys go out via `git push` (frontend → Cloudflare auto-build) and a pull-and-restart on the VPS for the backend services.
