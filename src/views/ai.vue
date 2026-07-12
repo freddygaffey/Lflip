@@ -132,6 +132,7 @@ import {
 } from 'ionicons/icons'
 import { ref, onMounted, nextTick } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { chatsStore, type Chat } from './classes/chats'
 
 const activeChat = ref<Chat | null>(null)
@@ -143,7 +144,7 @@ const inputRef = ref<InstanceType<typeof IonTextarea> | null>(null)
 marked.setOptions({ breaks: true, gfm: true })
 
 function render(text: string): string {
-  return marked.parse(text ?? '') as string
+  return DOMPurify.sanitize(marked.parse(text ?? '') as string)
 }
 
 function formatDate(ts: number): string {

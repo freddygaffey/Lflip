@@ -25,6 +25,7 @@
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
     "chart.js": "^4.5.1",
+    "dompurify": "^3.4.12",
     "ionicons": "^7.0.0",
     "ios": "^0.0.1",
     "leaflet": "^1.9.4",
