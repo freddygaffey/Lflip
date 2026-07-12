@@ -51,3 +51,6 @@ cap_app.zip.002
 # Backend instance data
 cap_app/backend/instance/
 cap_app/instance/
+
+# local sqlite db (user data — never commit)
+instance/
