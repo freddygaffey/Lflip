@@ -55,6 +55,16 @@
        </ion-list>
 
     <ion-button @click="signOut">Sign Out</ion-button>
+    <ion-button color="danger" fill="outline" @click="deleteAccount">Delete Account</ion-button>
+
+    <ion-list>
+      <ion-item button router-link="/privacy">
+        <ion-label>Privacy Policy</ion-label>
+      </ion-item>
+      <ion-item button router-link="/terms">
+        <ion-label>Terms of Use</ion-label>
+      </ion-item>
+    </ion-list>
     </ion-content>
   </ion-page>
 </template>
@@ -76,6 +86,7 @@ import {
   IonToggle,
   IonNote,
   modalController,
+  alertController,
 } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
@@ -175,6 +186,40 @@ async function clearKeepingIntro() {
   const { value: seenIntro } = await Preferences.get({ key: 'hasSeenIntro' })
   await Preferences.clear()
   if (seenIntro) await Preferences.set({ key: 'hasSeenIntro', value: seenIntro })
+}
+
+async function deleteAccount() {
+  if (!navigator.onLine) {
+    alert("you need to be online to delete your account")
+    return
+  }
+  const alertEl = await alertController.create({
+    header: 'Delete account?',
+    message: 'This permanently deletes your account and all your trips, GPS routes, cars, supervisors and AI chats. It cannot be undone. Enter your password to confirm.',
+    inputs: [{ name: 'password', type: 'password', placeholder: 'Password' }],
+    buttons: [
+      { text: 'Cancel', role: 'cancel' },
+      { text: 'Delete forever', role: 'destructive' },
+    ],
+  })
+  await alertEl.present()
+  const { role, data } = await alertEl.onWillDismiss()
+  if (role !== 'destructive') return
+
+  const password = data?.values?.password
+  if (!password) {
+    alert("enter your password to delete your account")
+    return
+  }
+  const res = await api.delete('/api/account', { password })
+  if (res.status !== 200) {
+    if (res.status === 429) alert("too many attempts, wait a minute and try again")
+    else if (res.data?.message === 'invalid credentials') alert("wrong password, account not deleted")
+    else alert("couldn't delete your account, try again")
+    return
+  }
+  await Preferences.clear()
+  router.push("/")
 }
 
 async function signOut(){

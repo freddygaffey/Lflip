@@ -31,6 +31,11 @@ def require_auth(f):
                 token, secret_key,
                 algorithms=['HS256']
             )
+            # a token can outlive its account (e.g. account deleted), so check
+            # the user still exists rather than trusting the signature alone
+            from data import db, User
+            if db.session.get(User, int(payload['sub'])) is None:
+                return jsonify({"message": "unauthorized"}), 401
             request.user_id = payload['sub']
             return f(*args, **kwargs)
         except jwt.InvalidTokenError as e:

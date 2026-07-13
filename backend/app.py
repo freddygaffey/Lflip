@@ -609,6 +609,38 @@ def update_ai_preferences():
     return jsonify(_ai_prefs_json(prefs)), 200
 
 
+@app.delete("/api/account")
+@limiter.limit("1 per minute")
+@require_auth
+@handle_validation_error
+def delete_account():
+    data = request.json or {}
+    pwd = data.get("password")
+    user = db.session.get(User, int(request.user_id))
+    if user is None:
+        return jsonify({"message": "not found"}), 404
+    # re-check the password so a stolen token alone can't wipe the account
+    if not pwd or not check_password_hash(user.password_hash, pwd):
+        return jsonify({"message": "invalid credentials"}), 401
+
+    uid = user.id
+    chat_ids = [c.id for c in Chat.query.filter_by(user_id=uid).all()]
+    if chat_ids:
+        ChatMessage.query.filter(ChatMessage.chat_id.in_(chat_ids)).delete(synchronize_session=False)
+    Chat.query.filter_by(user_id=uid).delete(synchronize_session=False)
+    AiPreference.query.filter_by(user_id=uid).delete(synchronize_session=False)
+    # trips per-object (not bulk) so the gps_points cascade fires
+    for t in Trip.query.filter_by(learner_id=uid).all():
+        db.session.delete(t)
+    Car.query.filter_by(owner_id=uid).delete(synchronize_session=False)
+    Sv.query.filter_by(owner_id=uid).delete(synchronize_session=False)
+    LicenseInfo.query.filter_by(account_id=uid).delete(synchronize_session=False)
+    db.session.delete(user)
+    db.session.commit()
+
+    response = jsonify({"message": "ok"})
+    response.delete_cookie('auth_token', domain='.lflip.pebnum.com')
+    return response, 200
 
 
 if __name__ == "__main__":
