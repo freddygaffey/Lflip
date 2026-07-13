@@ -41,6 +41,11 @@
           </ion-list>
 
           <ion-button expand="block" class="ion-margin-top" @click="signUp">Sign up</ion-button>
+          <p class="legal-note">
+            By signing up you agree to the
+            <router-link to="/terms">Terms of Use</router-link> and
+            <router-link to="/privacy">Privacy Policy</router-link>.
+          </p>
           <ion-button expand="block" fill="clear" router-link="/login">Already have an account? Log in</ion-button>
           <p v-if="error_txt" class="error-msg">{{ error_txt }}</p>
         </div>
@@ -102,6 +107,13 @@
 
 .auth-list {
   background: transparent;
+}
+
+.legal-note {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin-top: 8px;
 }
 
 .error-msg {

@@ -15,6 +15,8 @@ const EndTrip = () => import('../views/endTrip.vue')
 const Marketing = () => import('../views/marketing.vue')
 const TripDetail = () => import('../views/tripDetail.vue')
 const Welcome = () => import('../views/welcome.vue')
+const Privacy = () => import('../views/privacy.vue')
+const Terms = () => import('../views/terms.vue')
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -50,6 +52,16 @@ const routes: Array<RouteRecordRaw> = [
     path: '/register',
     name: 'Register',
     component: Register
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: Privacy
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: Terms
   },
   {
     path: '/tabs',
