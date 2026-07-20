@@ -98,7 +98,7 @@
       </template>
 
       <p v-if="st && st.edges === 0 && !st.cand?.length" class="warn">
-        ⚠️ No edges paired — plates won't move. Tap <b>Enter discovery</b> below, then
+        Warning: no edges paired — plates won't move. Tap <b>Enter discovery</b> below, then
         power on each edge board; it'll appear here for you to pair.
       </p>
 

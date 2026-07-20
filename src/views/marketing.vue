@@ -12,7 +12,7 @@
           <a class="store" href="#" @click.prevent="comingSoon">Google&nbsp;Play</a>
         </div>
         <div class="phone-only">
-          <span class="phone-only__icon">📱</span>
+          <ion-icon class="phone-only__icon" :icon="phonePortraitOutline"></ion-icon>
           <p class="phone-only__text">
             <strong>Drives can only be logged in the phone app.</strong>
             Logging uses your phone's GPS (and Bluetooth for smart L-plates), so it
@@ -24,17 +24,17 @@
 
       <div class="features">
         <div class="card">
-          <div class="icon icon-blue">📍</div>
+          <div class="icon icon-blue"><ion-icon :icon="locationOutline"></ion-icon></div>
           <h3>GPS auto-tracking</h3>
           <p>Every trip mapped without lifting a finger.</p>
         </div>
         <div class="card">
-          <div class="icon icon-dark">🌙</div>
+          <div class="icon icon-dark"><ion-icon :icon="moonOutline"></ion-icon></div>
           <h3>Day &amp; night counter</h3>
           <p>Hits the 10-hour night requirement before you do.</p>
         </div>
         <div class="card">
-          <div class="icon icon-green">✓</div>
+          <div class="icon icon-green"><ion-icon :icon="checkmarkOutline"></ion-icon></div>
           <h3>Supervisor sign-off</h3>
           <p>Linked to your licensed driver — no paperwork.</p>
         </div>
@@ -53,7 +53,8 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonButton } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon } from '@ionic/vue'
+import { phonePortraitOutline, locationOutline, moonOutline, checkmarkOutline } from 'ionicons/icons'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 

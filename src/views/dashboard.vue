@@ -8,7 +8,7 @@
     <ion-content class="ion-padding">
       <!-- First-run: no car yet → guide the user into setup instead of an empty logbook. -->
       <div v-if="needsSetup" class="getting-started">
-        <h2>👋 Let's get you set up</h2>
+        <h2>Let's get you set up</h2>
         <p>Add your car and pair its L-plates, then you can start logging drives.</p>
         <ion-button expand="block" @click="goAddCar">Add your car</ion-button>
       </div>
@@ -97,7 +97,7 @@ const needsSetup = computed(() => cars.value.length === 0)
 const goAddCar = () => router.push('/tabs/settings')
 
 const mode = ref<'day' | 'night'>('day')
-let status = ref('🔄')
+let status = ref('syncing')
 const totalDay = ref('')
 const totalNight = ref('')
 const total = ref('')
@@ -143,7 +143,7 @@ const uploadTrips = async () => {
     let ok = true
     try {
       for (const trip of unsynced) {
-        status.value = "📵"
+        status.value = "uploading"
         const response = await api.post('/api/trips/push_trip', { trip })
         if (response.status === 200) trip.synced = true
         else { ok = false; break }
@@ -152,7 +152,7 @@ const uploadTrips = async () => {
       // always persist what did upload. returning early without saving meant a
       // partial sync re-sent every trip next time, duplicating them server-side.
       await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
-      status.value = ok ? '✅' : '📵'
+      status.value = ok ? '' : 'offline'
     }
     return ok
 }

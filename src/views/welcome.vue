@@ -26,8 +26,7 @@
           <div class="track" :style="{ transform: `translateX(-${index * 100}%)` }">
             <section v-for="(s, i) in slides" :key="i" class="slide">
               <div class="art" :style="{ background: s.bg }">
-                <div v-if="s.plate" class="lplate">L</div>
-                <div v-else class="emoji">{{ s.emoji }}</div>
+                <div class="lplate">L</div>
               </div>
               <h1 class="title">{{ s.title }}</h1>
               <p class="tag">{{ s.tag }}</p>
@@ -93,8 +92,6 @@ const router = useRouter()
 // the three intro slides — copy mirrors the marketing page so the app has one voice
 const slides = [
   {
-    plate: true,
-    emoji: '',
     bg: '#1a2a5e',
     title: 'Welcome to L Flip',
     tag: 'The pocket logbook for learner drivers.',
@@ -102,8 +99,6 @@ const slides = [
     prefs: false,
   },
   {
-    plate: false,
-    emoji: '🚗',
     bg: 'var(--lp-green)',
     title: 'Log a trip in three taps',
     tag: 'Start → drive → end.',
@@ -111,8 +106,6 @@ const slides = [
     prefs: false,
   },
   {
-    plate: false,
-    emoji: '🔗',
     bg: 'var(--lp-blue)',
     title: 'Make it yours (optional)',
     tag: 'Cars, supervisors, and smart L-plates.',
@@ -120,8 +113,6 @@ const slides = [
     prefs: false,
   },
   {
-    plate: false,
-    emoji: '🔒',
     bg: 'var(--lp-blue)',
     title: 'Your AI assistant',
     tag: 'You choose what it can see.',
@@ -283,11 +274,6 @@ function onTouchEnd(e: TouchEvent) {
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1;
 }
-.emoji {
-  font-size: 82px;
-  line-height: 1;
-}
-
 .title {
   font-size: 28px;
   font-weight: 800;
