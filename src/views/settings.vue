@@ -21,6 +21,9 @@
           <ion-label>Click to add car</ion-label>
         </ion-item>
        </ion-list>
+       <p class="help-link-row">
+         <router-link to="/plate-help" class="help-link">How do the L-plates pair and reset?</router-link>
+       </p>
        <h2>Add licenced driver</h2>
        <ion-list>
         <ion-item
@@ -267,5 +270,14 @@ h2 {
 
 ion-button {
   margin: 8px 16px;
+}
+
+.help-link-row {
+  margin: 4px 16px 8px;
+  font-size: 14px;
+}
+.help-link {
+  color: var(--ion-color-primary);
+  text-decoration: underline;
 }
 </style>
