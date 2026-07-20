@@ -131,9 +131,12 @@ async function onPrefToggle(key: keyof AiPrefs, ev: ToggleCustomEvent) {
 
 onMounted(async () => {
   await aiPrefsStore.load_cache()
-  await carsStore.pull_cloud()
-  await svsStore.pull_cloud()
-  await aiPrefsStore.pull_cloud()
+  // independent fetches — one round trip instead of three
+  await Promise.all([
+    carsStore.pull_cloud(),
+    svsStore.pull_cloud(),
+    aiPrefsStore.pull_cloud(),
+  ])
 })
 
 async function onSvClick(sv: Sv | null) {

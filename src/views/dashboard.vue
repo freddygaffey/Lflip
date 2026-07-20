@@ -154,19 +154,20 @@ const uploadTrips = async () => {
 
 
 const load_dasbord = async () => {
-  const { value: tn } = await Preferences.get({ key: 'night' })
-  const { value: tt } = await Preferences.get({ key: 'total' })
+  const [{ value: tn }, { value: tt }] = await Promise.all([
+    Preferences.get({ key: 'night' }),
+    Preferences.get({ key: 'total' }),
+  ])
   const t = parseInt(tt ?? '100', 10) || 100
   const n = parseInt(tn ?? '100', 10) || 100
   const d = Math.max(0, t - n) || t
   capTotal.value = t
   capNight.value = n
   capDay.value = d
-  // do all sycing so if go offline later it will still work
+  // upload stale trips first so the pull below sees them, but the three reads
+  // are independent of each other — run them together, not one round trip at a time
   await uploadTrips()
-  await pullTrips()
-  await svsStore.pull_cloud()
-  await carsStore.pull_cloud()
+  await Promise.all([pullTrips(), svsStore.pull_cloud(), carsStore.pull_cloud()])
   await updateHours()
 }
 
@@ -225,7 +226,7 @@ onIonViewDidEnter(() => {
   text-align: center;
   background: var(--ion-color-light);
 }
-.getting-started h2 { margin: 0 0 6px; font-size: 18px; }
+.getting-started h2 { margin: 0 0 6px; font-size: 18px; color: var(--ion-color-light-contrast); }
 .getting-started p { margin: 0 0 12px; color: var(--ion-color-medium); font-size: 14px; }
 
 .charts-row {

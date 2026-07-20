@@ -106,6 +106,15 @@ http://ionicframework.com/docs/theming/ */
     --ion-color-primary-contrast-rgb: 29, 29, 29;
     --ion-color-primary-shade: #9088d3;
     --ion-color-primary-tint: #ada5f2;
+
+    /* "light" is used as a surface colour (cards, chat bubbles). Without these
+       it stays near-white in dark mode and the text on it disappears. */
+    --ion-color-light: #2a2a2a;
+    --ion-color-light-rgb: 42, 42, 42;
+    --ion-color-light-contrast: #ffffff;
+    --ion-color-light-contrast-rgb: 255, 255, 255;
+    --ion-color-light-shade: #252525;
+    --ion-color-light-tint: #3f3f3f;
   }
 }
 

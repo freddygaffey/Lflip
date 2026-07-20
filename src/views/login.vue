@@ -51,8 +51,10 @@ const isAuth = async () => {
   const response = await api.post('/api/dashboard')
   console.log('auth check', response.status)
   if (response.status === 200) {
-    fetchState()
-    routeAfterAuth()
+    // fetchState writes the hour caps the dashboard reads on load — await it,
+    // or the dashboard can read stale values before it lands
+    await fetchState()
+    await routeAfterAuth()
   }
 }
 const fetchState = async () => {
