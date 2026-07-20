@@ -143,12 +143,18 @@ async function finish() {
 
 // lightweight horizontal swipe (no Swiper dependency needed on Ionic 8)
 let touchStartX = 0
+let touchStartY = 0
 function onTouchStart(e: TouchEvent) {
   touchStartX = e.changedTouches[0].clientX
+  touchStartY = e.changedTouches[0].clientY
 }
 function onTouchEnd(e: TouchEvent) {
   const dx = e.changedTouches[0].clientX - touchStartX
+  const dy = e.changedTouches[0].clientY - touchStartY
   if (Math.abs(dx) < 40) return
+  // the AI slide scrolls, so ignore gestures that are mostly vertical -
+  // otherwise scrolling the toggles jumps to the next slide
+  if (Math.abs(dy) > Math.abs(dx)) return
   if (dx < 0) next()
   else prev()
 }
@@ -218,21 +224,36 @@ function onTouchEnd(e: TouchEvent) {
 /* ===== slides ===== */
 .viewport {
   flex: 1;
+  /* without min-height:0 a flex child refuses to shrink below its content, so
+     a tall slide overflowed the screen instead of scrolling inside it */
+  min-height: 0;
   overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: stretch;
 }
 .track {
   display: flex;
   width: 100%;
+  height: 100%;
   transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .slide {
   flex: 0 0 100%;
+  height: 100%;
   text-align: center;
   padding: 8px 8px 0;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* "safe" keeps the top reachable when the content is taller than the box;
+     plain centring clips the start and you can never scroll back up to it */
+  justify-content: safe center;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.slide > * {
+  flex-shrink: 0;
 }
 
 /* the AI slide carries a toggle list, so it needs to scroll and read left-aligned */
@@ -266,10 +287,11 @@ function onTouchEnd(e: TouchEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 168px;
-  height: 168px;
+  width: min(168px, 34vh);
+  height: min(168px, 34vh);
   border-radius: 28px;
-  margin: 0 auto 32px;
+  margin: 0 auto clamp(12px, 3vh, 32px);
+  flex-shrink: 0;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
 }
 /* a real Australian L-plate: yellow square, black L */
@@ -277,12 +299,12 @@ function onTouchEnd(e: TouchEvent) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 104px;
-  height: 104px;
+  width: min(104px, 21vh);
+  height: min(104px, 21vh);
   border-radius: 14px;
   background: var(--lp-yellow);
   color: var(--lp-dark);
-  font-size: 74px;
+  font-size: min(74px, 15vh);
   font-weight: 900;
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1;
