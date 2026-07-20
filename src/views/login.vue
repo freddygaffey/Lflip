@@ -34,7 +34,6 @@ import { Preferences } from '@capacitor/preferences'
 import { api, login } from './classes/api'
 import { carsStore } from './classes/cars';
 import { svsStore } from './classes/svs';
-import { seedTestData } from './classes/seed';
 
 const router = useRouter()
 const email = ref('')
@@ -117,14 +116,11 @@ const makeDemoAccount = async () => {
     // a demo account is brand new, so it gets the onboarding like any register
     await Preferences.set({ key: 'needsOnboarding', value: 'true' })
 
-    // seed writes to Preferences first so the dashboard has data to show
-    // immediately; the upload to the server continues in the background rather
-    // than holding up the UI.
-    await seedTestData()
+    // deliberately no seed data - the demo starts blank like a real new account,
+    // so there are no sample trips to slowly upload and no sample supervisors
+    // the tester has to clean up
     // the dashboard reads these caps on load, so they must land before we route
     await fetchState()
-    carsStore.pull_cloud()
-    svsStore.pull_cloud()
     await routeAfterAuth()
   } catch {
     passOk.value = "can't reach the server, try again"
