@@ -122,3 +122,41 @@ The system is deployed across Cloudflare and a VPS:
 - **Database** — SQLite (`instance/database.db`).
 
 Deploys go out via `git push` (frontend → Cloudflare auto-build) and a pull-and-restart on the VPS for the backend services.
+
+### Running the backend
+
+Use **gunicorn**, not `python app.py`:
+
+```bash
+cd backend
+pip install -r requirements.txt
+gunicorn -w 4 -b 127.0.0.1:5000 app:app
+```
+
+`python app.py` starts Flask's built-in Werkzeug development server. It is single-process,
+so it handles one request at a time and is not intended for real use — load testing measured
+it saturating a single CPU core at ~95 req/s and refusing connections at 200 concurrent
+clients. Under gunicorn with 4 workers the same code served 200 concurrent clients with no
+failed requests (see `testing/load/` for the full comparison).
+
+Pick the worker count to match the CPU cores available. More is not automatically better:
+on a 4-core box, 9 workers raised peak throughput but failed 10% of requests at high
+concurrency because the SQLite write lock is shared between processes. 4 workers was the
+best trade-off there.
+
+`python app.py -d` still works and is fine for local development — it enables the debug
+routes that gunicorn does not load.
+
+### Rate limiting
+
+Two layers, both active in production:
+
+- **nginx** (`/etc/nginx/conf.d/ratelimit.conf`) — per-IP limits in front of the app:
+  30 req/s general traffic, 60 req/min on `/api/login` and `/api/register`, max 50
+  concurrent connections per IP. Returns `429`.
+- **flask-limiter** (`backend/app.py`) — per-route limits inside the app, e.g. 5/min on
+  login and register.
+
+nginx absorbs floods before they reach Python; flask-limiter enforces the tighter
+per-endpoint rules. Setting the environment variable `LOADTEST=1` disables the Flask
+limiter only, so load tests measure real capacity instead of hitting 429s.

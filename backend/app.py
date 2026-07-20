@@ -25,8 +25,11 @@ def client_ip():
     fwd = request.headers.get("X-Forwarded-For", "")
     return fwd.split(",")[0].strip() if fwd else request.remote_addr
 
-# limits stay on everywhere except load-test runs, where 429s would mask the
-# real capacity ceiling. The durable fix is limit_req_zone in nginx.
+# Second layer of rate limiting. nginx limits per IP in front of us
+# (/etc/nginx/conf.d/ratelimit.conf: 30 r/s general, 60 r/min on login and
+# register, 50 connections per IP) so floods never reach Python; the limits
+# below are the tighter per-endpoint rules. Both return 429.
+# LOADTEST=1 disables only this layer, so load tests measure real capacity.
 app.config["RATELIMIT_ENABLED"] = os.environ.get("LOADTEST") != "1"
 limiter = Limiter(key_func=client_ip, app=app)
 
@@ -66,7 +69,7 @@ def root():
 
 
 @app.post("/api/login")
-@limiter.limit("5 per minute")
+@limiter.limit("5 per minute")  # nginx also caps this route at 60/min per IP
 def login():
     print("the os it" + request.headers.get('User-Agent', ''))
     data = request.json
@@ -102,7 +105,7 @@ def logout():
     return response, 200
 
 @app.post("/api/register")
-@limiter.limit("5 per minute")
+@limiter.limit("5 per minute")  # nginx also caps this route at 60/min per IP
 @handle_validation_error
 def register():
     data = request.json
