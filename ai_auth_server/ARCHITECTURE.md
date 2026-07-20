@@ -29,7 +29,7 @@ user has permitted, and turns it into short summaries for the model.
 │  │  2 load chat history   (→ main)                     │ │
 │  │  3 record user msg     (→ main)                     │ │
 │  │  4 get AiPreferences   (→ main) → allowed_schemas   │ │
-│  │  5 tool-calling loop (≤ MAX_TOOL_ROUNDS = 4)        │ │
+│  │  5 tool-calling loop (≤ MAX_TOOL_ROUNDS = 8)        │ │
 │  │  6 record AI reply + tokens (→ main)                │ │
 │  │  7 first msg → auto-name chat (→ main)              │ │
 │  └───────────────┬───────────────────┬────────────────┘ │
@@ -80,13 +80,15 @@ Frontend ──prompt──► AI server
                      ├─► main: save user message
                      ├─► main: AiPreferences ─► which tool schemas to offer
                      │
-                     │   ┌─ tool-calling loop (max 4 rounds) ─────────────┐
+                     │   ┌─ tool-calling loop (max 8 rounds) ─────────────┐
                      ├──►│ Ollama: messages + permitted tool schemas      │
                      │   │   • model returns TEXT  ───────────► done      │
                      │   │   • model returns TOOL CALL:                   │
                      │   │       AI server permission-checks the tool,    │
                      │   │       fetches its data from main, runs it,     │
                      │   │       feeds the summary back ──► loop again    │
+                     │   • rounds exhausted: one final no-tools call,     │
+                     │     prompted to answer with what it gathered ─► done│
                      │   └────────────────────────────────────────────────┘
                      │
                      ├─► main: save AI reply + tokens_used
@@ -114,6 +116,10 @@ Frontend ◄──reply────┘
   talking to (prod `api.` / `:5000` vs dev `dev.` / `:5001`) so dev and prod
   stay paired.
 - **Token budgeting.** `max_tokens` is the min of the user's 5h and weekly
-  remaining tokens; the tool loop spends against that budget and a final
-  no-tools call is forced if every round is used.
+  remaining tokens; the tool loop spends against that budget. The loop runs up
+  to `MAX_TOOL_ROUNDS = 8` so multi-step requests can finish gathering data. If
+  every round is used, one final no-tools call is forced — the model is prompted
+  to answer with what it has and given a guaranteed budget (min 2000 tokens) so a
+  reasoning model still produces visible output. The user always gets a reply for
+  their tokens rather than a "try again" fallback.
 ```
