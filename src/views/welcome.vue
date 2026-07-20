@@ -156,7 +156,15 @@ function onTouchEnd(e: TouchEvent) {
 
 <style scoped>
 .welcome-content {
-  --background: #f4f5f9;
+  /* tokens so this screen can follow the system theme instead of being
+     permanently light - the text used to stay dark on a dark background */
+  --wc-surface: #f4f5f9;
+  --wc-title: #1a2a5e;
+  --wc-body: #4b5563;
+  --wc-muted: #6b7280;
+  --wc-dot: #c7ccda;
+  --wc-border: #d7dae2;
+  --background: var(--wc-surface);
 }
 
 .welcome-wrap {
@@ -184,7 +192,7 @@ function onTouchEnd(e: TouchEvent) {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #c7ccda;
+  background: var(--wc-dot);
   transition: width 0.2s ease, background 0.2s ease;
   cursor: pointer;
 }
@@ -196,7 +204,7 @@ function onTouchEnd(e: TouchEvent) {
 .skip {
   background: none;
   border: none;
-  color: #6b7280;
+  color: var(--wc-muted);
   font-size: 15px;
   font-weight: 600;
   padding: 6px 4px;
@@ -237,8 +245,8 @@ function onTouchEnd(e: TouchEvent) {
    fixed rather than inherited - otherwise dark mode turns them white on white */
 .pref-list ion-item {
   --background: transparent;
-  --color: #1a2a5e;
-  --border-color: #d7dae2;
+  --color: var(--wc-title);
+  --border-color: var(--wc-border);
   --padding-start: 0;
   margin-bottom: 0;
 }
@@ -246,12 +254,12 @@ function onTouchEnd(e: TouchEvent) {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
-  color: #1a2a5e;
+  color: var(--wc-title);
 }
 .pref-list p {
   font-size: 13px;
   margin: 2px 0 0;
-  color: #4b5563;
+  color: var(--wc-body);
 }
 
 .art {
@@ -284,7 +292,7 @@ function onTouchEnd(e: TouchEvent) {
   font-weight: 800;
   letter-spacing: -0.5px;
   margin: 0 0 8px;
-  color: #1a2a5e;
+  color: var(--wc-title);
 }
 .tag {
   font-size: 17px;
@@ -295,7 +303,7 @@ function onTouchEnd(e: TouchEvent) {
 .body {
   font-size: 15.5px;
   line-height: 1.55;
-  color: #4b5563;
+  color: var(--wc-body);
   max-width: 380px;
   margin: 0 auto;
 }
@@ -313,7 +321,18 @@ function onTouchEnd(e: TouchEvent) {
   min-width: 132px;
 }
 .back-btn {
-  --color: #6b7280;
+  --color: var(--wc-muted);
   font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .welcome-content {
+    --wc-surface: #121212;
+    --wc-title: #eceef5;
+    --wc-body: #b6bcc9;
+    --wc-muted: #9aa1ae;
+    --wc-dot: #3a404c;
+    --wc-border: #343a45;
+  }
 }
 </style>
