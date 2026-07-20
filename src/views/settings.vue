@@ -88,7 +88,6 @@ import {
   modalController,
   alertController,
 } from '@ionic/vue'
-import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { api } from './classes/api'
 import CarFormModal from './CarFormModal.vue'
@@ -98,8 +97,6 @@ import { carsStore, type Car } from './classes/cars'
 import { svsStore, type Sv } from './classes/svs'
 import { aiPrefsStore, AI_PREF_FIELDS, type AiPrefs } from './classes/aiPrefs'
 import type { ToggleCustomEvent } from '@ionic/vue'
-
-const router = useRouter()
 
 const cars = carsStore.cars
 
@@ -219,7 +216,7 @@ async function deleteAccount() {
     return
   }
   await Preferences.clear()
-  router.push("/")
+  window.location.assign("/")
 }
 
 async function signOut(){
@@ -235,7 +232,7 @@ async function signOut(){
       if (!ok) return
     }
     await clearKeepingIntro()
-    router.push("/")
+    window.location.assign("/")
     return
   }
 
@@ -254,7 +251,9 @@ async function signOut(){
   // clear the server-side httpOnly auth cookie (web); Preferences.clear covers native
   try { await api.post('/api/logout') } catch { /* sign out locally regardless */ }
   await Preferences.clear()
-  router.push("/")
+  // full reload, not router.push: the stores are module-level singletons, so a
+  // client-side navigation leaves the previous account's data in memory
+  window.location.assign("/")
 }
 </script>
 

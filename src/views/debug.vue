@@ -28,13 +28,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, modalController } from '@ionic/vue'
-import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { api } from './classes/api'
 import { seedTestData } from './classes/seed'
 import MasterDebugModal from './MasterDebugModal.vue'
 
-const router = useRouter()
 const rawTripsText = ref('')
 const simulateNative = ref(false)
 
@@ -93,7 +91,7 @@ const showRawTrips = async () => {
 
 const signOut = async () => {
   await Preferences.remove({ key: 'auth_token' })
-  router.push('/')
+  window.location.assign('/')
 }
 
 const seedTrips = async () => {
