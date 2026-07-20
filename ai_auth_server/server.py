@@ -54,7 +54,7 @@ OLLAMA_URL = "http://127.0.0.1:11434"
 OLLAMA_MODEL = "gpt-oss:120b-cloud"
 
 # how many times the model may call tools before we force a final text answer
-MAX_TOOL_ROUNDS = 4
+MAX_TOOL_ROUNDS = 8
 
 # the system prompt that sets up the assistant. injected at the start of every
 # conversation so the model knows what it is, that it has tools over the user's
@@ -409,16 +409,28 @@ def chat():
             summary = execute_tool(name, prefs, MAIN_SERVER_URL, token, fetch_cache)
             messages.append({"role": "tool", "content": summary, "tool_name": name})
     else:
-        # used every tool round - ask once more with no tools to force an answer
+        # used every tool round - force an answer with what was gathered so the
+        # user gets something for their tokens instead of a "try again" message
         log.info("MAX_TOOL_ROUNDS reached - forcing a final answer with no tools")
-        job = run_ollama(messages, max(1, max_tokens - tokens_used))
+        messages.append({"role": "system", "content": (
+            "You have used all of your tool calls and cannot look anything else "
+            "up. Answer the user now using the information you have already "
+            "gathered. Give your best, complete reply - do not apologise for any "
+            "missing data, just work with what you have."
+        )})
+        # a reasoning model spends tokens thinking before it writes, so guarantee
+        # enough budget to actually produce visible output rather than run dry
+        final_budget = max(2000, max_tokens - tokens_used)
+        job = run_ollama(messages, final_budget)
         if not job.error and job.result:
             reply = job.result.get("message", {}).get("content", "")
             tokens_used += job.result.get("eval_count", 0)
 
     if not reply:
         log.warning("no reply produced - using fallback message")
-        reply = "Sorry, I couldn't produce an answer for that. Please try again."
+        reply = ("I gathered your data but ran out of room to write the full "
+                 "answer. Try asking for one part at a time - for example just "
+                 "your hours, or just your recent trips.")
 
     log.info("DONE chat_id=%s tokens_used=%d reply_len=%d",
              chat_id, tokens_used, len(reply))
