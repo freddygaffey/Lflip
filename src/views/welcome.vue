@@ -233,8 +233,12 @@ function onTouchEnd(e: TouchEvent) {
   margin-top: 4px;
   background: transparent;
 }
+/* this screen is deliberately light in both themes, so its text colours are
+   fixed rather than inherited - otherwise dark mode turns them white on white */
 .pref-list ion-item {
   --background: transparent;
+  --color: #1a2a5e;
+  --border-color: #d7dae2;
   --padding-start: 0;
   margin-bottom: 0;
 }
@@ -242,11 +246,12 @@ function onTouchEnd(e: TouchEvent) {
   font-size: 15px;
   font-weight: 600;
   margin: 0;
+  color: #1a2a5e;
 }
 .pref-list p {
   font-size: 13px;
   margin: 2px 0 0;
-  color: var(--ion-color-medium);
+  color: #4b5563;
 }
 
 .art {

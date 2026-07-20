@@ -183,7 +183,7 @@ async function pullTrips() {
   const res = await api.get('/api/trips')
   if (res.status !== 200) return
 
-  const remote = res.data
+  const remote = res.data ?? []
 
   // mark every trip from the server as already synced
   const synced = []
@@ -193,8 +193,15 @@ async function pullTrips() {
     synced.push(trip)
   }
 
-  await Preferences.set({ key: 'trips', value: JSON.stringify(synced) })
-  trips.value = synced
+  // keep trips that haven't reached the server yet, otherwise a pull wipes
+  // them — a fresh demo account has all its trips local and unsynced
+  const { value } = await Preferences.get({ key: 'trips' })
+  const local = JSON.parse(value ?? '[]') as { synced?: boolean }[]
+  const pending = local.filter((t) => !t.synced)
+
+  const merged = [...synced, ...pending]
+  await Preferences.set({ key: 'trips', value: JSON.stringify(merged) })
+  trips.value = merged
 }
 
 
