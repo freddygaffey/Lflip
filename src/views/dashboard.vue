@@ -114,9 +114,9 @@ const DchartData = ref({ datasets: [{ data: [0, 90], backgroundColor: ['#C5BF10'
 const NchartData = ref({ datasets: [{ data: [0, 10], backgroundColor: ['#1D1D1D', '#E0E0E0'] }] })
 const TchartData = ref({ datasets: [{ data: [0, 100], backgroundColor: ['#36A225', '#E0E0E0'] }] })
 
-const DchartOptions = { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Day Hours' } } }
-const NchartOptions = { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Night Hours' } } }
-const TchartOptions = { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Total Hours' } } }
+const DchartOptions = { responsive: true, maintainAspectRatio: false, animation: false as const, plugins: { title: { display: true, text: 'Day Hours' } } }
+const NchartOptions = { responsive: true, maintainAspectRatio: false, animation: false as const, plugins: { title: { display: true, text: 'Night Hours' } } }
+const TchartOptions = { responsive: true, maintainAspectRatio: false, animation: false as const, plugins: { title: { display: true, text: 'Total Hours' } } }
 
 const updateHours = async () => {
   const trips = JSON.parse((await Preferences.get({ key: "trips" })).value ?? '[]')
@@ -173,6 +173,7 @@ const load_dasbord = async () => {
   // together rather than one round trip at a time
   await updateHours()
   await Promise.all([pullTrips(), svsStore.pull_cloud(), carsStore.pull_cloud()])
+  // recompute once the pull has landed, or the totals stay on stale local data
   await updateHours()
   // uploading stale trips can be slow (each carries its GPS track), so it runs
   // in the background instead of blocking the screen the user is looking at
