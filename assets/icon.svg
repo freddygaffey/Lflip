@@ -1,5 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <rect width="1024" height="1024" fill="#C5BF10"/>
-  <!-- geometric L: crisp at every size, fills the icon -->
-  <path d="M340 220 h190 v430 h280 v190 h-470 z" fill="#1D1D1D"/>
+  <rect width="1024" height="1024" fill="#FFC400"/>
+  <path d="M340 220 h190 v430 h280 v190 h-470 z" fill="#141414"/>
 </svg>

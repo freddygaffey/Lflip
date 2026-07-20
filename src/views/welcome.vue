@@ -179,7 +179,9 @@ function onTouchEnd(e: TouchEvent) {
   height: 100%;
   max-width: 480px;
   margin: 0 auto;
-  padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+  /* pad the top past the iOS status bar so the dots/Skip aren't hidden under
+     the clock and battery */
+  padding: calc(12px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -245,12 +247,10 @@ function onTouchEnd(e: TouchEvent) {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  /* "safe" keeps the top reachable when the content is taller than the box;
-     plain centring clips the start and you can never scroll back up to it */
+  /* slides are locked to the viewport - no vertical scroll, only horizontal
+     swiping between them. the prefs slide is shrunk (.slide-prefs) to fit. */
   justify-content: safe center;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 .slide > * {
   flex-shrink: 0;

@@ -174,9 +174,11 @@ async function focusInput() {
 
 async function openChat(chat: Chat) {
   activeChat.value = chat
+  // focus before the network fetch: iOS only raises the keyboard while still
+  // within the tap gesture, and awaiting pull_messages first loses that window
+  await focusInput()
   await chatsStore.pull_messages(chat.id)
   await scrollToBottom(false)
-  await focusInput()
 }
 
 function closeChat() {
