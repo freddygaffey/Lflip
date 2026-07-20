@@ -24,7 +24,7 @@
           @touchend="onTouchEnd"
         >
           <div class="track" :style="{ transform: `translateX(-${index * 100}%)` }">
-            <section v-for="(s, i) in slides" :key="i" class="slide">
+            <section v-for="(s, i) in slides" :key="i" class="slide" :class="{ 'slide-prefs': s.prefs }">
               <div class="art" :style="{ background: s.bg }">
                 <div class="lplate">L</div>
               </div>
@@ -255,6 +255,14 @@ function onTouchEnd(e: TouchEvent) {
 .slide > * {
   flex-shrink: 0;
 }
+
+/* the AI (prefs) slide has five toggles, so shrink its header to make them all
+   fit on one screen without scrolling */
+.slide-prefs .art { width: min(88px, 16vh); height: min(88px, 16vh); margin-bottom: 10px; }
+.slide-prefs .lplate { width: min(56px, 10vh); height: min(56px, 10vh); font-size: min(40px, 8vh); }
+.slide-prefs .title { font-size: 22px; }
+.slide-prefs .tag { font-size: 15px; margin-bottom: 4px; }
+.slide-prefs .body { font-size: 13px; margin-bottom: 6px; }
 
 /* the AI slide carries a toggle list, so it needs to scroll and read left-aligned */
 .pref-list {

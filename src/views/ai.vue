@@ -423,6 +423,10 @@ async function send() {
 .composer-input {
   flex: 1 1 auto;
   min-width: 0;
+  width: 100%;
+  /* 16px stops iOS zooming into the field on focus, which was throwing off its
+     size on phones */
+  font-size: 16px;
   --background: var(--ion-color-light);
   --color: var(--ion-color-light-contrast);
   --placeholder-color: var(--ion-color-medium);

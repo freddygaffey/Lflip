@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <rect width="1024" height="1024" fill="#C5BF10"/>
-  <text x="512" y="740" font-family="Impact, Arial, sans-serif" font-weight="900" font-size="640" fill="#1D1D1D" text-anchor="middle">L</text>
+  <!-- geometric L: crisp at every size, fills the icon -->
+  <path d="M340 220 h190 v430 h280 v190 h-470 z" fill="#1D1D1D"/>
 </svg>
