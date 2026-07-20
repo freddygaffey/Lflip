@@ -94,7 +94,12 @@ def login():
 
 @app.post("/api/logout")
 def logout():
-    return jsonify({"message": "log out is a front end only"}), 200
+    # the auth cookie is httpOnly so the frontend can't clear it — expire it
+    # here. attributes must match the set_cookie at login or the browser keeps it.
+    response = jsonify({"message": "ok"})
+    response.delete_cookie('auth_token', domain='.lflip.pebnum.com', path='/',
+                           secure=True, httponly=True, samesite='Lax')
+    return response, 200
 
 @app.post("/api/register")
 @limiter.limit("5 per minute")

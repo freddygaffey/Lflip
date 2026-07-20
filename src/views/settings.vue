@@ -251,6 +251,8 @@ async function signOut(){
     }
   }
 
+  // clear the server-side httpOnly auth cookie (web); Preferences.clear covers native
+  try { await api.post('/api/logout') } catch { /* sign out locally regardless */ }
   await Preferences.clear()
   router.push("/")
 }
