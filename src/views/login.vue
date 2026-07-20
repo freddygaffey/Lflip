@@ -103,6 +103,11 @@ const makeDemoAccount = async () => {
       passOk.value = auth.data?.message ?? 'could not sign in to demo account'
       return
     }
+    // register alone doesn't create the licence record — /api/set_licence does.
+    // without it /api/state 404s, so the hour targets fall back to defaults and
+    // the assistant has no licence details to report on.
+    await api.post('/api/set_licence', { state: 'act', licence_no: '17482936' })
+
     // a demo account is brand new, so it gets the onboarding like any register
     await Preferences.set({ key: 'needsOnboarding', value: 'true' })
 
@@ -110,7 +115,8 @@ const makeDemoAccount = async () => {
     // immediately; the upload to the server continues in the background rather
     // than holding up the UI.
     await seedTestData()
-    fetchState()
+    // the dashboard reads these caps on load, so they must land before we route
+    await fetchState()
     carsStore.pull_cloud()
     svsStore.pull_cloud()
     await routeAfterAuth()
