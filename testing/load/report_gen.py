@@ -313,7 +313,7 @@ def charts_for(rows):
     figs = [
         _line_chart(rows, [("rps", "req/s")], "Throughput vs concurrency", lambda t: f"{t:g}"),
         _line_chart(rows, [("p50_ms", "p50"), ("p95_ms", "p95"), ("p99_ms", "p99")],
-                    "Latency vs concurrency (log scale)", lambda t: ms(t), logy=True),
+                    "Latency vs concurrency", lambda t: ms(t)),
         _bar_chart(rows, "Error rate vs concurrency"),
     ]
     return '<div class="charts">' + "".join(f"<figure>{f}</figure>" for f in figs) + "</div>"
