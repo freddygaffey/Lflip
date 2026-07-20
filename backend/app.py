@@ -14,6 +14,7 @@ from sqlalchemy import func
 from functools import wraps
 
 import sys
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key
@@ -24,7 +25,19 @@ def client_ip():
     fwd = request.headers.get("X-Forwarded-For", "")
     return fwd.split(",")[0].strip() if fwd else request.remote_addr
 
+# limits stay on everywhere except load-test runs, where 429s would mask the
+# real capacity ceiling. The durable fix is limit_req_zone in nginx.
+app.config["RATELIMIT_ENABLED"] = os.environ.get("LOADTEST") != "1"
 limiter = Limiter(key_func=client_ip, app=app)
+
+# module level so gunicorn (which imports app and never runs __main__) gets a
+# fully wired app: DB bound, tables created, CORS applied
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db.init_app(app)
+with app.app_context():
+    db.create_all()
+CORS(app, supports_credentials=True,
+     origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
 
 def handle_validation_error(f):
     @wraps(f)
@@ -650,12 +663,7 @@ if __name__ == "__main__":
     passer.add_argument('-d','--debug',action='store_true')
     args = passer.parse_args()
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///database.db'
-    db.init_app(app)
-
-    with app.app_context():
-        db.create_all()
-    if args.debug: 
+    if args.debug:
         @app.post("/api/ai/reset_usage")
         @require_auth
         def reset_ai_usage():
@@ -671,8 +679,6 @@ if __name__ == "__main__":
                 db.session.commit()
             return jsonify({"message": "ok", "messages_reset": reset}), 200
 
-        CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
         app.run(host="127.0.0.1", port=5001) # TODO: PROD: remove befor producion
     else:
-        CORS(app, supports_credentials=True, origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
         app.run(host="127.0.0.1", port=5000)
