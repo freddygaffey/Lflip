@@ -1,46 +1,18 @@
 # L-Plate Hardware Firmware
 
 Motorised L-plates for a car, controlled from the Lflip phone app. This folder
-is one **PlatformIO** project that builds **two different firmwares** from
-shared code.
+is one **PlatformIO** project that builds **several firmwares** from shared code.
 
----
+Firmware terminology (used throughout this doc, and in the source):
 
-## 0. Design brief (the original spec)
+- **master** — the always-powered controller board in the car's OBD port. BLE
+  server the phone talks to; holds the pairings; tells the edges what to do.
+- **edge** — a plate board. Battery powered, drives a servo to flip the plate.
+  Identical firmware on every edge; the master keeps an array of them.
 
-The architecture as defined for this device:
-
-- **Three ESP32-C3 boards.**
-- **Two "edge" boards — one on the front, one on the back (each end of the
-  car).** Each edge has:
-  - a **servo motor** driven by a **PWM** signal, to raise/lower the plate;
-  - a **MOSFET** in line with the servo's power, so the servo can be switched
-    fully off (no draw) to allow **deep sleep**;
-  - **one to three 18650 batteries** for long-term power.
-- **Edge power goal: minimise power usage.** Either **deep sleep** or **light
-  sleep with dynamic polling** (to be decided). Target a **30-second polling
-  interval as the minimum**, with room for **non-linear scheduling** — e.g.
-  polling much less often at night, since the car is physically parked.
-- **Scheduling/tracking lives on the always-powered ESP** (the master), because
-  it has constant power and can keep time.
-- **Master board** is mounted **through the car's OBD port** (constant 12 V
-  power) and acts as the **master controller**.
-- The master **connects to the phone** running the **L-plate app** (the Lflip
-  app, in the parent directory). In the app you **toggle the L-plates on/off**,
-  which raises/lowers the servos.
-
-**Implementation decisions made on top of the brief:**
-
-- **No front/back roles.** Every edge runs identical firmware. The master keeps
-  an **array** of paired edges; the plates all move together from one toggle.
-- **Comms: ESP-NOW with real-MAC pairing** (not plain broadcast). Boards pair
-  once, remember each other's MAC in flash, and from then on talk **encrypted**
-  point-to-point. This stops two cars in the same car park from interfering.
-- **Encryption is required.** Traffic uses ESP-NOW's built-in CCMP encryption.
-- **Servo holding: MOSFET-cut + mechanical rest** — move the servo, then cut its
-  power; the plate rests against a mechanical stop so it holds with no power.
-- **Code organisation: one repo, multiple PlatformIO environments + a shared
-  library** for the message definitions.
+> The phone app uses friendlier words ("controller", "plate"). This is the
+> developer/firmware doc, so it uses the firmware's own names: **master** and
+> **edge**.
 
 ---
 
@@ -52,314 +24,371 @@ The architecture as defined for this device:
         │  (phone)    │  toggle  │   ESP32-C3, 12V power │
         └─────────────┘  status  │   always on          │
                                  └──────────┬───────────┘
-                          ESP-NOW (encrypted unicast, channel 1)
+                          ESP-NOW (plaintext unicast, channel 1)
                                  ┌──────────┴───────────┐
                                  ▼                      ▼
                         ┌──────────────────┐  ┌──────────────────┐
                         │ EDGE (a plate)   │  │ EDGE (a plate)   │
-                        │ C3 + servo+MOSFET│  │ C3 + servo+MOSFET│
-                        │ 18650, deep-sleep│  │ 18650, deep-sleep│
+                        │ C3 + servo       │  │ C3 + servo       │
+                        │ 18650, low-V cut │  │ 18650, low-V cut │
                         └──────────────────┘  └──────────────────┘
 ```
 
 | Role | Where | Power | Job |
 |------|-------|-------|-----|
-| **Master** | car's OBD port | always on (car 12 V) | talks to the phone over Bluetooth; tells the plates what to do; holds the pairings |
-| **Edge** (1+) | each plate | 18650 battery, sleeps to save power | drives a servo (via a MOSFET) to raise/lower the plate |
+| **master** | car's OBD port | always on (car 12 V) | talks to the phone over BLE; tells the edges what state to show; holds the pairings; paces the edges' poll rate |
+| **edge** (up to 4) | each plate | 18650 battery | drives a servo to move the plate between L / CENTER / P; deep-sleeps on low battery |
+
+All boards are **Seeed XIAO ESP32-C3**. The protocol version is **7**
+(`PROTO_VERSION` in `protocol.h`); a board on a different version ignores the
+traffic as garbage.
 
 ---
 
-## 2. How a toggle flows
+## 2. Plate positions (3-state)
 
-The phone never talks to the plates directly. The master is the middle-man and
-the single "source of truth" for what the plates *should* be doing.
+The plate is a 3-position flap driven by one servo. `PlateState` (in
+`protocol.h`) is:
 
-1. **Phone → Master (BLE):** you tap the toggle. The phone writes one byte
-   (`0` = down, `1` = up) to the master.
-2. **Master stores it:** the master keeps one `desiredState` value. That's all
-   the BLE write does — update the wanted state.
-3. **Edge asks (ESP-NOW):** each edge periodically wakes and sends an encrypted
-   `PollMsg` to the master: *"battery is X, I'm currently down — what now?"*
-4. **Master replies (ESP-NOW):** it sends back an encrypted `CmdMsg`: *"be UP."*
-5. **Edge acts:** if that differs from what it's doing, it powers the servo,
-   moves the plate, cuts power, and sleeps again.
+| State | Value | Meaning |
+|-------|-------|---------|
+| `L`      | 0 | one face shown — L plate |
+| `CENTER` | 1 | edge-on / neither face — the "off" position (boot default) |
+| `P`      | 2 | the other face shown — P plate |
 
-### Why polling instead of pushing?
-
-A **deep-asleep radio can't receive anything**, so the master can't push to a
-sleeping edge. The edge wakes on its own timer and *pulls* the latest state.
-Trade-off: worst-case time to raise a plate ≈ one poll interval. Fine for
-L-plates — and the interval isn't fixed, it adapts (below).
-
-### Adaptive poll cadence (the battery story)
-
-The edge's poll interval is **not constant**. The master computes the next one
-on every reply and hands it back inside the `CmdMsg` (a `next_sleep_s` field);
-the edge just obeys and sleeps that long. The master picks the interval from
-four signals, fastest-wins:
-
-1. **Phone presence.** The master is the BLE server, so it knows for free
-   whether the phone is connected. Phone connected ⇒ a trip is happening ⇒ poll
-   **fast (~1 s)** for snappy toggles.
-2. **Speed** (streamed from the app's GPS over BLE while connected).
-   Stopped / `<15 km/h` ⇒ pulling in/out, parking, drop-off ⇒ **fast**; cruising
-   `>40–100 km/h` ⇒ committed to the drive, nothing to toggle ⇒ **slow
-   (~5–10 s)**. This saves the most energy, because the highway cruise is the
-   bulk of a drive and is exactly when responsiveness matters *least*.
-3. **Current plate state.** `DOWN` (the illegal-if-driving state) ⇒ poll
-   **faster**, so a raise happens promptly; `UP` (the safe state) ⇒ poll lazily.
-4. **Time of day** (used when no phone is around). Short baseline during
-   likely-driving windows (school run ~7–9 am, evening ~4–7 pm) so the edge
-   *discovers* the phone within seconds when driving is probable; longer midday;
-   very long overnight (~60 s+, the car is parked).
-
-> **Hard boundary:** speed and time change *how often we check* — **never the
-> plate state**. Whose trip it is (learner vs parent) is always a human choice;
-> it can't be inferred from speed.
-
-**Where the master gets the time:** it has no internet in the OBD port. Either
-the phone writes the current epoch time over BLE on each connect (cheap,
-re-synced every drive — start here) or fit a **DS3231 RTC** (battery-backed,
-survives power loss).
-
-Rough budget, one 18650 (~3000 mAh), edge awake ~150 ms per poll @ ~80 mA:
-
-| Window | Cadence | ~Daily cost |
-|--------|---------|-------------|
-| Night (10 pm–4 am) | 60 s | ~1.5 mAh |
-| Midday idle | 60 s | ~2.5 mAh |
-| Commute windows (~5 h) | 5–10 s | ~6 mAh |
-| Actually driving (~1 h, phone present, speed-aware) | 1–10 s | ~6–12 mAh |
-| **Total** | | **~20 mAh/day → ~3–4 months** |
-
-The always-awake placeholder loop in the current firmware lasts only **~2–3
-days**; the months-scale figure needs the deep-sleep + adaptive cadence above.
-
-### Fail-safe: default to plates UP
-
-The legal risk is **one-directional**:
-
-- Plates **UP while parked** — legal (just unnecessary).
-- Plates **DOWN while driving** — **illegal**.
-
-So the whole system **fails toward UP**. On boot, on wake, on lost comms, on any
-uncertainty, the edge defaults to **plates displayed**. Because of the same
-asymmetry, *lowering* can be lazy (a parent's plates retracting a little slowly
-is legal-but-cosmetic) while *raising* must be eager — which is why the `DOWN`
-state polls faster.
-
-Normal operation still commands the state explicitly (parent ⇒ DOWN, learner ⇒
-UP); the UP bias only governs the degraded / uncertain case. Concretely:
-**boot/wake default = UP**, and **edge raises if it misses N consecutive polls.**
+Each position maps to a **per-edge, calibrated servo pulse width** (see §6).
+The plates all move together from one command — there are no front/back roles.
 
 ---
 
-## 3. Pairing & security (the "unboxing")
+## 3. How a toggle flows
 
-Plain broadcast would let a second system nearby hear your messages. Instead the
-boards **pair once** and then only talk to known MACs, encrypted.
+The phone never talks to the edges directly. The master is the middle-man and
+the single source of truth for what the plates should show.
 
-**What gets saved (in flash / NVS, survives power-off):**
+1. **Phone → master (BLE):** the app writes one byte (`0`/`1`/`2` = `L`/`CENTER`/`P`)
+   to the plate characteristic. The master stores it in `desiredState`.
+2. **Edge polls (ESP-NOW):** each paired edge periodically unicasts a `PollMsg`
+   to the master (its battery mV + the state it currently believes it's in).
+3. **Master replies (ESP-NOW):** it sends back a `CmdMsg` carrying the
+   `desired` state **and** a `next_poll_ms` — how long the edge should wait
+   before polling again (see below).
+4. **Edge acts:** if `desired` differs from its current state, and it's past the
+   ~1.5 s boot-settle delay, it ramps the servo to the new position, lets it
+   settle, then releases the PWM signal (the plate rests on a mechanical stop).
+
+### Adaptive poll cadence (what's actually implemented)
+
+The edge's poll interval is set by the master on every reply (`next_poll_ms`):
+
+| Condition | Interval | Constant |
+|-----------|----------|----------|
+| A phone/BLE client is connected to the master | **~300 ms** | `FAST_POLL_MS` |
+| No phone connected (idle) | **~3000 ms** | `IDLE_POLL_MS` |
+
+The master knows whether a phone is connected for free (it's the BLE server).
+Phone connected ⇒ a trip is happening ⇒ poll fast so toggles feel instant;
+disconnected ⇒ slow down to save the edge's battery.
+
+On top of that the edge **overrides to ~250 ms** for a few seconds right after a
+move or after boot (so a rapid second toggle still lands quickly); otherwise it
+obeys the master's `next_poll_ms`. The edge only learns of a change when it
+polls, so worst-case reaction time ≈ one poll interval.
+
+> **Planned, not yet implemented:** a richer cadence that also factors in GPS
+> speed, current plate state, and time-of-day, plus real deep-sleep between
+> polls for months-scale battery life. Today only phone-presence drives the
+> rate, and the edge stays awake between polls (short battery life). Treat the
+> speed/time-of-day story as a design goal, not current behaviour.
+
+---
+
+## 4. Pairing, re-pairing & reset (the UX)
+
+Comms are **plaintext ESP-NOW** with real-MAC pairing (no encryption is
+configured — `p.encrypt = false` on every peer, and `protocol.h` says so). MAC
+pairing is what stops two cars in the same car park from interfering: boards
+learn each other's MAC once, save it to flash, and from then on only answer a
+known MAC.
+
+**What's saved in flash (NVS), survives power-off:**
 
 | Board | Remembers |
 |-------|-----------|
-| Master | the list of edge MACs + a randomly-generated system key (LMK) |
-| Edge | the master's MAC + that same system key (LMK) |
+| master | its list of edge MACs (up to 4) + a random UID (its BLE identity) |
+| edge   | its master's MAC + its own servo calibration (L / CENTER / P µs) |
 
-**The pairing handshake** (the standard ESP-NOW auto-pairing pattern — see
-`github.com/tomorrow56/ESPNowAutoPairing` — with encryption added on top):
+### First-time pairing (auto-join)
 
-1. **Master:** tap the **pairing button**. It listens for 60 s (LED blinks).
-2. **Edge:** a brand-new edge (nothing saved yet) automatically broadcasts a
-   `PAIR_REQ`. (You can force this later by tapping the edge's button.)
-3. **Master** hears it, records the edge's MAC, and replies with a `PAIR_ACK`
-   that carries the **system key (LMK)**.
-4. Both sides switch that link to an **encrypted peer** using the key. The edge
-   saves the master's MAC + key to flash. Done — they're bound for good.
-5. From now on every `POLL`/`CMD` is **CCMP-encrypted unicast**.
+1. **Put the master into pairing mode** — tap its **BOOT** button once (or send
+   the "enter discovery" command from the app). The status LED blinks and the
+   window stays open for **~60 s** (`PAIR_WINDOW`).
+2. **Power on any unpaired edge.** A fresh edge broadcasts a `PAIR_REQ` every
+   ~700 ms.
+3. The master **auto-adopts** any unpaired edge that asks during the window —
+   up to its max of **4** edges. There is no "pick one from a list" step. (The
+   app *can* still pick a specific discovered MAC if it wants, via the pair-MAC
+   command, but it isn't required.)
+4. Each newly paired edge is self-tested: the master waits ~6 s for that edge to
+   poll back, proving the link works, and reports `pass`/`fail` in its status.
 
-**Encryption details:** a fixed product-wide **PMK** is compiled into every
-board (`ESPNOW_PMK` in `protocol.h`); the master generates a **random per-system
-LMK** the first time it pairs anything. The PMK protects the LMK; the LMK
-encrypts the actual traffic. The only moment a key is exposed is the brief, user-
-initiated `PAIR_ACK` — the same "trust on first use" model as Bluetooth pairing.
+> **Caveat on the master's BOOT tap:** the tap doesn't *just* open the window —
+> it also gives the master a **brand-new BLE identity** (a new `LP-<uid>` name)
+> and reboots, which drops any connected phone. Existing edge pairings are
+> **kept** (they key off MAC, not the BLE name, so the edges reconnect on their
+> own). Because the BLE name changed, the app no longer recognises the car and
+> **must re-add it**. So a BOOT tap is really "fresh identity + reopen pairing",
+> not a bare pairing toggle. (A pure "open the window" is available from the app
+> via the enter-discovery command, which does *not* change identity.)
 
-**Reset:**
+### Re-pairing / moving an edge to a different master
 
-- **Master** — hold the button **5 s** → factory reset (forgets all edges).
-- **Edge** — tap = re-pair (forget master); hold **5 s** → factory reset.
+Tap the **edge's** own BOOT/button once. It forgets its current master
+(`forgetMaster()`), drops into PAIRING mode, and broadcasts to join whichever
+master currently has its pairing window open.
 
----
+### Button reference
 
-## 4. File layout
+| Board | Tap (short press) | Hold ~5 s |
+|-------|-------------------|-----------|
+| **master** | fresh identity + reopen the ~60 s pairing window (keeps existing edges; app must re-add the car) | **factory reset** — wipes the edge list *and* the UID, reboots with a new identity |
+| **edge** | forget master & re-pair (advertise to join a master in pairing mode) | **factory reset** — wipes the master pairing *and* this edge's servo calibration |
 
-```
-esp32/
-├─ platformio.ini          ← project config: defines the two build "environments"
-├─ lib/
-│  └─ protocol/protocol.h  ← SHARED message definitions + keys (the "contract")
-└─ src/
-   ├─ master/main.cpp      ← master firmware  (built by env:master)
-   └─ edge/main.cpp        ← edge firmware    (built by env:edge)
-```
+Both boards debounce a press as: ≥30 ms release = tap; ≥5000 ms held = long
+press (fires once at the 5 s mark). See `pollButton()` in each `main.cpp`.
 
-### `platformio.ini` — the project brain
+> There is also a master-only serial command `u` (`unpairAllAndRepair`) that
+> disconnects and forgets **all** edges but keeps the UID, then reopens pairing.
+> It is not wired to the button — it's a bench helper only.
 
-- `[env]` holds settings shared by everything (board, framework, baud rate).
-- `[env:master]` / `[env:edge]` are two **separate build targets** from the same
-  repo. Each sets a flag (`-D ROLE_MASTER` / `-D ROLE_EDGE`) and a
-  `build_src_filter` picking which `src/` subfolder to compile.
-- `lib_deps` under `[env:master]` pulls in **NimBLE 1.x** (only the master needs
-  Bluetooth).
+### LED states
 
-### `lib/protocol/protocol.h` — the contract
-
-ESP-NOW copies the bytes of a struct from one chip to the other, so both
-firmwares **must agree on the exact byte layout**. Defining it once, here,
-guarantees that. The four message types:
-
-| Struct | Direction | Encrypted? | Meaning |
-|--------|-----------|-----------|---------|
-| `PairReqMsg` | edge → master (broadcast) | no | "pair me" |
-| `PairAckMsg` | master → edge (unicast)   | no | "you're paired — here's the key" |
-| `PollMsg`    | edge → master (unicast)   | **yes** | "what should I be?" (+ battery) |
-| `CmdMsg`     | master → edge (unicast)   | **yes** | "be this" |
-
-`PROTO_VERSION` lets a mismatched board ignore garbage. `__attribute__((packed))`
-stops the compiler inserting padding that would break the layout.
+| Board | LED | Meaning |
+|-------|-----|---------|
+| master | blinking (~4 Hz) | pairing window is open (blinks for the *whole* window, not just until an edge joins) |
+| master | solid on | not pairing **and** at least one edge is paired |
+| master | off | not pairing and no edges paired |
+| edge | blinking | in PAIRING mode (broadcasting for a master) |
+| edge | solid on | CONNECTING (reaching its saved master) or ONLINE |
 
 ---
 
-## 5. Wiring (per board)
+## 5. BLE interface (master ⇄ phone)
+
+The master advertises as **`LP-<uid>`** (e.g. `LP-2DD17AC9`) — the UID is
+generated on first boot and persisted, so two cars don't clash. One service with
+four characteristics:
+
+| Purpose | UUID suffix | Access | Payload |
+|---------|-------------|--------|---------|
+| Service | `…0001` | — | — |
+| Plate state | `…0002` | write / read | 1 byte: `0`=L, `1`=CENTER, `2`=P |
+| Command | `…0003` | write | opcode byte (see below) |
+| Status JSON | `…0004` | read / notify | status blob, pushed ~1/s |
+
+**Command opcodes** (first byte of a write to the command characteristic):
+
+| Opcode | Action |
+|--------|--------|
+| `1` | enter discovery (open pairing window) |
+| `2` | factory reset the master |
+| `3` | stop discovery |
+| `4` | pair a specific discovered edge — followed by its 6 MAC bytes (7-byte write) |
+| `5` | relay a servo-calibration step to one edge — `[5][edgeIdx][action][us_lo][us_hi]` |
+
+The status JSON reports uptime, edge count, desired state, pairing flag, a
+whole-system flip verdict (`nohw`/`ok`/`pending`/`failed`), the self-test
+result, and per-edge rows (MAC, last-seen age, battery mV, current state) plus
+any discovered-but-unpaired candidates.
+
+---
+
+## 6. Servo & power (edge)
+
+The servo **is** driven for real now (via `ESP32Servo`); it's no longer a mock.
+
+**Pins (XIAO ESP32-C3, edge):**
 
 | Signal | Pin | Notes |
 |--------|-----|-------|
-| Pairing/reset button | **D1 (GPIO3)** | momentary button to **GND**; uses the internal pull-up |
-| Status LED | **D2 (GPIO4)** | LED + resistor to GND; blinks while pairing |
-| **Mock servo** *(edge, now)* | **D10 (GPIO10)** | bench stand-in: **HIGH = open/UP, LOW = closed/DOWN**. Put an LED/meter here to watch toggles. |
-| MOSFET gate / power-enable *(edge)* | **D10 (GPIO10)** | the mock pin becomes the servo **power switch**; gate via ~150 Ω, 10 kΩ gate→GND pulldown |
-| Servo PWM signal *(edge)* | **D9 (GPIO9)** | the servo's control wire — low current, driven straight from the GPIO via ESP32Servo. *(GPIO9 is a boot-strapping pin; the servo's signal input is high-impedance so it won't affect boot, but don't tie anything that pulls it low at reset.)* |
+| Re-pair / reset button | **D1** | momentary to GND, internal pull-up |
+| Status LED | **D2** | blinks while pairing |
+| Servo PWM signal | **D10** | the servo's control wire, driven straight from the GPIO |
+| Servo power-enable (MOSFET gate) | **D9** | **inert** — no MOSFET is fitted (see below); pin is toggled but does nothing |
 
-The master also needs its 12 V→5 V supply from the OBD port; the edges run from
-1–3 × 18650.
+**Master pins:** BOOT button on **GPIO9** (the onboard button — no external
+wiring), status LED on **D2**.
 
-> **Why two pins for the servo?** Cutting the power rail (D10) isn't enough on
-> its own: while the servo is unpowered, its **signal wire** at 3.3 V can
-> backfeed through the servo and leak. So the firmware drives the PWM pin
-> **LOW** whenever it cuts power. `movePlate()` = enable power → send PWM to the
-> angle → wait `SERVO_TRAVEL_MS` → detach + PWM LOW → cut power; the mechanical
-> rest holds the plate. Tune `SERVO_UP_DEG` / `SERVO_DOWN_DEG` to your stops.
+**No power MOSFET.** The design's low-side switch MOSFET was **removed**; the
+servo now runs directly off the ESP's rail. `PIN_SERVO_PWR` (D9) is still
+toggled in the code but is inert without a MOSFET wired. To keep the always-live
+servo from browning out the rail, the firmware instead relies on **gentle
+motion + releasing the signal**:
+
+- **Ramped travel.** `movePlate()` steps the pulse width toward the target in
+  small increments (`SERVO_STEP_US` = 15 µs every `SERVO_STEP_MS` = 12 ms),
+  starting from the last known position so there's no jump. Slow motion = low
+  peak current = no brownout, and smoother travel.
+- **Release at rest.** After a `SERVO_SETTLE_MS` (120 ms) hold, the servo is
+  detached and the PWM line driven **LOW**. An analog servo with no signal
+  relaxes (low draw), and the plate rests on a mechanical stop.
+- **Boot-settle.** The servo isn't driven until ~1.5 s after boot
+  (`SERVO_BOOT_DELAY_MS`) so boot inrush + a move can't coincide and brown out.
+
+**Calibration.** Each edge stores its own L / CENTER / P pulse widths in flash
+(defaults 1300 / 1500 / 1700 µs, hard-clamped to 500–2500 µs). Calibrate per
+plate either:
+
+- **Over the air** — the app sends opcode `5` to the master, which relays a
+  `SERVO_CAL` message to that edge. Actions: `0` = live jog to a µs value,
+  `1` = save as L, `2` = save as P, `4` = save as CENTER, `3` = end / power off.
+  A live jog auto-powers-off after ~8 s idle so a stalled servo can't drain the
+  cell.
+- **Over serial** — `c` starts a centred jog; `+`/`-` = ±25 µs, `]`/`[` =
+  ±100 µs; `l`/`m`/`p` save the current position as L / Center / P; `x` ends.
+
+**Battery soft-cutoff.** `lib/power/battery.h` gives battery-powered boards a
+low-voltage guard. Every 5 s the edge reads the cell (averaged) via an A0
+resistor divider; if it's in the "plausible but low" band (below `CUTOFF_V`
+3.20 V, above the `SENSE_FLOOR` 2.50 V, confirmed twice), it cuts the servo and
+enters **deep sleep forever** (`parkForever()`) so the cell isn't
+over-discharged. **Power-cycle to recover.** With no divider wired A0 reads
+~0 V, which is below the floor, so the guard does nothing — it can't false-trip
+a USB/bench board. This is a *soft* guard, not a substitute for a protected
+cell / BMS.
 
 ---
 
-## 6. Building & flashing
+## 7. File layout & build environments
 
-PlatformIO lives at `~/.platformio/penv/bin/pio` (the bare `pio` isn't always on
-your PATH). Run these from the `esp32/` folder:
+```
+esp32/
+├─ platformio.ini            ← defines the build "environments"
+├─ lib/
+│  ├─ protocol/protocol.h    ← SHARED ESP-NOW message contract (master + edge)
+│  └─ power/battery.h        ← shared low-voltage cutoff (edge + batt test)
+└─ src/
+   ├─ master/main.cpp        ← master firmware   (env:master)
+   ├─ edge/main.cpp          ← edge firmware     (env:edge)
+   ├─ batt/main.cpp          ← bench: battery/heartbeat test (env:batt)
+   └─ pinscan/main.cpp       ← bench: servo-pin finder        (env:pinscan)
+```
+
+`platformio.ini` environments (each `build_src_filter` picks one `src/`
+subfolder so only that firmware compiles):
+
+| Env | What it builds | Key lib_deps |
+|-----|----------------|--------------|
+| **master** | the OBD controller | `NimBLE-Arduino@^1.4.2` (BLE) |
+| **edge** | a plate board | `ESP32Servo@^1.1.1` (servo) |
+| **pinscan** | bench servo-finder: sweeps a 50 Hz servo signal on **all** pads D0..D10 at once, so you can plug the servo into any pad to find a good solder joint | — |
+| **batt** | bench battery test: blinks the LED as a heartbeat + prints cell voltage; parks on low battery | — |
+
+`default_envs = master, edge`, so a bare `pio run` builds both firmwares (not
+the bench sketches).
+
+### `lib/protocol/protocol.h` — the contract
+
+ESP-NOW copies a struct's bytes verbatim from one chip to the other, so both
+firmwares must agree on the exact byte layout — hence one definition, shared,
+with `__attribute__((packed))` to strip padding. Message types:
+
+| Struct | Direction | Meaning |
+|--------|-----------|---------|
+| `PairReqMsg`  | edge → master (broadcast) | "pair me" |
+| `PairAckMsg`  | master → edge (unicast)   | "you're paired" |
+| `PollMsg`     | edge → master (unicast)   | "what should I be?" (+ battery mV + current state) |
+| `CmdMsg`      | master → edge (unicast)   | "be this" (+ `next_poll_ms`) |
+| `UnpairMsg`   | master → edge (unicast)   | "forget me, go back to pairing" |
+| `ServoCalMsg` | master → edge (unicast)   | "jog / save a servo end-point" |
+
+All traffic is **plaintext** — there is no encryption, PMK, or LMK in the code.
+
+---
+
+## 8. Building & flashing
+
+PlatformIO lives at `~/.platformio/penv/bin/pio` (bare `pio` isn't always on
+your PATH). Run from the `esp32/` folder:
 
 ```bash
 # compile only
 ~/.platformio/penv/bin/pio run -e master
 ~/.platformio/penv/bin/pio run -e edge
 
-# compile + flash a connected board, then watch serial output
-~/.platformio/penv/bin/pio run -e edge -t upload -t monitor   # Ctrl-C to quit
+# compile + flash a connected board, then watch serial output (Ctrl-C to quit)
+~/.platformio/penv/bin/pio run -e edge   -t upload -t monitor
+~/.platformio/penv/bin/pio run -e master -t upload -t monitor
+
+# bench helpers
+~/.platformio/penv/bin/pio run -e pinscan -t upload
+~/.platformio/penv/bin/pio run -e batt    -t upload
 ```
 
-`-e` picks the environment. Bare `pio run` builds both.
+`-e` picks the environment. Bare `pio run` builds `master` + `edge`.
 
 > **Editor squiggles:** your IDE's clang may underline `Arduino.h not found` or
-> `unknown type ...`. That's just the language server missing the ESP32 include
+> `unknown type …`. That's just the language server missing the ESP32 include
 > paths — **ignore it**. If `pio run` says SUCCESS, the code is fine.
 
 ---
 
-## 7. Testing the pairing + toggle path (no servo yet)
+## 9. Bench-testing the pairing + toggle path
 
 1. Flash one board as **master**, another as **edge** (each in its own terminal
    with `-t monitor`).
 2. The fresh edge prints `PAIR_REQ broadcast...` repeatedly (nothing saved yet).
-3. **Tap the master's button.** It prints `PAIRING MODE on`, then `PAIR_REQ
-   from ...`, and the edge prints `PAIRED to ...`. They're now bound in flash.
-4. The edge switches to `POLL sent` every few seconds; the master logs each
-   `POLL ... -> reply desired=0`.
-5. Connect a BLE app (**nRF Connect**) to the master — it advertises a **unique
-   per-car name `LP-<uid>`** (e.g. `LP-2DD17AC9`), generated on first boot and
-   saved, so two cars don't clash. Write `01` to characteristic
-   `a1b2c3d4-0002-…`. The edge's next reply flips to `desired=1` and it drives
-   D10 (mock servo) HIGH.
+3. **Tap the master's BOOT button.** It enters discovery (LED blinks); the
+   master logs `PAIR_REQ from …` and auto-adopts the edge; the edge prints
+   `PAIRED to …`. They're now bound in flash.
+4. The edge switches to `POLL sent` on its cadence; the master logs each
+   `POLL … -> reply desired=…` and runs its ~6 s self-test.
+5. Connect a BLE app (**nRF Connect**) to the master — it advertises as
+   `LP-<uid>`. Write `00`/`01`/`02` to characteristic `a1b2c3d4-0002-…` to
+   command L / CENTER / P; the edge's next reply picks it up and moves the servo.
 6. Power-cycle both — they reconnect automatically (pairing persisted). Hold a
-   button 5 s to factory-reset.
+   button ~5 s to factory-reset.
+
+**Serial bench shortcuts.** Master: `p` discovery, `u` disconnect-all + wipe +
+re-pair, `l` list candidates, `0`–`5` pair candidate N, `r` factory reset,
+`s` status. Edge: `p` re-pair, `r` factory reset, `c` start servo calibration
+(then the jog keys above), `s` status.
 
 ---
 
-## 8. Hardware notes (servo + power, coming next)
+## 10. Known gotchas
 
-Each edge drives its servo through an **N-channel MOSFET used as a low-side power
-switch** (the MOSFET sits between the servo's GND and battery GND; gate ← D10):
-
-- Gate HIGH → servo's ground path closed → servo powered; gate LOW → open → servo
-  fully off (≈0 draw while asleep).
-- **~150 Ω gate resistor** in series with D10, and a **10 kΩ gate→GND pulldown**.
-  The pulldown is essential: during boot and **deep sleep** the GPIO floats, and
-  without it the gate could half-turn-on and quietly drain the 18650s.
-- Common ground: ESP32 GND and battery − tie together at the MOSFET source.
-- Move sequence: power on → send PWM → wait → PWM LOW → cut power. The plate rests
-  against a mechanical stop so it holds position with **no power**.
-
-**You can't skip the MOSFET and power the servo from a GPIO.** A pin sources only
-~20 mA (40 mA absolute max); a servo pulls 150 mA–2.5 A. The GPIO can drive the
-*signal* wire directly, but the *power rail* needs a switch element. The XIAO has
-**no software-switchable power rail** of its own (its `3V3` is always-on), so a
-MOSFET — or a load-switch IC — is the minimum required part.
-
-**Choosing the part (gate driven at 3.3 V):**
-
-- ✅ **AO3400 / SI2302** (SOT-23, tiny — ideal for a battery board) or **IRLB8721**
-  (TO-220) — these are *fully on* at ~2.5 V, so they're happy at 3.3 V.
-- ⚠️ **IRLZ44N** *works* for one small servo but isn't ideal: its R<sub>DS(on)</sub>
-  is specified at **V<sub>GS</sub> = 5 V**, and it's a 47 A TO-220 brick — overkill,
-  and only partially enhanced at 3.3 V.
-- ❌ **IRF540** and other non-logic-level FETs won't switch properly at 3.3 V.
-- 🧩 **Tidier alternative:** a **load-switch IC** (e.g. **TPS22918**, AP22802) is a
-  packaged MOSFET with the gate resistor/pulldown built in — feed it `VIN`,
-  `VOUT`, `GND`, and an `ON` pin straight from D10.
-
----
-
-## 9. Known gotchas (don't re-learn these the hard way)
-
-- **Arduino-ESP32 core is 2.0.17 (IDF v4.4.7).** The ESP-NOW receive callback
-  uses the **legacy signature** `void cb(const uint8_t* mac, const uint8_t* data,
-  int len)` — sender MAC is the first argument. The newer `esp_now_recv_info_t*`
-  form only exists on IDF 5 / core 3.x and will **not** compile here.
+- **Arduino-ESP32 core is 2.0.x (IDF 4.4).** The ESP-NOW receive callback uses
+  the **legacy signature** `void cb(const uint8_t* mac, const uint8_t* data,
+  int len)` — sender MAC is the first argument. The newer
+  `esp_now_recv_info_t*` form only exists on IDF 5 / core 3.x and will **not**
+  compile here.
 - **NimBLE must be the 1.x line** (`@^1.4.2`); 2.x requires core 3.x.
+- **GPIO9 is the boot-strapping / BOOT pin.** The master reads it as its button;
+  fine because it's only read at runtime, but don't tie anything that pulls it
+  low at reset.
 - **This repo is inside OneDrive.** The cloud-sync client has corrupted source
-  files mid-edit (duplicated/scrambled lines → bogus compile errors). If a build
-  fails on code that looks correct, the file may be corrupted — re-save it, or
-  better, **move the project out of the OneDrive folder.**
+  files mid-edit (scrambled/duplicated lines → bogus compile errors). If a build
+  fails on code that looks correct, re-save the file — or move the project out of
+  OneDrive.
 - **The master can flatten the *car* battery.** Most cars keep OBD pin 16 live
-  even with the ignition off, so an always-on ESP32-C3 (~50–80 mA) is a parasitic
-  drain that will run a car battery down over a week or two of the car sitting.
-  The master needs its own low-power behaviour (light-sleep when no phone has
-  connected and no edge has polled for a while) — same presence/time logic as the
-  edges, applied on the master side.
+  with the ignition off, so an always-on ESP32-C3 (~50–80 mA) is a parasitic
+  drain over a week or two of the car sitting. A low-power (light-sleep when idle)
+  behaviour on the master is still a TODO.
 
 ---
 
-## 10. Status / what's left
+## 11. Status / what's implemented
 
-- [x] Project skeleton, two build environments, shared protocol header
-- [x] Real-MAC pairing with a button + auto-pair on first boot
-- [x] ESP-NOW encryption (PMK + per-system LMK) on poll/command traffic
-- [x] Persistent storage of pairings (survives power-off)
-- [x] BLE server on the master, unique per-car name `LP-<uid>`
-- [x] Poll → reply → plate move, **mocked on D10** (HIGH=UP, LOW=DOWN)
-- [x] Phone-app BLE integration in the Lflip Vue app (per-car `plateLink`,
-      trip-scoped connect + car-edit test buttons)
-- [ ] Real servo + MOSFET `movePlate()` (power-enable + PWM) on the edge
-- [ ] Deep sleep + battery voltage read on the edge
-- [ ] Adaptive poll cadence (presence + speed + state + time-of-day) — see §2
-- [ ] Fail-safe default-UP on boot/lost-comms — see §2
-- [ ] Phone→master time sync + speed streaming over BLE
+- [x] Two build environments (master/edge) + two bench sketches, shared protocol
+- [x] Real-MAC pairing: 60 s window, **auto-join** of any unpaired edge (up to 4)
+- [x] Persistent pairings + per-master UID / per-edge servo calibration (NVS)
+- [x] BLE server on the master, unique per-car name `LP-<uid>`, status JSON
+- [x] Poll → reply → **real servo move** (ramped, calibrated 3-state L/CENTER/P)
+- [x] Over-the-air servo calibration (app → master → edge)
+- [x] Battery voltage read + low-voltage deep-sleep cutoff on the edge
+- [x] Phone-presence poll cadence (fast ~300 ms connected / ~3 s idle)
+- [ ] Encryption on ESP-NOW traffic (currently plaintext)
+- [ ] Real deep-sleep between polls for months-scale battery life
+- [ ] Richer adaptive cadence (speed + state + time-of-day) — see §3
 - [ ] Master low-power behaviour (protect the car battery)
