@@ -32,6 +32,20 @@
               <h1 class="title">{{ s.title }}</h1>
               <p class="tag">{{ s.tag }}</p>
               <p class="body">{{ s.body }}</p>
+
+              <ion-list v-if="s.prefs" class="pref-list" lines="full">
+                <ion-item v-for="field in AI_PREF_FIELDS" :key="field.key">
+                  <ion-label class="ion-text-wrap">
+                    <h3>{{ field.label }}</h3>
+                    <p>{{ field.description }}</p>
+                  </ion-label>
+                  <ion-toggle
+                    slot="end"
+                    :checked="aiPrefs[field.key]"
+                    @ion-change="onPrefToggle(field.key, $event)"
+                  ></ion-toggle>
+                </ion-item>
+              </ion-list>
             </section>
           </div>
         </div>
@@ -55,10 +69,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { IonPage, IonContent, IonButton } from '@ionic/vue'
+import { ref, computed, onMounted } from 'vue'
+import { IonPage, IonContent, IonButton, IonList, IonItem, IonLabel, IonToggle } from '@ionic/vue'
+import type { ToggleCustomEvent } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
+import { aiPrefsStore, AI_PREF_FIELDS, type AiPrefs } from './classes/aiPrefs'
+
+const aiPrefs = aiPrefsStore.prefs
+
+// everything defaults to off; load whatever the account already has
+onMounted(async () => {
+  await aiPrefsStore.load_cache()
+  aiPrefsStore.pull_cloud()
+})
+
+async function onPrefToggle(key: keyof AiPrefs, ev: ToggleCustomEvent) {
+  await aiPrefsStore.set(key, ev.detail.checked)
+}
 
 const router = useRouter()
 
@@ -71,6 +99,7 @@ const slides = [
     title: 'Welcome to L Flip',
     tag: 'The pocket logbook for learner drivers.',
     body: 'Tap to start, drive, and we log the rest — hours, GPS, and day vs night — automatically. No more paper logbook.',
+    prefs: false,
   },
   {
     plate: false,
@@ -79,6 +108,7 @@ const slides = [
     title: 'Log a trip in three taps',
     tag: 'Start → drive → end.',
     body: 'Enter your odometer and hit Start. When you finish, add your end odometer and weather. Your trip lands on the dashboard and counts toward your required hours.',
+    prefs: false,
   },
   {
     plate: false,
@@ -87,6 +117,16 @@ const slides = [
     title: 'Make it yours (optional)',
     tag: 'Cars, supervisors, and smart L-plates.',
     body: 'Add your car to pair L-plate hardware, or save your supervisor for one-tap sign-off. In a hurry? Pick “Guest” at trip start and log a drive right now.',
+    prefs: false,
+  },
+  {
+    plate: false,
+    emoji: '🔒',
+    bg: 'var(--lp-blue)',
+    title: 'Your AI assistant',
+    tag: 'You choose what it can see.',
+    body: 'The assistant answers road-rules questions. It can only use the data you turn on here — everything starts off. You can change this any time in Settings.',
+    prefs: true,
   },
 ] as const
 
@@ -193,6 +233,29 @@ function onTouchEnd(e: TouchEvent) {
   text-align: center;
   padding: 8px 8px 0;
   box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* the AI slide carries a toggle list, so it needs to scroll and read left-aligned */
+.pref-list {
+  text-align: left;
+  margin-top: 4px;
+  background: transparent;
+}
+.pref-list ion-item {
+  --background: transparent;
+  --padding-start: 0;
+  margin-bottom: 0;
+}
+.pref-list h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+.pref-list p {
+  font-size: 13px;
+  margin: 2px 0 0;
+  color: var(--ion-color-medium);
 }
 
 .art {
