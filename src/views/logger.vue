@@ -34,8 +34,14 @@
   import { ref, onMounted, onUnmounted } from 'vue';
   import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonCard, IonList, IonItem, IonLabel, onIonViewDidEnter, onIonViewWillLeave } from '@ionic/vue';
   import { useRouter } from 'vue-router';
+  import { Capacitor, registerPlugin } from '@capacitor/core';
   import { Geolocation } from '@capacitor/geolocation';
+  import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
   import { Preferences } from '@capacitor/preferences';
+
+  // native only: runs a foreground service so points keep coming with the
+  // screen off / phone locked. web falls back to the in-page watcher below.
+  const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
   import { carsStore } from './classes/cars';
   import { plateLink } from './classes/plates';
 
@@ -70,22 +76,44 @@
     if (elapsedTimer) clearInterval(elapsedTimer)
   })
 
+  const logPoint = (time: number, lat: number, lon: number) => {
+    if (Date.now() - lastLogTime < timeout) return
+    lastLogTime = Date.now()
+    gpsPoints.push({ time, lat, lon })
+  }
+
+  const stopWatching = () => {
+    if (!watchId) return
+    if (Capacitor.isNativePlatform()) BackgroundGeolocation.removeWatcher({ id: watchId })
+    else Geolocation.clearWatch({ id: watchId })
+    watchId = null
+  }
+
   onIonViewDidEnter(async () => {
     gpsPoints.length = 0
     lastLogTime = 0
-    watchId = await Geolocation.watchPosition(
-      {enableHighAccuracy: true, timeout: 10000},
-      (position, err) => {
-        if (err || !position) return
-        if (Date.now() - lastLogTime < timeout) {
-          console.log("miss due timout");
-          return
+    if (Capacitor.isNativePlatform()) {
+      watchId = await BackgroundGeolocation.addWatcher(
+        {
+          backgroundTitle: 'L Flip is recording your trip',
+          backgroundMessage: 'Logging your practice drive',
+          requestPermissions: true,
+          distanceFilter: 5,
+        },
+        (location, error) => {
+          if (error || !location) return
+          logPoint(location.time ?? Date.now(), location.latitude, location.longitude)
         }
-        console.log(position.coords);
-        lastLogTime = Date.now()
-        gpsPoints.push({ time: position.timestamp, lat: position.coords.latitude, lon: position.coords.longitude })
-      }
-    )
+      )
+    } else {
+      watchId = await Geolocation.watchPosition(
+        {enableHighAccuracy: true, timeout: 10000},
+        (position, err) => {
+          if (err || !position) return
+          logPoint(position.timestamp, position.coords.latitude, position.coords.longitude)
+        }
+      )
+    }
 
     // Connect to this trip's car L-plate (if it has one) for the whole trip.
     try {
@@ -107,7 +135,7 @@
     }
   })
   onIonViewWillLeave(() => {
-    if (watchId) Geolocation.clearWatch({ id: watchId })
+    stopWatching()
     plateLink.disconnect()
   })
   const cancel = async () => {
@@ -116,7 +144,7 @@
     router.push("/tabs")
   }
   const stop = async () => {
-    if (watchId) Geolocation.clearWatch({ id: watchId })
+    stopWatching()
     const { value } = await Preferences.get({key:'trips'})
     const trips = JSON.parse(value ?? '[]')
     trips[trips.length -1].gps = gpsPoints
