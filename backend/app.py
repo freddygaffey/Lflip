@@ -541,10 +541,13 @@ def list_chat_messages(chat_id):
         return jsonify({"message": "not found"}), 404
 
     messages = ChatMessage.query.filter_by(chat_id=chat.id).order_by(ChatMessage.timestamp.asc()).all()
+    # not escaped here: the client escapes at render (user messages via Vue text
+    # interpolation, AI messages via DOMPurify), so escaping again on the way out
+    # double-encodes and shows literal &#39; and <br> in the chat.
     return jsonify([{
         "id": m.id,
         "is_ai": m.is_ai,
-        "content": escape(m.content),
+        "content": m.content,
         "tokens_used": m.tokens_used,
         "timestamp": m.timestamp.timestamp() * 1000 if m.timestamp else None,
     } for m in messages]), 200
@@ -572,10 +575,12 @@ def create_chat_message(chat_id):
     db.session.add(message)
     db.session.commit()
 
+    # not escaped: the client escapes at render (Vue for user text, DOMPurify for
+    # AI markdown). escaping here too double-encodes and breaks apostrophes/<br>.
     return jsonify({
         "id": message.id,
         "is_ai": message.is_ai,
-        "content": escape(message.content),
+        "content": message.content,
         "tokens_used": message.tokens_used,
         "timestamp": message.timestamp.timestamp() * 1000 if message.timestamp else None,
     }), 200
