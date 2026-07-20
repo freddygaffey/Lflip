@@ -180,12 +180,11 @@ async function pushUnsyncedTrips(): Promise<boolean> {
   }
 }
 
-// wipe local data on sign-out, but keep the "seen the intro" flag so the
-// welcome carousel doesn't replay every time the same person logs back in
+// wipe local data on sign-out. nothing to preserve: the onboarding is gated on
+// a needsOnboarding flag that only registration sets, so clearing prefs can't
+// make the intro replay.
 async function clearKeepingIntro() {
-  const { value: seenIntro } = await Preferences.get({ key: 'hasSeenIntro' })
   await Preferences.clear()
-  if (seenIntro) await Preferences.set({ key: 'hasSeenIntro', value: seenIntro })
 }
 
 async function deleteAccount() {

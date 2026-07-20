@@ -43,8 +43,9 @@ const passOk = ref('')
 
 // first-time users get the intro carousel; returning users go straight in
 const routeAfterAuth = async () => {
-  const { value: seen } = await Preferences.get({ key: 'hasSeenIntro' })
-  router.push(seen === 'true' ? '/tabs/dashboard' : '/welcome')
+  // the onboarding only runs for accounts that just registered
+  const { value: pending } = await Preferences.get({ key: 'needsOnboarding' })
+  router.push(pending === 'true' ? '/welcome' : '/tabs/dashboard')
 }
 
 const isAuth = async () => {
@@ -102,9 +103,14 @@ const makeDemoAccount = async () => {
       passOk.value = auth.data?.message ?? 'could not sign in to demo account'
       return
     }
-    // pre-fill the demo with sample supervisors, cars and trips (needs auth)
+    // a demo account is brand new, so it gets the onboarding like any register
+    await Preferences.set({ key: 'needsOnboarding', value: 'true' })
+
+    // seed writes to Preferences first so the dashboard has data to show
+    // immediately; the upload to the server continues in the background rather
+    // than holding up the UI.
     await seedTestData()
-    await fetchState()
+    fetchState()
     carsStore.pull_cloud()
     svsStore.pull_cloud()
     await routeAfterAuth()

@@ -58,6 +58,7 @@
     import { ref } from 'vue'
     import { useRouter } from 'vue-router'
     import { api, login } from './classes/api'
+    import { Preferences } from '@capacitor/preferences'
     const router = useRouter()
 
     const f_name = ref('')
@@ -89,6 +90,9 @@
           error_txt.value = response.data?.message ?? 'register failed'
           return
         }
+        // only a brand new account gets the onboarding. welcome.vue deletes this
+        // when it finishes, so signing out (which clears prefs) can't replay it.
+        await Preferences.set({ key: 'needsOnboarding', value: 'true' })
         await signIn();
         await add_info();
         router.push('/login')

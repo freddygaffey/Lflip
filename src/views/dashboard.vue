@@ -140,16 +140,21 @@ const uploadTrips = async () => {
   const trips = JSON.parse(tripsRaw ?? '[]')
   type LocalTrip = { synced?: boolean }
     const unsynced = (trips as LocalTrip[]).filter((trip) => !trip.synced)
-    for (const trip of unsynced) {
-      // TODO: FIX: this is kind of a hack but it works should use a try except
-      status.value = "📵" 
-      const response = await api.post('/api/trips/push_trip', { trip })
-      if (response.status === 200) trip.synced = true
-      else {
-        return false}
+    let ok = true
+    try {
+      for (const trip of unsynced) {
+        status.value = "📵"
+        const response = await api.post('/api/trips/push_trip', { trip })
+        if (response.status === 200) trip.synced = true
+        else { ok = false; break }
+      }
+    } finally {
+      // always persist what did upload. returning early without saving meant a
+      // partial sync re-sent every trip next time, duplicating them server-side.
+      await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
+      status.value = ok ? '✅' : '📵'
     }
-    await Preferences.set({ key: 'trips', value: JSON.stringify(trips) })
-    status.value = '✅'
+    return ok
 }
 
 
@@ -164,11 +169,14 @@ const load_dasbord = async () => {
   capTotal.value = t
   capNight.value = n
   capDay.value = d
-  // upload stale trips first so the pull below sees them, but the three reads
-  // are independent of each other — run them together, not one round trip at a time
-  await uploadTrips()
+  // read local trips straight away so the dashboard paints, then fetch the rest
+  // together rather than one round trip at a time
+  await updateHours()
   await Promise.all([pullTrips(), svsStore.pull_cloud(), carsStore.pull_cloud()])
   await updateHours()
+  // uploading stale trips can be slow (each carries its GPS track), so it runs
+  // in the background instead of blocking the screen the user is looking at
+  uploadTrips().then((ok) => { if (ok) pullTrips().then(updateHours) })
 }
 
 async function pullTrips() {

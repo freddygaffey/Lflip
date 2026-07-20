@@ -103,9 +103,10 @@ function prev() {
   if (index.value > 0) index.value--
 }
 
-// mark the intro as seen so it only ever shows once per install, then head to the app
+// consume the flag registration set. once it's gone the intro can't come back,
+// even though signing out clears preferences.
 async function finish() {
-  await Preferences.set({ key: 'hasSeenIntro', value: 'true' })
+  await Preferences.remove({ key: 'needsOnboarding' })
   router.replace('/tabs/dashboard')
 }
 
