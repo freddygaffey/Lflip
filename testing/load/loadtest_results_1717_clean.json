@@ -1,0 +1,111 @@
+[
+ {
+  "scenario": "mixed (ramp)",
+  "conc": 10,
+  "n": 100,
+  "rps": 74.5,
+  "mean_ms": 130.5,
+  "p50_ms": 116.2,
+  "p95_ms": 225.4,
+  "p99_ms": 275.1,
+  "max_ms": 275.1,
+  "fails": 0,
+  "codes": {
+   "200": 100
+  }
+ },
+ {
+  "scenario": "mixed (ramp)",
+  "conc": 25,
+  "n": 250,
+  "rps": 97.6,
+  "mean_ms": 245.5,
+  "p50_ms": 240.1,
+  "p95_ms": 356.6,
+  "p99_ms": 442.7,
+  "max_ms": 616.8,
+  "fails": 0,
+  "codes": {
+   "200": 250
+  }
+ },
+ {
+  "scenario": "mixed (ramp)",
+  "conc": 50,
+  "n": 500,
+  "rps": 74.0,
+  "mean_ms": 650.1,
+  "p50_ms": 615.0,
+  "p95_ms": 1052.9,
+  "p99_ms": 1156.1,
+  "max_ms": 2052.9,
+  "fails": 0,
+  "codes": {
+   "200": 500
+  }
+ },
+ {
+  "scenario": "mixed (ramp)",
+  "conc": 75,
+  "n": 750,
+  "rps": 68.3,
+  "mean_ms": 1054.1,
+  "p50_ms": 1027.9,
+  "p95_ms": 1448.4,
+  "p99_ms": 2381.4,
+  "max_ms": 3733.1,
+  "fails": 0,
+  "codes": {
+   "200": 750
+  }
+ },
+ {
+  "scenario": "mixed (ramp)",
+  "conc": 100,
+  "n": 1000,
+  "rps": 60.4,
+  "mean_ms": 1533.1,
+  "p50_ms": 1550.7,
+  "p95_ms": 1984.2,
+  "p99_ms": 3191.6,
+  "max_ms": 4880.1,
+  "fails": 0,
+  "codes": {
+   "200": 1000
+  }
+ },
+ {
+  "scenario": "mixed (ramp)",
+  "conc": 150,
+  "n": 1500,
+  "rps": 40.5,
+  "mean_ms": 3519.0,
+  "p50_ms": 3275.6,
+  "p95_ms": 8783.6,
+  "p99_ms": 12635.7,
+  "max_ms": 17606.5,
+  "fails": 8,
+  "codes": {
+   "200": 1492,
+   "500": 8
+  }
+ },
+ {
+  "scenario": "mixed (ramp)",
+  "conc": 200,
+  "n": 2000,
+  "rps": 27.1,
+  "mean_ms": 7133.5,
+  "p50_ms": 6163.0,
+  "p95_ms": 11411.5,
+  "p99_ms": 13737.7,
+  "max_ms": 30037.2,
+  "fails": 669,
+  "codes": {
+   "200": 1331,
+   "ConnectTimeout": 666,
+   "ReadTimeout": 1,
+   "500": 2
+  }
+ }
+]

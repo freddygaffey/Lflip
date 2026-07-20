@@ -1,0 +1,79 @@
+{
+  "run_name": "2026-07-20_1845_gunicorn-w9_4vcpu-7941mb_sqlite_http",
+  "window_local": {
+    "start": "18:44:50",
+    "end": "18:46:50",
+    "samples": 120
+  },
+  "target": "https://dev.lflip.pebnum.com",
+  "server": {
+    "host": "root@170.64.151.42",
+    "cores": "4",
+    "mem_mb": "7941",
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.8.0-124-generic",
+    "python": "Python 3.12.3",
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)"
+  },
+  "stack": {
+    "app_server": "gunicorn 26.0.0, 9 sync workers (2xcores+1)",
+    "database": "SQLite",
+    "reverse_proxy": "nginx"
+  },
+  "client": {
+    "host": "macOS, 15ms RTT, HTTP (no TLS)",
+    "ulimit_n": "4096"
+  },
+  "git_commit": "bc63a8e",
+  "peaks": {
+    "cpu_pct": 78.2,
+    "load1": 0.92,
+    "max_iowait_pct": 3.8,
+    "tcp_established": 397
+  },
+  "results_summary": [
+    {
+      "conc": 10,
+      "rps": 87.3,
+      "p95_ms": 159.2,
+      "fails": 0
+    },
+    {
+      "conc": 25,
+      "rps": 181.6,
+      "p95_ms": 244.9,
+      "fails": 0
+    },
+    {
+      "conc": 50,
+      "rps": 168.0,
+      "p95_ms": 640.5,
+      "fails": 0
+    },
+    {
+      "conc": 75,
+      "rps": 162.3,
+      "p95_ms": 1067.3,
+      "fails": 0
+    },
+    {
+      "conc": 100,
+      "rps": 100.6,
+      "p95_ms": 2053.5,
+      "fails": 1
+    },
+    {
+      "conc": 150,
+      "rps": 90.0,
+      "p95_ms": 4878.0,
+      "fails": 0
+    },
+    {
+      "conc": 200,
+      "rps": 49.1,
+      "p95_ms": 31468.5,
+      "fails": 200
+    }
+  ],
+  "notes": "9 workers. Higher peak rps but ceiling collapsed to c=200 with 10% failures (SQLite lock contention)."
+}

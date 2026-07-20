@@ -1,0 +1,85 @@
+{
+  "run_name": "2026-07-20_1839_gunicorn-w4_4vcpu-7941mb_sqlite_http",
+  "window_local": {
+    "start": "18:38:50",
+    "end": "18:42:00",
+    "samples": 190
+  },
+  "target": "https://dev.lflip.pebnum.com",
+  "server": {
+    "host": "root@170.64.151.42",
+    "cores": "4",
+    "mem_mb": "7941",
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.8.0-124-generic",
+    "python": "Python 3.12.3",
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)"
+  },
+  "stack": {
+    "app_server": "gunicorn 26.0.0, 4 sync workers (systemd lflip.service)",
+    "database": "SQLite",
+    "reverse_proxy": "nginx"
+  },
+  "client": {
+    "host": "macOS, 15ms RTT, HTTP (no TLS)",
+    "ulimit_n": "4096"
+  },
+  "git_commit": "bc63a8e",
+  "peaks": {
+    "cpu_pct": 63.3,
+    "load1": 0.74,
+    "max_iowait_pct": 3.5,
+    "tcp_established": 465
+  },
+  "results_summary": [
+    {
+      "conc": 10,
+      "rps": 99.0,
+      "p95_ms": 205.1,
+      "fails": 0
+    },
+    {
+      "conc": 25,
+      "rps": 121.7,
+      "p95_ms": 518.8,
+      "fails": 0
+    },
+    {
+      "conc": 50,
+      "rps": 141.3,
+      "p95_ms": 1108.4,
+      "fails": 0
+    },
+    {
+      "conc": 75,
+      "rps": 151.7,
+      "p95_ms": 1357.7,
+      "fails": 0
+    },
+    {
+      "conc": 100,
+      "rps": 136.5,
+      "p95_ms": 2016.1,
+      "fails": 0
+    },
+    {
+      "conc": 150,
+      "rps": 91.4,
+      "p95_ms": 4379.5,
+      "fails": 0
+    },
+    {
+      "conc": 200,
+      "rps": 69.2,
+      "p95_ms": 7363.0,
+      "fails": 0
+    },
+    {
+      "conc": 300,
+      "rps": 39.2,
+      "p95_ms": 16789.3,
+      "fails": 3
+    }
+  ],
+  "notes": "Same box/protocol as the 1811 Werkzeug run - only the app server changed. LOADTEST=1 so rate limits off."
+}

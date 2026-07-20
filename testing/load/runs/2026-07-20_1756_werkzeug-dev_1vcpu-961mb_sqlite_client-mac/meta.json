@@ -1,0 +1,79 @@
+{
+  "run_name": "2026-07-20_1756_werkzeug-dev_1vcpu-961mb_sqlite_client-mac",
+  "window_local": {
+    "start": "17:55:40",
+    "end": "17:59:10",
+    "samples": 208
+  },
+  "target": "https://dev.lflip.pebnum.com",
+  "server": {
+    "host": "165.245.204.248 (Sydney VPS)",
+    "cores": "1",
+    "mem_mb": "961",
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.8.0-134-generic",
+    "python": "Python 3.12.3",
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)"
+  },
+  "stack": {
+    "app_server": "Werkzeug dev server (single process, app.py)",
+    "database": "SQLite",
+    "reverse_proxy": "nginx"
+  },
+  "client": {
+    "host": "macOS (Sydney ~50ms RTT)",
+    "ulimit_n": "4096"
+  },
+  "git_commit": "bc63a8e",
+  "peaks": {
+    "cpu_pct": 100.0,
+    "load1": 2.1,
+    "max_iowait_pct": 7.0,
+    "tcp_established": 604
+  },
+  "results_summary": [
+    {
+      "conc": 10,
+      "rps": 78.8,
+      "p95_ms": 215.8,
+      "fails": 0
+    },
+    {
+      "conc": 25,
+      "rps": 95.3,
+      "p95_ms": 430.4,
+      "fails": 0
+    },
+    {
+      "conc": 50,
+      "rps": 95.2,
+      "p95_ms": 687.9,
+      "fails": 0
+    },
+    {
+      "conc": 75,
+      "rps": 85.9,
+      "p95_ms": 1099.0,
+      "fails": 0
+    },
+    {
+      "conc": 100,
+      "rps": 67.0,
+      "p95_ms": 1804.4,
+      "fails": 0
+    },
+    {
+      "conc": 150,
+      "rps": 49.0,
+      "p95_ms": 6777.1,
+      "fails": 5
+    },
+    {
+      "conc": 200,
+      "rps": 21.1,
+      "p95_ms": 30361.3,
+      "fails": 450
+    }
+  ],
+  "notes": "Client: Mac, 12.6ms RTT. Sampler: full-interval CPU, swap captured."
+}

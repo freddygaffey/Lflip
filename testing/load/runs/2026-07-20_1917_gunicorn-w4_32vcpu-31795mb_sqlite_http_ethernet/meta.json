@@ -1,0 +1,109 @@
+{
+  "run_name": "2026-07-20_1917_gunicorn-w4_32vcpu-31795mb_sqlite_http_ethernet",
+  "window_local": {
+    "start": "19:16:50",
+    "end": "19:25:35",
+    "samples": 525
+  },
+  "target": "https://dev.lflip.pebnum.com",
+  "server": {
+    "host": "lflip@deb.local",
+    "cores": "32",
+    "mem_mb": "31792",
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "7.0.0-28-generic",
+    "python": "bash: line 1: /home/fred/venv/bin/python: Permission denied\nPython 3.12.3",
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)"
+  },
+  "stack": {
+    "app_server": "gunicorn 26.0.0, 4 sync workers",
+    "database": "SQLite",
+    "reverse_proxy": "nginx"
+  },
+  "client": {
+    "host": "macOS over direct ethernet, 0.69ms RTT (0.17ms jitter)",
+    "ulimit_n": "4096"
+  },
+  "git_commit": "bc63a8e",
+  "peaks": {
+    "cpu_pct": 15.8,
+    "load1": 5.08,
+    "max_iowait_pct": 0.6,
+    "tcp_established": 3011
+  },
+  "results_summary": [
+    {
+      "conc": 10,
+      "rps": 614.0,
+      "p95_ms": 28.2,
+      "fails": 0
+    },
+    {
+      "conc": 25,
+      "rps": 406.2,
+      "p95_ms": 84.3,
+      "fails": 0
+    },
+    {
+      "conc": 50,
+      "rps": 478.0,
+      "p95_ms": 128.8,
+      "fails": 0
+    },
+    {
+      "conc": 75,
+      "rps": 393.4,
+      "p95_ms": 281.1,
+      "fails": 0
+    },
+    {
+      "conc": 100,
+      "rps": 355.4,
+      "p95_ms": 386.0,
+      "fails": 0
+    },
+    {
+      "conc": 150,
+      "rps": 271.4,
+      "p95_ms": 794.6,
+      "fails": 0
+    },
+    {
+      "conc": 200,
+      "rps": 206.3,
+      "p95_ms": 1151.9,
+      "fails": 0
+    },
+    {
+      "conc": 300,
+      "rps": 156.6,
+      "p95_ms": 2253.1,
+      "fails": 0
+    },
+    {
+      "conc": 400,
+      "rps": 124.5,
+      "p95_ms": 3576.3,
+      "fails": 0
+    },
+    {
+      "conc": 500,
+      "rps": 92.0,
+      "p95_ms": 6165.3,
+      "fails": 0
+    },
+    {
+      "conc": 700,
+      "rps": 71.8,
+      "p95_ms": 10586.3,
+      "fails": 0
+    },
+    {
+      "conc": 1000,
+      "rps": 57.1,
+      "p95_ms": 19952.6,
+      "fails": 0
+    }
+  ],
+  "notes": "32-core over wired link. Zero failures at every level through c=1000. p95 tracks p50 closely - clean queueing, no stragglers."
+}

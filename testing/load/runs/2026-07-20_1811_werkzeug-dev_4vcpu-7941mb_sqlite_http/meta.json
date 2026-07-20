@@ -1,0 +1,91 @@
+{
+  "run_name": "2026-07-20_1811_werkzeug-dev_4vcpu-7941mb_sqlite_http",
+  "window_local": {
+    "start": "18:10:50",
+    "end": "18:15:40",
+    "samples": 290
+  },
+  "target": "https://dev.lflip.pebnum.com",
+  "server": {
+    "host": "root@170.64.151.42",
+    "cores": "4",
+    "mem_mb": "7941",
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.8.0-124-generic",
+    "python": "Python 3.12.3",
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)"
+  },
+  "stack": {
+    "app_server": "Werkzeug dev server (single process, app.py, systemd lflip.service)",
+    "database": "SQLite",
+    "reverse_proxy": "nginx"
+  },
+  "client": {
+    "host": "macOS, 15ms RTT, HTTP (no TLS)",
+    "ulimit_n": "4096"
+  },
+  "git_commit": "bc63a8e",
+  "peaks": {
+    "cpu_pct": 38.7,
+    "load1": 1.41,
+    "max_iowait_pct": 9.8,
+    "tcp_established": 1174
+  },
+  "results_summary": [
+    {
+      "conc": 10,
+      "rps": 85.9,
+      "p95_ms": 170.8,
+      "fails": 0
+    },
+    {
+      "conc": 25,
+      "rps": 145.6,
+      "p95_ms": 359.1,
+      "fails": 0
+    },
+    {
+      "conc": 50,
+      "rps": 144.9,
+      "p95_ms": 674.8,
+      "fails": 0
+    },
+    {
+      "conc": 75,
+      "rps": 133.6,
+      "p95_ms": 1063.4,
+      "fails": 0
+    },
+    {
+      "conc": 100,
+      "rps": 109.0,
+      "p95_ms": 1692.1,
+      "fails": 1
+    },
+    {
+      "conc": 150,
+      "rps": 87.0,
+      "p95_ms": 3144.7,
+      "fails": 0
+    },
+    {
+      "conc": 200,
+      "rps": 65.5,
+      "p95_ms": 7116.2,
+      "fails": 1
+    },
+    {
+      "conc": 300,
+      "rps": 47.8,
+      "p95_ms": 14325.0,
+      "fails": 9
+    },
+    {
+      "conc": 400,
+      "rps": 32.7,
+      "p95_ms": 31731.2,
+      "fails": 12
+    }
+  ],
+  "notes": "4-core box. HTTP not HTTPS (nginx listen 80) - TLS cost not paid, unlike prod. Single-process Werkzeug, same as baseline."
+}

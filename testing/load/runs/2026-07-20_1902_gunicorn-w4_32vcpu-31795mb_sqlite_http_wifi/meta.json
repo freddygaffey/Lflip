@@ -1,0 +1,109 @@
+{
+  "run_name": "2026-07-20_1902_gunicorn-w4_32vcpu-31795mb_sqlite_http_wifi",
+  "window_local": {
+    "start": "19:01:40",
+    "end": "19:12:50",
+    "samples": 670
+  },
+  "target": "https://dev.lflip.pebnum.com",
+  "server": {
+    "host": "lflip@deb.local",
+    "cores": "32",
+    "mem_mb": "31792",
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "7.0.0-28-generic",
+    "python": "bash: line 1: /home/fred/venv/bin/python: Permission denied\nPython 3.12.3",
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)"
+  },
+  "stack": {
+    "app_server": "gunicorn 26.0.0, 4 sync workers",
+    "database": "SQLite",
+    "reverse_proxy": "nginx"
+  },
+  "client": {
+    "host": "macOS over WiFi, 74ms RTT (31ms jitter) - latency figures carry a network tax",
+    "ulimit_n": "4096"
+  },
+  "git_commit": "bc63a8e",
+  "peaks": {
+    "cpu_pct": 13.9,
+    "load1": 5.13,
+    "max_iowait_pct": 0.5,
+    "tcp_established": 2983
+  },
+  "results_summary": [
+    {
+      "conc": 10,
+      "rps": 54.2,
+      "p95_ms": 769.9,
+      "fails": 0
+    },
+    {
+      "conc": 25,
+      "rps": 173.2,
+      "p95_ms": 381.8,
+      "fails": 0
+    },
+    {
+      "conc": 50,
+      "rps": 284.3,
+      "p95_ms": 311.2,
+      "fails": 0
+    },
+    {
+      "conc": 75,
+      "rps": 275.1,
+      "p95_ms": 550.0,
+      "fails": 0
+    },
+    {
+      "conc": 100,
+      "rps": 272.7,
+      "p95_ms": 635.1,
+      "fails": 0
+    },
+    {
+      "conc": 150,
+      "rps": 256.7,
+      "p95_ms": 1078.3,
+      "fails": 0
+    },
+    {
+      "conc": 200,
+      "rps": 231.5,
+      "p95_ms": 1582.9,
+      "fails": 0
+    },
+    {
+      "conc": 300,
+      "rps": 171.3,
+      "p95_ms": 3262.0,
+      "fails": 0
+    },
+    {
+      "conc": 400,
+      "rps": 112.6,
+      "p95_ms": 7575.8,
+      "fails": 0
+    },
+    {
+      "conc": 500,
+      "rps": 72.8,
+      "p95_ms": 20076.1,
+      "fails": 0
+    },
+    {
+      "conc": 700,
+      "rps": 59.9,
+      "p95_ms": 34538.9,
+      "fails": 1
+    },
+    {
+      "conc": 1000,
+      "rps": 50.8,
+      "p95_ms": 44956.8,
+      "fails": 0
+    }
+  ],
+  "notes": "32-core laptop over WiFi. Completed all steps to c=1000 with 1 failure total; latency-limited, never refused connections."
+}

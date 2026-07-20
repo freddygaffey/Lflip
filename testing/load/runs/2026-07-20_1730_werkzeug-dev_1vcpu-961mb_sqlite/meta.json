@@ -1,0 +1,79 @@
+{
+  "run_name": "2026-07-20_1730_werkzeug-dev_1vcpu-961mb_sqlite",
+  "window_local": {
+    "start": "17:29:40",
+    "end": "17:33:00",
+    "samples": 200
+  },
+  "target": "https://dev.lflip.pebnum.com",
+  "server": {
+    "host": "165.245.204.248 (Sydney VPS)",
+    "cores": "1",
+    "mem_mb": "961",
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.8.0-134-generic",
+    "python": "Python 3.12.3",
+    "nginx": "nginx version: nginx/1.24.0 (Ubuntu)"
+  },
+  "stack": {
+    "app_server": "Werkzeug dev server (single process, app.py)",
+    "database": "SQLite",
+    "reverse_proxy": "nginx"
+  },
+  "client": {
+    "host": "macOS (Sydney ~50ms RTT)",
+    "ulimit_n": "4096"
+  },
+  "git_commit": "bc63a8e",
+  "peaks": {
+    "cpu_pct": 100.0,
+    "load1": 2.99,
+    "max_iowait_pct": 12.0,
+    "tcp_established": 602
+  },
+  "results_summary": [
+    {
+      "conc": 10,
+      "rps": 66.9,
+      "p95_ms": 223.1,
+      "fails": 0
+    },
+    {
+      "conc": 25,
+      "rps": 82.8,
+      "p95_ms": 425.9,
+      "fails": 0
+    },
+    {
+      "conc": 50,
+      "rps": 78.9,
+      "p95_ms": 824.1,
+      "fails": 0
+    },
+    {
+      "conc": 75,
+      "rps": 67.2,
+      "p95_ms": 2057.2,
+      "fails": 0
+    },
+    {
+      "conc": 100,
+      "rps": 59.2,
+      "p95_ms": 2076.5,
+      "fails": 0
+    },
+    {
+      "conc": 150,
+      "rps": 43.6,
+      "p95_ms": 6582.0,
+      "fails": 4
+    },
+    {
+      "conc": 200,
+      "rps": 26.0,
+      "p95_ms": 8046.5,
+      "fails": 1061
+    }
+  ],
+  "notes": "Baseline. Client Mac, ulimit -n 4096. Results and metrics both from the 17:30:03-17:32:41 ramp."
+}
