@@ -68,16 +68,22 @@ const fetchState = async () => {
 onIonViewWillEnter(isAuth)
 
 const signIn = async () => {
-  const response = await login(email.value, password.value)
-  console.log('login response', response.status)
-  passOk.value = response.data.message
-  if (response.status === 200) {
-    await fetchState()
+  try {
+    const response = await login(email.value, password.value)
+    console.log('login response', response.status)
+    passOk.value = response.data.message
+    if (response.status !== 200) return
+
+    // navigate as soon as login succeeds. fetching hour caps and cached data is
+    // secondary — if it threw before, the user was left stuck on this screen
+    // with no error. the dashboard falls back to defaults until fetchState lands.
     await routeAfterAuth()
+    fetchState().catch(() => {})
+    carsStore.pull_cloud()
+    svsStore.pull_cloud()
+  } catch {
+    passOk.value = "can't reach the server, try again"
   }
-  // this will do offline cashing
-  carsStore.pull_cloud()
-  svsStore.pull_cloud()
 }
 
 // One-tap throwaway account for demos: registers a fresh dummy user that
