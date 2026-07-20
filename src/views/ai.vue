@@ -144,7 +144,12 @@ const inputRef = ref<InstanceType<typeof IonTextarea> | null>(null)
 marked.setOptions({ breaks: true, gfm: true })
 
 function render(text: string): string {
-  return DOMPurify.sanitize(marked.parse(text ?? '') as string)
+  const html = marked.parse(text ?? '') as string
+  // wrap tables so a wide one (e.g. all 8 states) scrolls sideways inside the
+  // bubble instead of squashing every column until the text wraps letter by letter
+  const wrapped = html.replace(/<table>/g, '<div class="table-scroll"><table>')
+                      .replace(/<\/table>/g, '</table></div>')
+  return DOMPurify.sanitize(wrapped)
 }
 
 function formatDate(ts: number): string {
@@ -206,8 +211,15 @@ async function send() {
   sending.value = true
   await scrollToBottom()
   try {
-    const result = await chatsStore.send_message(activeChat.value.id, text)
-    if (!result) {
+    const res = await chatsStore.send_message(activeChat.value.id, text)
+    if (res.status === 429) {
+      // 429 is a hit limit, not a connection problem - say which so the user
+      // isn't told to "check your connection" when nothing is wrong with it
+      const msg = String(res.data?.message ?? '')
+      alert(/token|limit/i.test(msg)
+        ? "You've reached the AI assistant's usage limit for now. It refreshes after a few hours."
+        : "You're sending messages too quickly. Wait a moment and try again.")
+    } else if (res.status !== 200) {
       alert('Message failed to send. Check your connection and try again.')
     } else if (wasFirstMessage) {
       // the AI auto-names the chat after the first message; refresh so the
@@ -364,14 +376,16 @@ async function send() {
 .md pre code { background: none; padding: 0; }
 .md a { color: var(--ion-color-primary); }
 
-/* tables: scroll horizontally instead of overflowing the bubble */
-.md table {
-  display: block;
-  width: max-content;
-  max-width: 100%;
+/* tables: the wrapper scrolls sideways so a wide table keeps its columns
+   instead of squashing each one until the text wraps letter by letter */
+.md .table-scroll {
   overflow-x: auto;
-  border-collapse: collapse;
+  -webkit-overflow-scrolling: touch;
   margin: 8px 0;
+  max-width: 100%;
+}
+.md table {
+  border-collapse: collapse;
   font-size: 0.88em;
 }
 .md th,

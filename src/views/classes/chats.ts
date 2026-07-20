@@ -52,11 +52,12 @@ class Chats {
     // sends the prompt to the ai auth server, which logs both the
     // user's message and the ai's reply on the main server itself.
     // X-Api-Url tells the ai server which main backend to call back into.
+    // returns the raw response so the caller can tell a usage-limit (429) apart
+    // from a real send failure and message the user accurately
     async send_message(chat_id: number, prompt: string) {
         const res = await api.post(`${AI_URL}/api/ai/chat`, { chat_id, prompt }, { 'X-Api-Url': API_URL })
-        if (res.status !== 200) return null
-        await this.pull_messages(chat_id)
-        return res.data
+        if (res.status === 200) await this.pull_messages(chat_id)
+        return res
     }
 }
 
