@@ -48,7 +48,7 @@
     />
 
     <ion-button expand="block" fill="outline" @click="scan" :disabled="scanning">
-      {{ scanning ? 'Scanning…' : 'Scan for BLE devices' }}
+      {{ scanning ? 'Scanning…' : 'Scan for Bluetooth devices' }}
     </ion-button>
 
     <ion-list v-if="visibleDevices.length">
