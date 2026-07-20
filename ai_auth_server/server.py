@@ -349,6 +349,21 @@ def chat():
 
     # build the messages: system context, prior turns, then the new message
     messages = [{"role": "system", "content": CONTEXT}]
+    if not tool_schemas:
+        # With no tools the model has been observed inventing a tool call AND a
+        # fake result rather than admitting it cannot look anything up. The
+        # general "don't invent numbers" line in CONTEXT is not enough, so state
+        # the situation explicitly for this request.
+        messages.append({"role": "system", "content": (
+            "IMPORTANT: this learner has not enabled ANY data permissions, so "
+            "you have no tools and no access to their trips, hours, licence, "
+            "cars or supervisors. You cannot look anything up about them. "
+            "Do not simulate a tool call, do not output JSON, and do not invent "
+            "figures such as hours driven, state, or progress. If asked about "
+            "their own data, say you do not have access to it and that they can "
+            "enable specific categories in Settings. You may still answer "
+            "general road-rule and licence questions."
+        )})
     messages += [
         {"role": "assistant" if m["is_ai"] else "user", "content": m["content"]}
         for m in history
