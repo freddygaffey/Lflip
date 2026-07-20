@@ -32,8 +32,14 @@ function makeGps(startLat: number, startLon: number, n: number, startTime: numbe
 }
 
 export async function seedTestData() {
-  // wipe existing trips so old single-point routes don't get pulled back alongside the new ones
-  await api.delete('/api/trips')
+  // wipe existing data first so seeding is idempotent. without this, every run
+  // added another Sarah Whitman / Dads Hilux etc without removing the old ones,
+  // so a repeatedly-seeded account showed 15 copies of each supervisor and car.
+  await Promise.all([
+    api.delete('/api/trips'),
+    api.delete('/api/sv'),
+    api.delete('/api/cars'),
+  ])
   await Preferences.remove({ key: 'trips' })
 
   const mum = (await api.post('/api/sv', { full_name: 'Sarah Whitman', licence_no: '0481726' })).data
