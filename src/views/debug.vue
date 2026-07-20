@@ -104,8 +104,9 @@ const seedTrips = async () => {
   const dadRes = await api.post('/api/sv', { full_name: 'Mark Whitman', licence_no: '0392845' })
   const mum = mumRes.data
   const dad = dadRes.data
-  const carRes = await api.post('/api/cars', { nickname: "Mum's Corolla", plate: 'YMC42N' })
-  const carRes2 = await api.post('/api/cars', { nickname: "Dad's Hilux", plate: 'CXR88K' })
+  // no apostrophes: the API HTML-escapes strings, so "Dad's" would display as "Dad&#39;s"
+  const carRes = await api.post('/api/cars', { nickname: 'Mums Corolla', plate: 'YMC42N' })
+  const carRes2 = await api.post('/api/cars', { nickname: 'Dads Hilux', plate: 'CXR88K' })
   const car = carRes.data
   const car2 = carRes2.data
 
