@@ -96,6 +96,19 @@ http://ionicframework.com/docs/theming/ */
   --lp-radius: 14px;
 }
 
+/* dark mode: the brand indigo is unreadable on a dark background, so use a
+   lighter tint (with dark text on filled buttons) when the device is dark */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ion-color-primary: #a49bf0;
+    --ion-color-primary-rgb: 164, 155, 240;
+    --ion-color-primary-contrast: #1d1d1d;
+    --ion-color-primary-contrast-rgb: 29, 29, 29;
+    --ion-color-primary-shade: #9088d3;
+    --ion-color-primary-tint: #ada5f2;
+  }
+}
+
 /* ===== Global element tweaks ===== */
 
 ion-card {

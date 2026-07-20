@@ -7,7 +7,7 @@
     </ion-header>
     <ion-content>
       <!-- TODO: supervisors section -->
-       <h2>Add Car</h2>
+       <h2>Add car</h2>
        <ion-list>
         <ion-item
           v-for="car in cars"
@@ -257,4 +257,12 @@ async function signOut(){
 </script>
 
 <style scoped>
+h2 {
+  margin: 20px 16px 8px;
+  font-size: 18px;
+}
+
+ion-button {
+  margin: 8px 16px;
+}
 </style>

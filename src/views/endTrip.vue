@@ -9,8 +9,8 @@
     <ion-content class="ion-padding">
 
       <ion-item>
-        <ion-label>End Odometer (km)</ion-label>
-        <ion-input v-model="endOdo" type="text" inputmode="numeric" placeholder="e.g. 12345"></ion-input>
+        <ion-label>End odometer</ion-label>
+        <ion-input ref="odoInput" v-model="endOdo" type="text" inputmode="numeric" placeholder="e.g. 12345"></ion-input>
       </ion-item>
 
       <ion-segment v-model="mode" class="mode-switch">
@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonInput, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonNote } from '@ionic/vue'
+import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonInput, IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonNote, onIonViewDidEnter } from '@ionic/vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
@@ -53,6 +53,12 @@ import { api } from './classes/api'
 
 const router = useRouter()
 const endOdo = ref('')
+const odoInput = ref<InstanceType<typeof IonInput> | null>(null)
+
+// focus the odometer field once the page transition settles
+onIonViewDidEnter(() => {
+  setTimeout(() => odoInput.value?.$el.setFocus(), 250)
+})
 const isDay = ref(true)
 // segment works in 'day'/'night' strings while the rest of the file uses isDay
 const mode = computed({
@@ -162,7 +168,7 @@ const save = async () => {
   const current = trips[trips.length - 1]
   const start_odo = current.start_odo
   if (start_odo > parseFloat(endOdo.value)) {
-    alert("the start odo is > endOdo please enter a valid odo")
+    alert(`The end odometer you entered is before the trip's start odometer (${start_odo.toLocaleString()}). Please enter a valid odometer reading.`)
     return
   }
   current.end_odo = parseFloat(endOdo.value)

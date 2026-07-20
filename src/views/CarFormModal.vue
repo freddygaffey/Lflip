@@ -17,26 +17,33 @@
   <ion-content class="ion-padding">
     <ion-input
       v-model="form.nickname"
-      label="Nickname"
+      label="Car nickname"
       label-placement="stacked"
+      fill="outline"
+      placeholder="e.g. Mum's Corolla"
+      class="form-field"
     />
     <ion-input
       v-if="!noPlates"
       v-model="form.plate"
-      label="Licence Plate"
+      label="Licence plate"
       label-placement="stacked"
+      fill="outline"
+      class="form-field"
     />
     <ion-item lines="none">
       <ion-checkbox v-model="noPlates" slot="start"></ion-checkbox>
-      <ion-label>I don't have L-plates yet</ion-label>
+      <ion-label>I don't have my Flip Plates yet</ion-label>
     </ion-item>
     <p v-if="noPlates" class="no-plates-hint">
-      You can buy L-plates at <a href="https://example.com" target="_blank" rel="noopener">example.com</a>.
+      You can buy Flip Plates at <a href="https://example.com" target="_blank" rel="noopener">example.com</a>.
     </p>
     <ion-input
       v-model="form.ble_device_name"
       label="Device"
       label-placement="stacked"
+      fill="outline"
+      class="form-field"
       readonly
     />
 
@@ -132,11 +139,13 @@
     >
       Save
     </ion-button>
+    <!-- keeps the Save button reachable while the keyboard is open -->
+    <div :style="{ height: kbPad + 'px' }"></div>
   </ion-content>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
   modalController,
   alertController,
@@ -154,7 +163,8 @@ import {
   IonCheckbox,
   IonRange,
 } from '@ionic/vue'
-import { Capacitor } from '@capacitor/core'
+import { Capacitor, type PluginListenerHandle } from '@capacitor/core'
+import { Keyboard } from '@capacitor/keyboard'
 import { carsStore, type Car } from './classes/cars'
 import { plateLink, type PlateEdge } from './classes/plates'
 
@@ -170,6 +180,15 @@ const form = ref({
 })
 
 const noPlates = ref(false)
+
+// pad the content by the keyboard height so Save stays scrollable into view
+const kbPad = ref(0)
+const kbSubs: PluginListenerHandle[] = []
+onMounted(async () => {
+  if (!Capacitor.isNativePlatform()) return
+  kbSubs.push(await Keyboard.addListener('keyboardWillShow', i => { kbPad.value = i.keyboardHeight }))
+  kbSubs.push(await Keyboard.addListener('keyboardWillHide', () => { kbPad.value = 0 }))
+})
 
 const found = ref<Found[]>([])
 const scanning = ref(false)
@@ -278,7 +297,7 @@ const endCal = async () => {
 }
 
 // Drop the link when the modal closes.
-onUnmounted(() => { calIdx.value = null; plateLink.disconnect() })
+onUnmounted(() => { calIdx.value = null; plateLink.disconnect(); kbSubs.forEach(s => s.remove()) })
 
 const scan = async () => {
   scanning.value = true
@@ -355,6 +374,9 @@ const save = async () => {
 </script>
 
 <style scoped>
+.form-field {
+  margin-bottom: 12px;
+}
 .no-plates-hint {
   font-size: 13px;
   color: var(--ion-color-medium);

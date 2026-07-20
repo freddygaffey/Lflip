@@ -64,7 +64,7 @@
                 <td>{{ fmtDuration(t) }}</td>
               </tr>
               <tr v-if="filteredTrips.length === 0">
-                <td colspan="10" class="logbook-empty">No {{ mode }} entries yet</td>
+                <td colspan="10" class="logbook-empty">No {{ mode }} trips have been recorded yet.</td>
               </tr>
             </tbody>
           </table>
