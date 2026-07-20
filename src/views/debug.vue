@@ -5,21 +5,43 @@
         <ion-title>Debug</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content>
-      <ion-button @click="openMasterDebug" color="primary">L-plate master debug</ion-button>
-      <ion-button @click="signOut" color="danger">Sign out</ion-button>
-      <ion-button @click="seedTrips" color="warning">Seed Test Data</ion-button>
-      <ion-button @click="deleteTrips" color="danger">Delete All Trips</ion-button>
-      <ion-button @click="deleteCars" color="danger">Delete All Cars</ion-button>
-      <ion-button @click="nukeAllData" color="danger">Nuke All Data</ion-button>
-      <ion-button @click="showRawTrips" color="medium">Show raw trips</ion-button>
-      <ion-button @click="setServerToTrue" color="medium">overite trips</ion-button>
-      <ion-button @click="showAllPrefs" color="medium">Show all preferences</ion-button>
-      <ion-button @click="topUpUsage" color="warning">Top up AI usage</ion-button>
-      <ion-button @click="toggleSimulateNative" :color="simulateNative ? 'success' : 'medium'">
-        Simulate native: {{ simulateNative ? 'ON' : 'OFF' }}
+    <ion-content class="ion-padding">
+      <p class="debug-note">Developer tools for testing. Not part of the normal app.</p>
+
+      <ion-button expand="block" @click="toggleDemoMode" :color="demoMode ? 'success' : 'medium'">
+        Demo mode: {{ demoMode ? 'ON' : 'OFF' }}
       </ion-button>
-      <ion-button @click="hitTest" color="medium">hit test</ion-button>
+      <p class="debug-note">
+        {{ demoMode ? 'Full tools unlocked, including ones that change or delete data.'
+                    : 'Turn on to unlock demo data, resets and hardware tools.' }}
+      </p>
+
+      <h4 class="debug-section">Inspect</h4>
+      <ion-button expand="block" @click="showRawTrips" color="medium">View stored trips</ion-button>
+      <ion-button expand="block" @click="showAllPrefs" color="medium">View stored data</ion-button>
+      <ion-button expand="block" @click="signOut" fill="outline" color="danger">Sign out</ion-button>
+
+      <template v-if="demoMode">
+        <h4 class="debug-section">Demo data</h4>
+        <ion-button expand="block" @click="seedTrips" color="warning">Load demo data</ion-button>
+        <ion-button expand="block" @click="setServerToTrue" color="medium">Pull server trips (overwrite local)</ion-button>
+
+        <h4 class="debug-section">Clear data</h4>
+        <ion-button expand="block" @click="deleteTrips" fill="outline" color="danger">Delete all trips</ion-button>
+        <ion-button expand="block" @click="deleteCars" fill="outline" color="danger">Delete all cars</ion-button>
+        <ion-button expand="block" @click="nukeAllData" color="danger">Clear everything</ion-button>
+
+        <h4 class="debug-section">Hardware &amp; platform</h4>
+        <ion-button expand="block" @click="openMasterDebug" color="primary">L-plate master debug</ion-button>
+        <ion-button expand="block" @click="toggleSimulateNative" :color="simulateNative ? 'success' : 'medium'">
+          Simulate phone app: {{ simulateNative ? 'ON' : 'OFF' }}
+        </ion-button>
+
+        <h4 class="debug-section">Other</h4>
+        <ion-button expand="block" @click="topUpUsage" color="warning">Reset AI usage limit</ion-button>
+        <ion-button expand="block" @click="hitTest" color="medium">Ping test endpoint</ion-button>
+      </template>
+
       <pre v-if="rawTripsText" class="raw-trips">{{ rawTripsText }}</pre>
     </ion-content>
   </ion-page>
@@ -35,11 +57,23 @@ import MasterDebugModal from './MasterDebugModal.vue'
 
 const rawTripsText = ref('')
 const simulateNative = ref(false)
+// demo mode gates the powerful/destructive tools; off by default you only get
+// the read-only ones, so it's harder to wipe data by accident
+const demoMode = ref(false)
 
 onMounted(async () => {
-  const { value } = await Preferences.get({ key: 'simulate_native' })
-  simulateNative.value = value === 'true'
+  const [native, demo] = await Promise.all([
+    Preferences.get({ key: 'simulate_native' }),
+    Preferences.get({ key: 'demo_mode' }),
+  ])
+  simulateNative.value = native.value === 'true'
+  demoMode.value = demo.value === 'true'
 })
+
+const toggleDemoMode = async () => {
+  demoMode.value = !demoMode.value
+  await Preferences.set({ key: 'demo_mode', value: String(demoMode.value) })
+}
 
 const openMasterDebug = async () => {
   const modal = await modalController.create({ component: MasterDebugModal })
@@ -156,6 +190,18 @@ const deleteTrips = async () => {
 </script>
 
 <style scoped>
+.debug-section {
+  margin: 20px 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ion-color-medium);
+}
+.debug-note {
+  margin: 8px 0;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
 .raw-trips {
   margin: 12px;
   padding: 12px;
