@@ -34,6 +34,7 @@ import { Preferences } from '@capacitor/preferences'
 import { api, login } from './classes/api'
 import { carsStore } from './classes/cars';
 import { svsStore } from './classes/svs';
+import { seedTestData } from './classes/seed';
 
 const router = useRouter()
 const email = ref('')
@@ -78,24 +79,33 @@ const signIn = async () => {
 
 // One-tap throwaway account for demos: registers a fresh dummy user that
 // passes the backend checks (unique email; password needs 8+ chars with an
-// upper, a lower and a special character), fills the form, then signs in.
+// upper, a lower and a special character), signs in, seeds it with sample
+// supervisors/cars/trips so the app isn't empty, then routes in.
 const makeDemoAccount = async () => {
   passOk.value = ''
   const suffix = Math.random().toString(36).slice(2, 8)
   const demoEmail = `demo-${suffix}@example.com`
   const demoPwd = 'Demo!drive99'
   try {
-    const response = await api.post('/api/register', {
+    const reg = await api.post('/api/register', {
       email: demoEmail, pwd: demoPwd, f_name: 'Demo',
       l_name: 'Driver', state: 'act', licence_no: '',
     })
-    if (response.status !== 200) {
-      passOk.value = response.data?.message ?? 'could not create demo account'
+    if (reg.status !== 200) {
+      passOk.value = reg.data?.message ?? 'could not create demo account'
       return
     }
-    email.value = demoEmail
-    password.value = demoPwd
-    await signIn()
+    const auth = await login(demoEmail, demoPwd)
+    if (auth.status !== 200) {
+      passOk.value = auth.data?.message ?? 'could not sign in to demo account'
+      return
+    }
+    // pre-fill the demo with sample supervisors, cars and trips (needs auth)
+    await seedTestData()
+    await fetchState()
+    carsStore.pull_cloud()
+    svsStore.pull_cloud()
+    await routeAfterAuth()
   } catch {
     passOk.value = "can't reach the server, try again"
   }
