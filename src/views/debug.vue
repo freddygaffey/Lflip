@@ -142,6 +142,10 @@ const nukeAllData = async () => {
     await Preferences.remove({ key: k })
   }
   alert('Nuked. Server data and local prefs cleared (auth_token kept).')
+  // the cars/supervisors lists live in module-level stores that this doesn't
+  // touch, so the UI keeps showing the old data. reload to reset them empty
+  // (keeps the current route and login since auth_token is preserved).
+  window.location.reload()
 }
 
 const deleteTrips = async () => {
