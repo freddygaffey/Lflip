@@ -15,7 +15,8 @@
 // v4: added UNPAIR (master tells an edge to disconnect and go back to pairing).
 // v5: added SERVO_CAL (app jogs/saves a plate's servo end-points).
 // v6: PlateState is now 3-way (L / CENTER / P) with a calibrated Center.
-constexpr uint8_t PROTO_VERSION = 6;
+// v7: CmdMsg carries next_poll_ms so the master paces the edge (fast while a phone is connected).
+constexpr uint8_t PROTO_VERSION = 7;
 
 // All boards must agree on one Wi-Fi channel for ESP-NOW.
 constexpr uint8_t ESPNOW_CHANNEL = 1;
@@ -62,6 +63,7 @@ struct __attribute__((packed)) CmdMsg {
   uint8_t    version;    // = PROTO_VERSION
   MsgType    type;       // = MsgType::CMD
   PlateState desired;    // the state the edge should move to
+  uint16_t   next_poll_ms; // how long the edge should wait before its next poll
 };
 
 // master -> edge, unicast: "disconnect". The master is forgetting all its

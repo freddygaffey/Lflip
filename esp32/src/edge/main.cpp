@@ -79,6 +79,7 @@ PlateState myState = PlateState::CENTER;   // boot to the "off" position
 // filled by the recv callback, acted on in loop()
 volatile bool       gotCmd    = false;
 volatile PlateState cmdWant   = PlateState::CENTER;
+volatile uint16_t   cmdPollMs = POLL_EVERY;   // idle poll interval the master last asked for
 volatile bool       gotAck    = false;
 volatile bool       gotUnpair = false;   // master told us to disconnect
 uint8_t             ackMaster[6];
@@ -159,8 +160,9 @@ void onEspNowRecv(const uint8_t* mac, const uint8_t* data, int len) {
   } else if (type == MsgType::CMD && paired) {
     if (memcmp(mac, masterMac, 6) != 0) return; // only our master
     CmdMsg cmd; memcpy(&cmd, data, sizeof(cmd));
-    cmdWant = cmd.desired;
-    gotCmd  = true;
+    cmdWant   = cmd.desired;
+    cmdPollMs = cmd.next_poll_ms;
+    gotCmd    = true;
   } else if (type == MsgType::UNPAIR && paired) {
     if (memcmp(mac, masterMac, 6) != 0) return; // only our master can evict us
     gotUnpair = true;                           // forget it in loop()
@@ -318,6 +320,7 @@ void setup() {
 static void forgetMaster() {
   if (paired && esp_now_is_peer_exist(masterMac)) esp_now_del_peer(masterMac);
   paired = false;
+  saveConfig();                 // persist: a power-cycle mustn't revive the old master
   mode = Mode::PAIRING;
   Serial.println("re-pairing requested");
 }
@@ -453,7 +456,7 @@ static void runOnline() {
   // Poll fast right after boot (so the first move lands ~1.5s in) and for a few
   // seconds after any move; otherwise slow down to save power.
   bool recentlyActive = (lastMove != 0 && millis() - lastMove < 5000) || millis() < 4000;
-  uint32_t wait = recentlyActive ? 250 : POLL_EVERY;
+  uint32_t wait = recentlyActive ? 250 : cmdPollMs;   // master paces idle rate (fast if phone present)
   delay(wait);
 }
 

@@ -47,6 +47,7 @@ uint16_t     edgeBattMv[MAX_EDGES]   = {0};   // last reported battery mV
 uint8_t      edgeCur[MAX_EDGES]      = {0};    // last reported plate state
 
 volatile PlateState desiredState = PlateState::CENTER;   // set by the phone (boot = off)
+volatile bool       phoneConnected = false;              // a phone is on the BLE link now
 volatile uint32_t   desiredSince = 0;                 // millis() when it last changed
 bool      pairing = false;
 uint32_t  pairingStart = 0;
@@ -131,11 +132,15 @@ static void factoryReset() {
 // ── ESP-NOW ─────────────────────────────────────────────────────────────────
 
 // Reply to a paired edge's poll with the current desired state.
+constexpr uint16_t FAST_POLL_MS = 300;
+constexpr uint16_t IDLE_POLL_MS = 3000;
+
 static void sendCmd(const uint8_t* mac) {
   CmdMsg cmd = {};
-  cmd.version = PROTO_VERSION;
-  cmd.type    = MsgType::CMD;
-  cmd.desired = desiredState;
+  cmd.version      = PROTO_VERSION;
+  cmd.type         = MsgType::CMD;
+  cmd.desired      = desiredState;
+  cmd.next_poll_ms = phoneConnected ? FAST_POLL_MS : IDLE_POLL_MS;
   esp_now_send(mac, (uint8_t*)&cmd, sizeof(cmd));
 }
 
@@ -201,7 +206,13 @@ void onEspNowRecv(const uint8_t* mac, const uint8_t* data, int len) {
     if (!pairing) return;                       // ignore unless we're discovering
     Serial.printf("PAIR_REQ from %02X:%02X:%02X:%02X:%02X:%02X\n",
                   mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
-    addCandidate(mac);                          // list it; the app/user picks
+    addCandidate(mac);                          // list it too (app can still show it)
+    // Auto-pair: while the 60 s window is open, adopt any unpaired plate that asks.
+    bool isNew = findEdge(mac) < 0;
+    if (!isNew || edgeCount < MAX_EDGES) {
+      pairEdge(mac);
+      if (isNew && findEdge(mac) >= 0) startSelfTest(mac);
+    }
   } else if (type == MsgType::POLL) {
     int idx = findEdge(mac);
     if (idx < 0) return;                         // only answer known edges
@@ -385,23 +396,68 @@ static void pushStatus() {
 
 // Make a unique id once, persist it, and reuse it forever. Its presence means
 // this master is provisioned; wiping NVS (factory reset) regenerates a fresh one.
+// Short, friendly device id: 5 unambiguous chars (no 0/O/1/I), e.g. "K7X2M".
+static String makeUid() {
+  static const char cs[] = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";  // 32 chars, no 0/O/1/I
+  uint32_t r = esp_random();
+  char buf[6];
+  for (int i = 0; i < 5; i++) { buf[i] = cs[r & 31]; r >>= 5; }
+  buf[5] = '\0';
+  return String(buf);
+}
+
 void ensureUid() {
   prefs.begin("lplate", false);
   gUid = prefs.getString("uid", "");
-  if (gUid.length() == 0) {
-    char buf[9];
-    snprintf(buf, sizeof(buf), "%08X", (unsigned)esp_random());
-    gUid = buf;
+  if (gUid.length() != 5) {                 // empty, or an old-format id — (re)generate
+    gUid = makeUid();
     prefs.putString("uid", gUid);
     Serial.printf("generated UID %s\n", gUid.c_str());
   }
   prefs.end();
 }
 
+// BOOT-tap: unpair the plates AND take a new identity (drops phones), then reopen
+// pairing. One button = clean re-pair. Plate ESP-NOW links key off the hardware
+// MAC not the BLE name, so powered plates re-join during the new pairing window.
+static void freshPairingReset() {
+  Serial.println("FRESH PAIRING — unpair plates, new identity, reopen pairing");
+  UnpairMsg msg = {};
+  msg.version = PROTO_VERSION;
+  msg.type    = MsgType::UNPAIR;
+  for (int rep = 0; rep < 3; rep++) {          // unicast can drop; send a few times
+    for (int i = 0; i < edgeCount; i++)
+      esp_now_send(edgeMac[i], (uint8_t*)&msg, sizeof(msg));
+    delay(50);
+  }
+  edgeCount = 0;
+  saveConfig();                                // forget the plates locally
+  prefs.begin("lplate", false);
+  prefs.putString("uid", makeUid());           // new BLE identity (drops phones on restart)
+  prefs.putBool("pairboot", true);             // setup() reopens pairing after the reboot
+  prefs.end();
+  delay(150);
+  ESP.restart();
+}
+
+// Track whether a phone is connected (drives the edge's fast/slow poll cadence).
+class ServerCallbacks : public NimBLEServerCallbacks {
+  void onConnect(NimBLEServer*) override {
+    phoneConnected = true;
+    Serial.println("BLE phone connected -> fast poll");
+  }
+  void onDisconnect(NimBLEServer* s) override {
+    phoneConnected = false;
+    Serial.println("BLE phone disconnected -> idle poll");
+    NimBLEDevice::startAdvertising();
+  }
+};
+
 void initBle() {
-  String name = "LP-" + gUid;
+  String name = "Lplate-" + gUid;
   NimBLEDevice::init(name.c_str());
   NimBLEServer* server = NimBLEDevice::createServer();
+  server->setCallbacks(new ServerCallbacks());
   NimBLEService* svc   = server->createService(SVC_UUID);
   NimBLECharacteristic* ch = svc->createCharacteristic(
       CHAR_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
@@ -443,6 +499,13 @@ void setup() {
   ensureUid();
   initEspNow();
   initBle();
+
+  // If we just rebooted from a BOOT-tap fresh-pairing, reopen the 60s window now.
+  prefs.begin("lplate", false);
+  bool pairboot = prefs.getBool("pairboot", false);
+  if (pairboot) prefs.putBool("pairboot", false);
+  prefs.end();
+  if (pairboot) enterPairing();
 }
 
 // Bench testing without a physical button or app: type a letter in the serial
@@ -477,7 +540,7 @@ void handleSerial() {
 void loop() {
   handleSerial();
   switch (pollButton()) {
-    case 1: unpairAllAndRepair();  break;   // tap  : disconnect edges, wipe, re-pair
+    case 1: freshPairingReset();   break;   // tap  : unpair + new identity, reopen pairing
     case 2: factoryReset();        break;   // hold : full reset (wipes UID too)
   }
 
