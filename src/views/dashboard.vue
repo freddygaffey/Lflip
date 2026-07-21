@@ -28,7 +28,7 @@
         </ion-segment-button>
       </ion-segment>
 
-      <div class="logbook">
+      <div class="logbook" :class="{ 'logbook-night': mode === 'night' }">
         <div class="logbook-title">
           Record of Driving Hours — {{ mode === 'day' ? 'Day' : 'Night' }}
           <span class="logbook-sub">with a supervising driver</span>
@@ -271,6 +271,17 @@ onIonViewDidEnter(() => {
   border: 2px solid #1a2a5e;
   border-radius: 4px;
   overflow: hidden;
+}
+
+/* night view is themed orange to distinguish it from the day logbook.
+   the title banner AND the column-header row both recolour so the whole
+   header reads as one block instead of orange-on-navy. */
+.logbook-night {
+  border-color: #c2410c;
+}
+.logbook-night .logbook-title,
+.logbook-night .logbook-table th {
+  background: #c2410c;
 }
 
 .logbook-title {

@@ -1,10 +1,18 @@
-# This is my L plate app
+# L Flip
 
-it is  a project for my DT and IT hsc major work
+L Flip is a learner-driver logbook app with companion smart L-plate hardware,
+built for my Year 12 IT/DT major project. A learner starts a drive on their
+phone; the app logs the hours and GPS, syncs to a server, and can flip physical
+L-plates over Bluetooth. It runs as a web app and as a native (Capacitor) app.
 
-# commands 
-npm run build && npx cap sync ios && npx cap open ios
-npm run build && npx cap sync android && npx cap open android
+## Build commands
+
+Build the web app and open it in a native shell:
+
+    npm run build && npx cap sync ios && npx cap open ios
+    npm run build && npx cap sync android && npx cap open android
+
+To run and try it locally, see **[Run it locally](#run-it-locally)** below.
 
 ## The Stack
 
@@ -108,6 +116,42 @@ Approving a Trip DFD
 Low-fidelity wireframe of the main dashboard with the AI chatbot for road rules questions, progress gauges (day, total, night hours), and the drives table showing log time, distance, supervising driver, hard braking count, and approval state.
 
 Dashboard Storyboard
+
+## Run it locally
+
+The quickest way to try the app is the live site — **[https://lflip.pebnum.com](https://lflip.pebnum.com)**.
+Sign in won't work from a locally-served frontend (see [Trying the app](#trying-the-app--use-the-live-site)),
+so use the live URL for a working end-to-end run. To build and inspect the code locally:
+
+**Prerequisites**
+
+- Node 18+ and npm
+- Python 3.10+ (for the backend)
+- Xcode (only if you want the iOS build)
+
+**Frontend (web)**
+
+    npm install
+    npm run dev            # dev server, prints a http://localhost URL
+
+`npm run build` produces the production bundle in `dist/`.
+
+**Backend (main API)** — only needed if you want to run the server yourself:
+
+    cd backend
+    python3 -m venv venv && source venv/bin/activate
+    pip install -r requirements.txt
+    SECRET_KEY=dev-secret gunicorn -w 4 -b 127.0.0.1:5000 app:app
+
+There are two backends: `backend/` is the main API (accounts, trips, cars). `ai_auth_server/`
+is the AI assistant and needs a local Ollama running, so it's optional for a basic run —
+without it, everything except the AI chat works.
+
+**iOS (simulator or device)**
+
+    npm run build && npx cap sync ios && npx cap open ios
+
+then run from Xcode. Android is the same with `android` instead of `ios`.
 
 ## Deployment Architecture
 
