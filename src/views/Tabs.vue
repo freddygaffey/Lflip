@@ -11,7 +11,7 @@
           <div class="lp-record-icon">
             <span class="lp-record-dot"></span>
           </div>
-          <ion-label>Start</ion-label>
+          <ion-label>Record</ion-label>
         </ion-tab-button>
         <ion-tab-button tab="ai" href="/tabs/ai">
           <ion-icon :ios="chatbubblesOutline" :md="chatbubblesSharp"></ion-icon>
