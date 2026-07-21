@@ -17,8 +17,9 @@
         >
           <ion-label>{{ car.nickname }}</ion-label>
         </ion-item>
-        <ion-item button @click="onCarClick(null)">
-          <ion-label>Click to add car</ion-label>
+        <ion-item button @click="onCarClick(null)" class="add-row" :detail="false">
+          <ion-icon :icon="addCircleOutline" slot="start" color="primary"></ion-icon>
+          <ion-label color="primary"><strong>Add a car</strong></ion-label>
         </ion-item>
        </ion-list>
        <p class="help-link-row">
@@ -34,8 +35,9 @@
         >
           <ion-label>{{ sv.full_name }}</ion-label>
         </ion-item>
-        <ion-item button @click="onSvClick(null)">
-          <ion-label>Click to add supervisor</ion-label>
+        <ion-item button @click="onSvClick(null)" class="add-row" :detail="false">
+          <ion-icon :icon="addCircleOutline" slot="start" color="primary"></ion-icon>
+          <ion-label color="primary"><strong>Add a supervising driver</strong></ion-label>
         </ion-item>
        </ion-list>
 
@@ -88,9 +90,11 @@ import {
   IonInput,
   IonToggle,
   IonNote,
+  IonIcon,
   modalController,
   alertController,
 } from '@ionic/vue'
+import { addCircleOutline } from 'ionicons/icons'
 import { Preferences } from '@capacitor/preferences'
 import { api } from './classes/api'
 import CarFormModal from './CarFormModal.vue'
@@ -121,6 +125,8 @@ async function onCarClick(car: Car | null) {
   })
   await model.present()
   await model.onWillDismiss()
+  // refresh from the server so a just-added/edited car shows in the list
+  await carsStore.pull_cloud()
 }
 
 const svs = svsStore.svs
@@ -153,6 +159,8 @@ async function onSvClick(sv: Sv | null) {
   })
   await model.present()
   await model.onWillDismiss()
+  // refresh from the server so a just-added/edited supervisor shows in the list
+  await svsStore.pull_cloud()
 }
 type LocalTrip = { synced?: boolean }
 
@@ -270,6 +278,11 @@ h2 {
 
 ion-button {
   margin: 8px 16px;
+}
+
+.add-row ion-icon {
+  font-size: 22px;
+  margin-inline-end: 12px;
 }
 
 .help-link-row {

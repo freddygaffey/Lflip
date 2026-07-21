@@ -21,6 +21,12 @@
       <ion-button expand="block" @click="showAllPrefs" color="medium">View stored data</ion-button>
       <ion-button expand="block" @click="signOut" fill="outline" color="danger">Sign out</ion-button>
 
+      <h4 class="debug-section">Platform</h4>
+      <ion-button expand="block" @click="toggleSimulateNative" :color="simulateNative ? 'success' : 'medium'">
+        Simulate native: {{ simulateNative ? 'ON' : 'OFF' }}
+      </ion-button>
+      <p class="debug-note">Treats the web app as the phone app — needed to add cars and plates in a browser.</p>
+
       <template v-if="demoMode">
         <h4 class="debug-section">Demo data</h4>
         <ion-button expand="block" @click="seedTrips" color="warning">Load demo data</ion-button>
@@ -31,11 +37,8 @@
         <ion-button expand="block" @click="deleteCars" fill="outline" color="danger">Delete all cars</ion-button>
         <ion-button expand="block" @click="nukeAllData" color="danger">Clear everything</ion-button>
 
-        <h4 class="debug-section">Hardware &amp; platform</h4>
+        <h4 class="debug-section">Hardware</h4>
         <ion-button expand="block" @click="openMasterDebug" color="primary">L-plate master debug</ion-button>
-        <ion-button expand="block" @click="toggleSimulateNative" :color="simulateNative ? 'success' : 'medium'">
-          Simulate phone app: {{ simulateNative ? 'ON' : 'OFF' }}
-        </ion-button>
 
         <h4 class="debug-section">Other</h4>
         <ion-button expand="block" @click="topUpUsage" color="warning">Reset AI usage limit</ion-button>

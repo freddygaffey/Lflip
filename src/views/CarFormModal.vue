@@ -24,12 +24,13 @@
       class="form-field"
     />
     <ion-input
-      v-if="!noPlates"
       v-model="form.plate"
       label="Licence plate"
       label-placement="stacked"
       fill="outline"
-      class="form-field"
+      placeholder="e.g. ABC 123"
+      autocapitalize="characters"
+      class="form-field plate-field"
     />
     <ion-item lines="none">
       <ion-checkbox v-model="noPlates" slot="start"></ion-checkbox>
@@ -38,6 +39,10 @@
     <p v-if="noPlates" class="no-plates-hint">
       You can buy Flip Plates at <a href="https://example.com" target="_blank" rel="noopener">example.com</a>.
     </p>
+
+    <!-- everything below is L-plate hardware setup; hidden when the user says
+         they don't have their plates yet -->
+    <template v-if="!noPlates">
     <ion-input
       v-model="form.ble_device_name"
       label="Device"
@@ -65,7 +70,7 @@
     <p v-else-if="found.length && !showAllDevices" class="cal-hint">
       No L-plate devices found yet.
     </p>
-    <!-- L-plate masters advertise as "LP-…"; hide everything else behind a link. -->
+    <!-- L-plate controllers advertise as "Lplate-…"; hide everything else behind a link. -->
     <p v-if="!showAllDevices && otherCount" class="show-more">
       <a @click="showAllDevices = true">Show {{ otherCount }} other device{{ otherCount === 1 ? '' : 's' }}</a>
     </p>
@@ -131,11 +136,12 @@
       </div>
     </template>
 
+    </template>
+
     <ion-button
       expand="block"
       class="ion-margin-top"
       @click="save"
-      :disabled="!form.nickname.trim()"
     >
       Save
     </ion-button>
@@ -193,10 +199,11 @@ onMounted(async () => {
 const found = ref<Found[]>([])
 const scanning = ref(false)
 
-// L-plate masters advertise as "LP-…". By default only show those; the rest are
-// hidden behind a "Show more" link so the list isn't a wall of random BLE gear.
+// L-plate controllers advertise as "Lplate-…". By default only show those; the
+// rest are hidden behind a "Show more" link so the list isn't a wall of random
+// BLE gear.
 const showAllDevices = ref(false)
-const isLP = (d: Found) => (d.name ?? '').toUpperCase().startsWith('LP')
+const isLP = (d: Found) => (d.name ?? '').toUpperCase().startsWith('LPLATE-')
 const lpDevices = computed(() => found.value.filter(isLP))
 const otherCount = computed(() => found.value.length - lpDevices.value.length)
 const visibleDevices = computed(() => showAllDevices.value ? found.value : lpDevices.value)
@@ -357,6 +364,24 @@ const save = async () => {
   if (!Capacitor.isNativePlatform()) {
     alert("sorry you cant edit cars you need to be on a phone")
     return
+  }
+  // no nickname yet: ask for one in a popup instead of silently doing nothing
+  if (!form.value.nickname.trim()) {
+    const a = await alertController.create({
+      header: 'Name your car',
+      message: 'Give this car a nickname so you can tell it apart.',
+      inputs: [{ name: 'nickname', type: 'text', placeholder: "e.g. Mum's Corolla" }],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        { text: 'Save', role: 'confirm' },
+      ],
+    })
+    await a.present()
+    const { role, data } = await a.onWillDismiss()
+    if (role !== 'confirm') return
+    const name = (data?.values?.nickname || '').trim()
+    if (!name) return
+    form.value.nickname = name
   }
   const payload = {
     nickname: form.value.nickname,
