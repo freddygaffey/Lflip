@@ -199,11 +199,14 @@ onMounted(async () => {
 const found = ref<Found[]>([])
 const scanning = ref(false)
 
-// L-plate controllers advertise as "Lplate-…". By default only show those; the
-// rest are hidden behind a "Show more" link so the list isn't a wall of random
-// BLE gear.
+// L-plate controllers advertise as "Lplate-…" (also accept "Lf…" names). By
+// default only show those; the rest are hidden behind a "Show more" link so the
+// list isn't a wall of random BLE gear.
 const showAllDevices = ref(false)
-const isLP = (d: Found) => (d.name ?? '').toUpperCase().startsWith('LPLATE-')
+const isLP = (d: Found) => {
+  const n = (d.name ?? '').toUpperCase()
+  return n.startsWith('LPLATE-') || n.startsWith('LF')
+}
 const lpDevices = computed(() => found.value.filter(isLP))
 const otherCount = computed(() => found.value.length - lpDevices.value.length)
 const visibleDevices = computed(() => showAllDevices.value ? found.value : lpDevices.value)
