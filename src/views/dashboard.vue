@@ -283,6 +283,11 @@ onIonViewDidEnter(() => {
 .logbook-night .logbook-table th {
   background: #c2410c;
 }
+/* the header cells also carry a navy border - recolour it or blue lines show
+   through the orange */
+.logbook-night .logbook-table th {
+  border-color: #c2410c;
+}
 
 .logbook-title {
   background: #1a2a5e;
