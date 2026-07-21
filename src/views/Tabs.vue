@@ -7,15 +7,15 @@
           <ion-icon :ios="bookOutline" :md="bookSharp"></ion-icon>
           <ion-label>Dashboard</ion-label>
         </ion-tab-button>
+        <ion-tab-button tab="ai" href="/tabs/ai">
+          <ion-icon :ios="chatbubblesOutline" :md="chatbubblesSharp"></ion-icon>
+          <ion-label>Assistant</ion-label>
+        </ion-tab-button>
         <ion-tab-button tab="startTrip" href="/tabs/startTrip" class="lp-start-tab">
           <div class="lp-record-icon">
             <span class="lp-record-dot"></span>
           </div>
           <ion-label>Record</ion-label>
-        </ion-tab-button>
-        <ion-tab-button tab="ai" href="/tabs/ai">
-          <ion-icon :ios="chatbubblesOutline" :md="chatbubblesSharp"></ion-icon>
-          <ion-label>Assistant</ion-label>
         </ion-tab-button>
         <ion-tab-button tab="settings" href="/tabs/settings">
           <ion-icon :ios="settingsOutline" :md="settingsSharp"></ion-icon>
