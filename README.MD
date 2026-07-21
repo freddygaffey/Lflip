@@ -123,6 +123,18 @@ The system is deployed across Cloudflare and a VPS:
 
 Deploys go out via `git push` (frontend → Cloudflare auto-build) and a pull-and-restart on the VPS for the backend services.
 
+### Trying the app — use the live site
+
+**To try the app, go to [https://lflip.pebnum.com](https://lflip.pebnum.com).**
+
+Running the frontend from `localhost` and pointing it at the hosted API will **not
+sign in** — you'll get `401` errors. The auth cookie is `SameSite=Lax` and scoped to
+`.lflip.pebnum.com`, so the browser only sends it when the page is on that same site.
+From `localhost` the request to the API is cross-site, so the cookie is withheld and
+the server rejects the request. This is expected: on the deployed site the frontend and
+API share the `lflip.pebnum.com` domain, so it works there. Just use the live URL above
+(the native app avoids this entirely by using a Bearer token instead of the cookie).
+
 ### Running the backend
 
 Use **gunicorn**, not `python app.py`:

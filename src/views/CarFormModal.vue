@@ -328,9 +328,16 @@ const scan = async () => {
   }
 }
 
-const pick = (d: Found) => {
+const pick = async (d: Found) => {
   form.value.ble_device_name = d.name || d.deviceId
   found.value = []
+  // stop the running scan too, or its callback keeps re-adding devices and the
+  // list pops back up. it stays hidden until Scan is tapped again.
+  scanning.value = false
+  try {
+    const { BleClient } = await import('@capacitor-community/bluetooth-le')
+    await BleClient.stopLEScan()
+  } catch { /* nothing to stop */ }
 }
 
 const dismiss = (role: string, data?: any) =>
