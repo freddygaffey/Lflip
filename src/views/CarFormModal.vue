@@ -317,8 +317,12 @@ const scan = async () => {
     const { BleClient } = await import('@capacitor-community/bluetooth-le')
     await BleClient.initialize()
     await BleClient.requestLEScan({}, r => {
+      // The master's name rides in the scan response (the 128-bit service UUID
+      // fills the main packet), so it arrives as localName — device.name is
+      // usually undefined until we've connected once.
+      const name = r.localName ?? r.device.name
       if (!found.value.find(x => x.deviceId === r.device.deviceId)) {
-        found.value.push({ deviceId: r.device.deviceId, name: r.device.name })
+        found.value.push({ deviceId: r.device.deviceId, name })
       }
     })
     setTimeout(async () => {

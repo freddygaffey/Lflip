@@ -91,7 +91,9 @@ class PlateLink {
       let id = ''
       const stop = async () => { try { await BleClient.stopLEScan() } catch {} }
       BleClient.requestLEScan({ services: [PLATE_SERVICE] }, async r => {
-        if (!id && (r.device.name === name || r.device.deviceId === name)) {
+        // localName = the scan-response name, which is where the master's name
+        // actually lands; device.name is often undefined before a first connect.
+        if (!id && (r.localName === name || r.device.name === name || r.device.deviceId === name)) {
           id = r.device.deviceId
           await stop()
           resolve(id)
@@ -117,7 +119,7 @@ class PlateLink {
     const found: { deviceId: string; name?: string }[] = []
     await BleClient.requestLEScan({ services: [PLATE_SERVICE] }, r => {
       if (!found.find(x => x.deviceId === r.device.deviceId))
-        found.push({ deviceId: r.device.deviceId, name: r.device.name })
+        found.push({ deviceId: r.device.deviceId, name: r.localName ?? r.device.name })
     })
     await new Promise(res => setTimeout(res, ms))
     try { await BleClient.stopLEScan() } catch {}
