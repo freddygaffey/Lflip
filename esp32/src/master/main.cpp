@@ -132,6 +132,18 @@ static void factoryReset() {
 // ── ESP-NOW ─────────────────────────────────────────────────────────────────
 
 // Reply to a paired edge's poll with the current desired state.
+// ── DEMO_LOCK: the build we actually demo with ───────────────────────────────
+// A live pairing negotiation in front of an assessor is risk with no upside, so
+// this build hard-wires the link: the plate MAC is compiled in, the BLE identity
+// is fixed (so the app's saved device name can never go stale), the poll rate is
+// pinned fast, and every destructive control is disabled — a stray BOOT tap or a
+// wiped NVS cannot break the pairing. Pairing itself is unchanged in the normal
+// build; this only takes it off the critical path. Flash: -e master_demo
+#ifdef DEMO_LOCK
+constexpr uint8_t DEMO_EDGE_MAC[6] = { 0xB0, 0xA6, 0x04, 0x06, 0x23, 0xB4 };
+constexpr char    DEMO_UID[]       = "DEM01";        // 5 chars -> "Lplate-DEM01"
+#endif
+
 constexpr uint16_t FAST_POLL_MS = 300;
 constexpr uint16_t IDLE_POLL_MS = 3000;
 
@@ -140,7 +152,11 @@ static void sendCmd(const uint8_t* mac) {
   cmd.version      = PROTO_VERSION;
   cmd.type         = MsgType::CMD;
   cmd.desired      = desiredState;
+#ifdef DEMO_LOCK
+  cmd.next_poll_ms = FAST_POLL_MS;               // always responsive for the demo
+#else
   cmd.next_poll_ms = phoneConnected ? FAST_POLL_MS : IDLE_POLL_MS;
+#endif
   esp_now_send(mac, (uint8_t*)&cmd, sizeof(cmd));
 }
 
@@ -203,6 +219,9 @@ void onEspNowRecv(const uint8_t* mac, const uint8_t* data, int len) {
   if (ver != PROTO_VERSION) return;
 
   if (type == MsgType::PAIR_REQ) {
+#ifdef DEMO_LOCK
+    return;                                     // locked build: the pair list never changes
+#endif
     if (!pairing) return;                       // ignore unless we're discovering
     Serial.printf("PAIR_REQ from %02X:%02X:%02X:%02X:%02X:%02X\n",
                   mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
@@ -498,6 +517,15 @@ void setup() {
   loadConfig();
   ensureUid();
   initEspNow();
+#ifdef DEMO_LOCK
+  gUid = DEMO_UID;                               // fixed name; app binding can't go stale
+  edgeCount = 1;                                 // pairing is compiled in, not negotiated
+  memcpy(edgeMac[0], DEMO_EDGE_MAC, 6);
+  addPeer(edgeMac[0]);
+  Serial.printf("DEMO_LOCK — pinned to %02X:%02X:%02X:%02X:%02X:%02X, controls disabled\n",
+                edgeMac[0][0], edgeMac[0][1], edgeMac[0][2],
+                edgeMac[0][3], edgeMac[0][4], edgeMac[0][5]);
+#endif
   initBle();
 
   // If we just rebooted from a BOOT-tap fresh-pairing, reopen the 60s window now.
@@ -511,10 +539,17 @@ void setup() {
 // Bench testing without a physical button or app: type a letter in the serial
 // monitor.  p = discovery   u = disconnect-all + wipe + re-pair (BOOT-tap)
 //           l = list discovered   0-5 = pair that candidate
-//           r = factory reset   s = status
+//           r = factory reset   s = status   t = cycle plate L/Center/P
 void handleSerial() {
   if (!Serial.available()) return;
   char ch = Serial.read();
+#ifdef DEMO_LOCK
+  // Locked build: nothing may alter the pair list, not even over serial.
+  if (ch == 'p' || ch == 'u' || ch == 'r' || (ch >= '0' && ch <= '5')) {
+    Serial.println("DEMO_LOCK — pairing controls disabled");
+    return;
+  }
+#endif
   if (ch >= '0' && ch <= '5') {                  // pair candidate N (bench shortcut)
     int n = ch - '0';
     if (n < candCount) pairSelected(candMac[n]);
@@ -532,6 +567,11 @@ void handleSerial() {
                       candMac[i][3],candMac[i][4],candMac[i][5]);
       break;
     case 'r': factoryReset(); break;
+    case 't':                                    // bench: cycle L -> Center -> P
+      desiredState = (PlateState)(((uint8_t)desiredState + 1) % 3);
+      desiredSince = millis();
+      Serial.printf("bench toggle -> desired=%u\n", (unsigned)desiredState);
+      break;
     case 's': Serial.printf("status: %u edge(s) paired, desired=%u, pairing=%d, test=%s\n",
                             edgeCount, (unsigned)desiredState, pairing, testResult); break;
   }
@@ -539,10 +579,12 @@ void handleSerial() {
 
 void loop() {
   handleSerial();
+#ifndef DEMO_LOCK
   switch (pollButton()) {
     case 1: freshPairingReset();   break;   // tap  : unpair + new identity, reopen pairing
     case 2: factoryReset();        break;   // hold : full reset (wipes UID too)
   }
+#endif
 
   updateSelfTest();             // resolve a running self-test to pass/fail
 

@@ -5,8 +5,8 @@
 //   * Paired: poll the master for the desired plate state and act.
 //   * Button: tap = re-pair (forget master); hold 5 s = factory reset.
 //   * USB gesture: with the lead in a computer, unplug/replug it a few times in
-//     quick succession to factory-reset (see pollUsbGesture). Handy when there's
-//     no button to hand — the battery keeps the board alive while USB is out.
+//     quick succession to re-pair (see pollUsbGesture). Handy when there's no
+//     button to hand — the battery keeps the board alive while USB is out.
 //
 // (Servo + deep sleep come in a later phase; for now it logs the move.)
 #include <Arduino.h>
@@ -62,19 +62,32 @@ static int usForState(PlateState s) {
 Servo plateServo;
 
 static const uint8_t BCAST[6] = { 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF };
+// ── DEMO_LOCK: see the matching block in src/master/main.cpp ─────────────────
+// Master MAC compiled in, boots straight to ONLINE, fast poll, and the button /
+// USB gesture / UNPAIR paths are all disabled so nothing can unpair it mid-demo.
+// Flash: -e edge_demo  (must be paired with -e master_demo)
+#ifdef DEMO_LOCK
+constexpr bool     DEMO_LOCKED        = true;
+constexpr uint8_t  DEMO_MASTER_MAC[6] = { 0xB0, 0xA6, 0x04, 0x07, 0x0D, 0x30 };
+constexpr uint32_t DEMO_POLL_MS       = 300;
+#else
+constexpr bool     DEMO_LOCKED        = false;
+#endif
+
 constexpr uint32_t POLL_EVERY = 3000;   // ms between polls (30000 later)
 constexpr uint32_t REQ_EVERY  = 700;    // ms between pair requests
 constexpr uint32_t CONNECT_WINDOW = 60000;  // on boot, try saved master this long before pairing
 
-// ── "unplug/replug the USB lead a few times to factory-reset" gesture ─────────
+// ── "unplug/replug the USB lead a few times to re-pair" gesture ──────────────
 // The board is battery-powered, so pulling the lead doesn't reset it — we can
 // watch the cable come and go. The C3's native USB peripheral flags host
 // presence from the 1 kHz SOF frames the host broadcasts (HWCDC::isPlugged), so
 // this needs no extra wiring or VBUS-sense pin. Re-insert the lead this many
-// times inside the window and the plate factory-resets: same as the serial 'r'
-// key or a 5 s button hold (wipes the saved master AND servo calibration).
-constexpr uint8_t  REPLUGS_TO_RESET  = 3;      // re-insertions needed to trigger
-constexpr uint32_t GESTURE_WINDOW_MS = 12000;  // they must all land inside this
+// times inside the window and the plate forgets its master and starts
+// broadcasting to be adopted: same as the serial 'p' key or a button tap.
+constexpr uint8_t  REPLUGS_TO_PAIR   = 3;      // re-insertions needed to trigger
+constexpr uint32_t GESTURE_WINDOW_MS = 25000;  // they must all land inside this
+                                               // (a human cycle is ~4s, so 3 need ~13s)
 constexpr uint32_t PLUG_DEBOUNCE_MS  = 200;    // ignore edges faster than a human
 
 // Three-state machine driving loop():
@@ -321,6 +334,19 @@ void setup() {
   loadConfig();
   initEspNow();
 
+#ifdef DEMO_LOCK
+  paired = true;                             // compiled-in link; NVS is ignored
+  memcpy(masterMac, DEMO_MASTER_MAC, 6);
+  addMaster();
+  cmdPollMs = DEMO_POLL_MS;
+  mode = Mode::ONLINE;                       // no CONNECTING window, no seeking
+  Serial.printf("DEMO_LOCK — pinned to %02X:%02X:%02X:%02X:%02X:%02X, controls disabled\n",
+                masterMac[0], masterMac[1], masterMac[2],
+                masterMac[3], masterMac[4], masterMac[5]);
+  connectStart = millis();
+  return;
+#endif
+
   // Paired board reboot: try the saved master first (CONNECTING). A board that
   // was never paired goes straight to broadcasting (PAIRING).
   mode = paired ? Mode::CONNECTING : Mode::PAIRING;
@@ -348,13 +374,17 @@ static void blinkLed(uint8_t n) {
   }
 }
 
-// Watch the USB lead and count re-insertions; on the Nth within the window,
-// factory-reset (same as the serial 'r' key). HWCDC::isPlugged() reads the C3's
-// live host-present flag (kept up to date from USB SOF frames by a core tick
-// hook), so it's true whenever the cable is in an enumerating host, whether or
-// not a serial monitor is open. Polled often — loop() top AND during the long
-// idle wait — so a whole out-and-in can't slip between two samples. factoryReset
-// reboots, so on success this never actually returns.
+// Watch the USB lead and count re-insertions; on the Nth within the window, drop
+// the saved master and go back to broadcasting (same as the serial 'p' key), so
+// the plate can be adopted by a master in pairing mode. Servo calibration is
+// kept — use the button hold or serial 'r' for a full wipe.
+// HWCDC::isPlugged() reads the C3's live host-present flag (kept up to date from
+// USB SOF frames by a core tick hook), so it's true whenever the cable is in an
+// enumerating host, whether or not a serial monitor is open. Polled often —
+// loop() top AND during the long idle wait — so a whole out-and-in can't slip
+// between two samples.
+// NOTE: this only works on battery. With no cell fitted, pulling the lead cuts
+// power and the counter (plain statics) dies with it.
 static void pollUsbGesture() {
 #if ARDUINO_USB_CDC_ON_BOOT
   static bool     init       = false;
@@ -378,19 +408,19 @@ static void pollUsbGesture() {
     replugs = 0; firstMs = now;
   }
   replugs++;
-  Serial.printf("USB re-plug %u/%u\n", replugs, REPLUGS_TO_RESET);
+  Serial.printf("USB re-plug %u/%u\n", replugs, REPLUGS_TO_PAIR);
   blinkLed(replugs);
 
-  if (replugs >= REPLUGS_TO_RESET) {
+  if (replugs >= REPLUGS_TO_PAIR) {
     replugs = 0;
-    Serial.println("USB gesture -> factory reset");
-    factoryReset();                                               // wipes flash + reboots (never returns)
+    Serial.println("USB gesture -> pairing mode");
+    forgetMaster();                                               // -> Mode::PAIRING, starts broadcasting
   }
 #endif
 }
 
 // A delay() that keeps watching the USB lead, so an unplug/replug during a long
-// idle poll gap still registers (the gesture reboots the board when it fires).
+// idle poll gap still registers rather than being missed between polls.
 static void usbAwareDelay(uint32_t ms) {
   uint32_t start = millis();
   while (millis() - start < ms) {
@@ -401,7 +431,7 @@ static void usbAwareDelay(uint32_t ms) {
 
 // Bench testing without a physical button: type a letter in the serial monitor.
 //   p = re-pair (forget master)   r = factory reset   s = status
-//   (or, no keyboard: unplug/replug the USB lead 3x = 'r' — see pollUsbGesture)
+//   (or, no keyboard: unplug/replug the USB lead 3x = 'p' — see pollUsbGesture)
 //   c = start servo calibration; then +/- = ±25us, ]/[ = ±100us,
 //       l/m/p = save current as L / Center / P, x = finish
 void handleSerial() {
@@ -422,6 +452,12 @@ void handleSerial() {
     }
   }
 
+#ifdef DEMO_LOCK
+  if (c == 'p' || c == 'r') {                     // locked: can't drop the master
+    Serial.println("DEMO_LOCK — pairing controls disabled");
+    return;
+  }
+#endif
   switch (c) {
     case 'p': forgetMaster();   break;
     case 'r': factoryReset();   break;
@@ -562,9 +598,12 @@ static void broadcastForPairing() {
 void loop() {
   checkBattery();
   handleSerial();
+#ifndef DEMO_LOCK
   handleButton();
-  pollUsbGesture();                // unplug/replug the USB lead 3x = factory reset
+  pollUsbGesture();                // unplug/replug the USB lead 3x = re-pair
+#endif
 
+  gotUnpair = gotUnpair && !DEMO_LOCKED;   // locked build ignores an UNPAIR
   if (gotUnpair) {                 // master told us to disconnect
     gotUnpair = false;
     Serial.println("master sent UNPAIR — forgetting it and re-pairing");
