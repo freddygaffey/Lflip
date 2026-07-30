@@ -95,14 +95,13 @@ const makeDemoAccount = async () => {
   const demoEmail = `demo-${suffix}@example.com`
   const demoPwd = 'Demo!drive99'
   try {
-    const reg = await api.post('/api/register', {
+    // Don't gate on register: it can fail for reasons that don't stop the demo
+    // (already registered, backend 500). Try to sign in regardless — that's the
+    // call that actually decides whether we get in.
+    await api.post('/api/register', {
       email: demoEmail, pwd: demoPwd, f_name: 'Demo',
       l_name: 'Driver', state: 'act', licence_no: '',
-    })
-    if (reg.status !== 200) {
-      passOk.value = reg.data?.message ?? 'could not create demo account'
-      return
-    }
+    }).catch(() => null)
     const auth = await login(demoEmail, demoPwd)
     if (auth.status !== 200) {
       passOk.value = auth.data?.message ?? 'could not sign in to demo account'
