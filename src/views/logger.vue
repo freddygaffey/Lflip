@@ -52,7 +52,7 @@
   let watchId: string | null = null
   const gpsPoints: GpsPoint[] = []
   let lastLogTime = 0
-  let timeout = 1000
+  const timeout = 1000
 
   const startedLabel = ref('--:--')
   const elapsedLabel = ref('00:00:00')

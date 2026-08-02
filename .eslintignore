@@ -5,6 +5,10 @@ node_modules
 /ios
 /android
 
+# python virtualenv — site-packages ships its own JS (werkzeug debugger,
+# urllib3 web workers) which isn't ours to lint
+/venv
+
 
 # local env files
 .env.local

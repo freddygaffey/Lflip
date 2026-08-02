@@ -97,7 +97,7 @@ const needsSetup = computed(() => cars.value.length === 0)
 const goAddCar = () => router.push('/tabs/settings')
 
 const mode = ref<'day' | 'night'>('day')
-let status = ref('syncing')
+const status = ref('syncing')
 const totalDay = ref('')
 const totalNight = ref('')
 const total = ref('')
