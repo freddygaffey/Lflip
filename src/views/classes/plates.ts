@@ -89,7 +89,8 @@ class PlateLink {
     const { BleClient } = await import('@capacitor-community/bluetooth-le')
     return await new Promise<string>(resolve => {
       let id = ''
-      const stop = async () => { try { await BleClient.stopLEScan() } catch {} }
+      // stopping a scan that already stopped throws; nothing to recover from
+      const stop = async () => { try { await BleClient.stopLEScan() } catch { /* already stopped */ } }
       BleClient.requestLEScan({ services: [PLATE_SERVICE] }, async r => {
         // localName = the scan-response name, which is where the master's name
         // actually lands; device.name is often undefined before a first connect.
@@ -122,7 +123,7 @@ class PlateLink {
         found.push({ deviceId: r.device.deviceId, name: r.localName ?? r.device.name })
     })
     await new Promise(res => setTimeout(res, ms))
-    try { await BleClient.stopLEScan() } catch {}
+    try { await BleClient.stopLEScan() } catch { /* already stopped */ }
     return found
   }
 
@@ -150,7 +151,7 @@ class PlateLink {
       this.connected.value = false
       this.deviceId = ''
       this.status.value = 'off'
-      try { await BleClient.disconnect(deviceId) } catch {}
+      try { await BleClient.disconnect(deviceId) } catch { /* tidying up a failed connect */ }
       throw e
     }
     this.deviceId = deviceId
@@ -214,7 +215,7 @@ class PlateLink {
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le')
       await BleClient.disconnect(id)
-    } catch {}
+    } catch { /* already disconnected, or the device went away */ }
   }
 }
 

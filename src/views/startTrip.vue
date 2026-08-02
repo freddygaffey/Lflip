@@ -22,7 +22,7 @@
             <ion-select label="Car" label-placement="stacked" placeholder="Pick a car" interface="popover" v-model="selectedCarId">
               <ion-select-option value="null">Guest Car</ion-select-option>
               <ion-select-option
-              v-for="(c, i) in cars"
+              v-for="c in cars"
               :key="c.id"
               :value="c.id"
                >{{ c.nickname }}</ion-select-option>
@@ -36,7 +36,7 @@
             <ion-select label="Supervising Driver" label-placement="stacked" placeholder="Pick a driver" interface="popover" v-model="selectedSvId">
               <ion-select-option :value="null">Guest Driver</ion-select-option>
               <ion-select-option
-              v-for="(sv, i) in svs"
+              v-for="sv in svs"
               :key="sv.id"
               :value="sv.id"
                >{{ sv.full_name }}</ion-select-option>

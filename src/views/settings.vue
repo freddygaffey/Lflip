@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import {
   IonPage,
   IonContent,
@@ -84,10 +84,8 @@ import {
   IonTitle,
   IonButton,
   IonList,
-  IonListHeader,
   IonItem,
   IonLabel,
-  IonInput,
   IonToggle,
   IonNote,
   IonIcon,
@@ -130,7 +128,6 @@ async function onCarClick(car: Car | null) {
 }
 
 const svs = svsStore.svs
-const newSv = ref({ full_name: '', licence_no: ''})
 
 const aiPrefs = aiPrefsStore.prefs
 

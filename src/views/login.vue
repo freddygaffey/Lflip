@@ -28,7 +28,7 @@
   
   <script setup lang="ts">
 import { IonButton, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonList, IonItem, onIonViewWillEnter } from '@ionic/vue';
-import { ref, warn } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Preferences } from '@capacitor/preferences'
 import { api, login } from './classes/api'

@@ -326,7 +326,7 @@ const scan = async () => {
       }
     })
     setTimeout(async () => {
-      try { await BleClient.stopLEScan() } catch {}
+      try { await BleClient.stopLEScan() } catch { /* already stopped */ }
       scanning.value = false
     }, 5000)
   } catch (e) {
