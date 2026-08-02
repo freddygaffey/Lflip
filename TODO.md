@@ -14,8 +14,10 @@ Bugs with reproduction steps live in `BUGS.md`. This is the work list.
       this machine. Generate a new keypair, add the new public key to the server's
       `authorized_keys`, remove the old one. The file is deleted and gitignored, but
       deleting a leaked key doesn't unleak it.
-- [ ] **Deploy the backend.** The CORS anchor fix (`3657dda`) is committed but the VPS
-      is still running the old code. Run `pull_and_restart.sh`. Keep dev == main.
+- [x] ~~**Deploy the backend.**~~ CORS anchor fix (`3657dda`) deployed 2026-08-02 and
+      verified live against `api.lflip.pebnum.com`: `http://localhost.evil.com` and
+      `https://evil.com` are refused, `http://localhost:5173` and
+      `https://lflip.pebnum.com` still allowed.
 
 ## Hardware — nothing below has ever run on a board
 
