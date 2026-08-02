@@ -25,9 +25,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Pair with your car's odometer device.</string>
+	<string>Connects to your L-plate controller so the app can raise and lower the plates on your car.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Pair with your car's odometer device.</string>
+	<string>Connects to your L-plate controller so the app can raise and lower the plates on your car.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app uses your location to track driving trips in the background.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
