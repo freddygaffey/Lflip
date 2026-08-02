@@ -40,7 +40,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 CORS(app, supports_credentials=True,
-     origins=["https://lflip.pebnum.com", "capacitor://localhost", r"http://localhost(:\d+)?"])
+     origins=["https://lflip.pebnum.com", "capacitor://localhost", r"^http://localhost(:\d+)?$"])
 
 def handle_validation_error(f):
     @wraps(f)
