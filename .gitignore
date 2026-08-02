@@ -54,3 +54,10 @@ cap_app/instance/
 
 # local sqlite db (user data — never commit)
 instance/
+
+# credentials — never commit
+keys_to_the_server.txt
+*.pem
+*.key
+id_rsa*
+id_ed25519*
