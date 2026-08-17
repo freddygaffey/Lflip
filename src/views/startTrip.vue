@@ -8,10 +8,13 @@
     <ion-content class="ion-padding">
       <div class="trip-form">
         <div class="start-circle-wrap">
-          <button class="start-circle" :disabled="!canStart" @click="start">
+          <button class="start-circle" :class="{ pending: canStart && platesPending }" :disabled="!canStart" @click="start">
             Start<br />Trip
           </button>
         </div>
+        <p class="plate-hint" v-if="expectsPlates">
+          {{ plateConnected ? 'L-plates connected' : 'Connecting to L-plates…' }}
+        </p>
 
         <ion-list lines="none" class="trip-list">
           <ion-item>
@@ -55,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-  import { onIonViewWillEnter, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonList, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
+  import { onIonViewWillEnter, onIonViewWillLeave, alertController, IonInput, IonContent, IonPage, IonHeader, IonToolbar, IonTitle, IonList, IonItem, IonSelect, IonSelectOption } from '@ionic/vue';
   import { Geolocation } from '@capacitor/geolocation'
   import { Capacitor } from '@capacitor/core'
   import { ref, watch } from 'vue';
@@ -63,6 +66,7 @@
   import { useRouter } from 'vue-router';
   import { carsStore } from './classes/cars';
   import { svsStore } from './classes/svs';
+  import { plateLink } from './classes/plates';
   import { computed } from 'vue'
 
   // hardware-capable if on a real device, OR if the debug "simulate native" flag is on
@@ -75,6 +79,12 @@
       alert('You need to be on a phone to start a trip (or enable "Simulate native" in debug).')
       router.push('/marketing')
     }
+
+    // back on this screen: the recording screen owns the link during a trip,
+    // so reclaim it (or restart it) for whatever car is still selected
+    handedOff = false
+    const car = selectedCar.value
+    if (car?.ble_device_name && !plateLink.connected.value) plateLink.connect(car)
 
     // prefill the start odo from the most recently finished trip's end odo
     const { value: tripsValue } = await Preferences.get({ key: 'trips' })
@@ -102,8 +112,23 @@
 
   const router = useRouter()
 
-  // when a car is picked, prefill the start odo with that car's last known end odo
+  // Plate link, started here so the button can show readiness BEFORE the trip:
+  // green = plates connected (or car has none), amber = still trying. If the
+  // user starts while it's amber they get the choice to go on without plates.
+  const plateConnected = plateLink.connected
+  const selectedCar = computed(() =>
+    typeof selectedCarId.value === 'number' ? carsStore.get_car_by_id(selectedCarId.value) : undefined)
+  const expectsPlates = computed(() => !!selectedCar.value?.ble_device_name)
+  const platesPending = computed(() => expectsPlates.value && !plateConnected.value)
+  let handedOff = false   // true while navigating to the recording screen, which takes over the link
+
+  // when a car is picked, prefill the start odo with that car's last known end
+  // odo, and start connecting to its plates (if it has any) in the background
   watch(selectedCarId, async (carId) => {
+    const car = selectedCar.value
+    if (car?.ble_device_name) plateLink.connect(car)
+    else plateLink.disconnect()
+
     if (carId === null) return
     const { value: tripsValue } = await Preferences.get({ key: 'trips' })
     const trips = tripsValue ? JSON.parse(tripsValue) : []
@@ -112,6 +137,9 @@
       .pop()
     if (lastTrip) start_odo.value = String(lastTrip.end_odo)
   })
+
+  // don't hold the BLE link if the user wanders off without starting a trip
+  onIonViewWillLeave(() => { if (!handedOff) plateLink.disconnect() })
 
     // const { value } = await Preferences.get({key: 'odo'})
     // const odo = parseFloat(value ?? "0")
@@ -123,6 +151,22 @@
     //   )
 
   const start = async () => {
+    // Fail-safe: plates expected but not reachable — the drive still matters
+    // more than the hardware, so offer to log it anyway (flip plates by hand).
+    if (platesPending.value) {
+      const alert = await alertController.create({
+        header: 'L-plates not connected',
+        message: "Can't reach this car's L-plates yet. Start anyway and flip them by hand, or wait for them to connect.",
+        buttons: [
+          { text: 'Wait', role: 'cancel' },
+          { text: 'Start anyway', role: 'confirm' },
+        ],
+      })
+      await alert.present()
+      const { role } = await alert.onDidDismiss()
+      if (role !== 'confirm') return
+    }
+    handedOff = true
     const newTrip = {
       start_time: Date.now(),
       end_time: null,
@@ -207,6 +251,19 @@
   background: var(--ion-color-medium);
   box-shadow: none;
   opacity: 0.6;
+}
+
+/* startable, but the car's L-plates haven't connected yet */
+.start-circle.pending {
+  background: var(--ion-color-warning);
+  box-shadow: 0 6px 20px rgba(224, 168, 0, 0.4);
+}
+
+.plate-hint {
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--ion-color-medium);
+  margin: -16px 0 16px;
 }
 </style>
 

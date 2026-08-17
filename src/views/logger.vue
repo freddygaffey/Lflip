@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, onUnmounted } from 'vue';
+  import { ref, watch, onMounted, onUnmounted, type WatchStopHandle } from 'vue';
   import { IonPage, IonContent, IonHeader, IonToolbar, IonTitle, IonButton, IonCard, IonList, IonItem, IonLabel, onIonViewDidEnter, onIonViewWillLeave } from '@ionic/vue';
   import { useRouter } from 'vue-router';
   import { Capacitor, registerPlugin } from '@capacitor/core';
@@ -58,6 +58,7 @@
   const elapsedLabel = ref('00:00:00')
   let startTime = Date.now()
   let elapsedTimer: ReturnType<typeof setInterval> | null = null
+  let plateWatch: WatchStopHandle | null = null
 
   const updateElapsed = () => {
     const diff = Math.max(0, Date.now() - startTime)
@@ -128,14 +129,27 @@
       if (carId != null) {
         if (!carsStore.cars.value.length) await carsStore.load_cache()
         const car = carsStore.get_car_by_id(carId)
-        if (car) await plateLink.connect(car)
+        if (car) {
+          // Flip to L whenever the link comes up — not just once, so a hub that
+          // rebooted (and forgot its state) gets re-flipped on reconnect.
+          plateWatch = watch(plateLink.connected, async (up) => {
+            if (!up) return
+            try { await plateLink.setPlates(0) }
+            catch (e) { console.error('plate flip failed', e) }
+          }, { immediate: true })
+          await plateLink.connect(car)
+        }
       }
     } catch (e) {
       console.error('plate connect (trip) failed', e)
     }
   })
-  onIonViewWillLeave(() => {
+  onIonViewWillLeave(async () => {
     stopWatching()
+    if (plateWatch) { plateWatch(); plateWatch = null }
+    // Trip over: plates back to center (off) before we let the link go.
+    try { if (plateLink.connected.value) await plateLink.setPlates(1) }
+    catch (e) { console.error('plate center failed', e) }
     plateLink.disconnect()
   })
   const cancel = async () => {
