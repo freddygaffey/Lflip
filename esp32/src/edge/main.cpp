@@ -74,6 +74,18 @@ constexpr uint32_t DEMO_POLL_MS       = 300;
 constexpr bool     DEMO_LOCKED        = false;
 #endif
 
+// ── Ship mode: asleep until first plugged in ─────────────────────────────────
+// A plate leaves the factory dormant so it can't flatten its cell sitting in a
+// box. The first time it sees a USB host it commissions itself, and from then
+// on it boots normally forever — the gate is a one-way door.
+//
+// The C3 can't be woken by USB (no VBUS on a wake-capable pin), so we wake on a
+// timer, look, and sleep again. Two escape hatches so a bad reading can never
+// strand a plate: holding the button at any wake also commissions it, and after
+// SHIP_MAX_WAKES it gives up and commissions anyway.
+constexpr uint32_t SHIP_WAKE_S    = 8;      // look for a host this often
+constexpr uint32_t SHIP_MAX_WAKES = 10800;  // ~24h, then commission regardless
+
 constexpr uint32_t POLL_EVERY = 3000;   // ms between polls (30000 later)
 constexpr uint32_t REQ_EVERY  = 700;    // ms between pair requests
 constexpr uint32_t CONNECT_WINDOW = 60000;  // on boot, try saved master this long before pairing
@@ -124,6 +136,40 @@ static void saveConfig() {
   prefs.putBool("paired", paired);
   prefs.putBytes("mmac", masterMac, 6);
   prefs.end();
+}
+
+// Survives deep sleep but not a power cut — a plate that loses power entirely
+// simply restarts the count, which is the safe direction.
+RTC_DATA_ATTR uint32_t shipWakes = 0;
+
+// Runs before anything else in setup(). Returns only if the plate is (or has
+// just become) commissioned; otherwise it deep-sleeps and never returns.
+static void shipModeGate() {
+#if defined(DEMO_LOCK) || !ARDUINO_USB_CDC_ON_BOOT
+  return;                                    // demo build must always just run
+#else
+  prefs.begin("lplate", false);
+  if (prefs.getBool("comm", false)) { prefs.end(); return; }   // already awake, forever
+
+  delay(400);                                // let the USB peripheral see SOF frames
+  bool plugged = HWCDC::isPlugged();
+  bool held    = digitalRead(PIN_BUTTON) == LOW;
+  shipWakes++;
+
+  if (plugged || held || shipWakes >= SHIP_MAX_WAKES) {
+    prefs.putBool("comm", true);
+    prefs.end();
+    Serial.printf("commissioned (%s) — normal boot from now on\n",
+                  plugged ? "USB" : held ? "button" : "timeout");
+    return;
+  }
+  prefs.end();
+
+  Serial.printf("ship mode — asleep until first plug-in (look %u)\n", shipWakes);
+  Serial.flush();
+  esp_sleep_enable_timer_wakeup((uint64_t)SHIP_WAKE_S * 1000000ULL);
+  esp_deep_sleep_start();
+#endif
 }
 
 static void loadConfig() {
@@ -331,6 +377,7 @@ void setup() {
   digitalWrite(PIN_SERVO_PWR, LOW);          // servo unpowered at boot
   pinMode(PIN_SERVO_PWM, OUTPUT);
   digitalWrite(PIN_SERVO_PWM, LOW);          // idle the signal line (no backfeed)
+  shipModeGate();                            // may deep-sleep; never returns if so
   loadConfig();
   initEspNow();
 
@@ -462,8 +509,14 @@ void handleSerial() {
     case 'p': forgetMaster();   break;
     case 'r': factoryReset();   break;
     case 'c': servoJog(1500);   break;            // start calibration, centred
-    case 's': Serial.printf("status: paired=%d, myState=%u, L=%dus C=%dus P=%dus\n",
-                            paired, (unsigned)myState, lUs, centerUs, pUs); break;
+    case 's': Serial.printf("status: paired=%d, myState=%u, L=%dus C=%dus P=%dus, usb=%d\n",
+                            paired, (unsigned)myState, lUs, centerUs, pUs,
+#if ARDUINO_USB_CDC_ON_BOOT
+                            (int)HWCDC::isPlugged()
+#else
+                            -1
+#endif
+                            ); break;
   }
 }
 
