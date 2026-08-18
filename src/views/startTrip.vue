@@ -8,12 +8,14 @@
     <ion-content class="ion-padding">
       <div class="trip-form">
         <div class="start-circle-wrap">
-          <button class="start-circle" :class="{ pending: canStart && platesPending }" :disabled="!canStart" @click="start">
+          <button class="start-circle" :class="{ pending: canStart && plateWarn }" :disabled="!canStart" @click="start">
             Start<br />Trip
           </button>
         </div>
-        <p class="plate-hint" v-if="expectsPlates">
-          {{ plateConnected ? 'L-plates connected' : 'Connecting to L-plates…' }}
+        <p class="plate-hint" :class="{ warn: plateConnected && followerDown }" v-if="expectsPlates">
+          {{ !plateConnected ? 'Connecting to L-plates…'
+             : followerDown ? 'Connected, but a plate is not responding'
+             : 'L-plates connected' }}
         </p>
 
         <ion-list lines="none" class="trip-list">
@@ -85,6 +87,8 @@
     handedOff = false
     const car = selectedCar.value
     if (car?.ble_device_name && !plateLink.connected.value) plateLink.connect(car)
+    if (statPoll) clearInterval(statPoll)
+    statPoll = setInterval(checkFollowers, 2000)
 
     // prefill the start odo from the most recently finished trip's end odo
     const { value: tripsValue } = await Preferences.get({ key: 'trips' })
@@ -120,12 +124,27 @@
     typeof selectedCarId.value === 'number' ? carsStore.get_car_by_id(selectedCarId.value) : undefined)
   const expectsPlates = computed(() => !!selectedCar.value?.ble_device_name)
   const platesPending = computed(() => expectsPlates.value && !plateConnected.value)
+  // A follower plate that has stopped polling the hub. The hub is e[0] in the
+  // status JSON, so everything after it is a follower; age -1 = never heard,
+  // 8 s matches the firmware's own stale threshold.
+  const followerDown = ref(false)
+  const plateWarn = computed(() => platesPending.value || followerDown.value)
+  let statPoll: ReturnType<typeof setInterval> | null = null
   let handedOff = false   // true while navigating to the recording screen, which takes over the link
+
+  const checkFollowers = async () => {
+    if (!plateLink.connected.value) { followerDown.value = false; return }
+    try {
+      const st = await plateLink.readStatus()
+      followerDown.value = st.e.slice(1).some(e => e.age < 0 || e.age > 8000)
+    } catch { /* transient read — keep the last verdict */ }
+  }
 
   // when a car is picked, prefill the start odo with that car's last known end
   // odo, and start connecting to its plates (if it has any) in the background
   watch(selectedCarId, async (carId) => {
     const car = selectedCar.value
+    followerDown.value = false
     if (car?.ble_device_name) plateLink.connect(car)
     else plateLink.disconnect()
 
@@ -139,7 +158,10 @@
   })
 
   // don't hold the BLE link if the user wanders off without starting a trip
-  onIonViewWillLeave(() => { if (!handedOff) plateLink.disconnect() })
+  onIonViewWillLeave(() => {
+    if (statPoll) { clearInterval(statPoll); statPoll = null }
+    if (!handedOff) plateLink.disconnect()
+  })
 
     // const { value } = await Preferences.get({key: 'odo'})
     // const odo = parseFloat(value ?? "0")
@@ -153,10 +175,12 @@
   const start = async () => {
     // Fail-safe: plates expected but not reachable — the drive still matters
     // more than the hardware, so offer to log it anyway (flip plates by hand).
-    if (platesPending.value) {
+    if (platesPending.value || followerDown.value) {
       const alert = await alertController.create({
-        header: 'L-plates not connected',
-        message: "Can't reach this car's L-plates yet. Start anyway and flip them by hand, or wait for them to connect.",
+        header: platesPending.value ? 'L-plates not connected' : 'A plate is not responding',
+        message: platesPending.value
+          ? "Can't reach this car's L-plates yet. Start anyway and flip them by hand, or wait for them to connect."
+          : 'One plate has stopped answering the hub — it may be flat or asleep. The other plate will still flip. Start anyway?',
         buttons: [
           { text: 'Wait', role: 'cancel' },
           { text: 'Start anyway', role: 'confirm' },
@@ -264,6 +288,11 @@
   font-size: 13.5px;
   color: var(--ion-color-medium);
   margin: -16px 0 16px;
+}
+
+.plate-hint.warn {
+  color: var(--ion-color-warning-shade);
+  font-weight: 600;
 }
 </style>
 
