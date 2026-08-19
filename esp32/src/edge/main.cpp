@@ -88,7 +88,8 @@ constexpr uint32_t SHIP_MAX_WAKES = 10800;  // ~24h, then commission regardless
 
 constexpr uint32_t POLL_EVERY = 3000;   // ms between polls (30000 later)
 constexpr uint32_t REQ_EVERY  = 700;    // ms between pair requests
-constexpr uint32_t CONNECT_WINDOW = 60000;  // on boot, try saved master this long before pairing
+constexpr uint32_t CONNECT_WINDOW = 60000;  // fast-retry window after boot...
+constexpr uint32_t SEEK_RETRY_MS  = 5000;   // ...then keep seeking at this gentler pace
 
 // ── "unplug/replug the USB lead a few times to re-pair" gesture ──────────────
 // The board is battery-powered, so pulling the lead doesn't reset it — we can
@@ -559,33 +560,22 @@ static void handleButton() {
 }
 
 // CONNECTING — a paired board that just booted. Poke the saved master and listen.
+// Never gives up: the hub may simply not be powered yet, and power-up order must
+// not matter (giving up here is what made a plate look dead until a power-cycle).
+// Retries are ~1/s for the first minute, then back right off to spare the cell.
+// Only the button, serial 'p' or the USB gesture can abandon a saved master now.
 static void tryReconnect() {
+  static uint32_t lastTry = 0;
+  uint32_t gap = (millis() - connectStart > CONNECT_WINDOW) ? SEEK_RETRY_MS : 500;
+  if (lastTry && millis() - lastTry < gap) { delay(20); return; }  // loop() keeps running -> button stays live
+  lastTry = millis();
+
   digitalWrite(PIN_LED, HIGH);               // solid LED = trying to reconnect
   gotCmd = false;
   sendPoll();
   uint32_t start = millis();
   while (!gotCmd && millis() - start < 500) { delay(5); }
-
-  // >>> TODO 1 <<<  Master replied this round? (the callback set gotCmd = true)
-  //   If so, switch mode to Mode::ONLINE and `return;`.
-  //
-  if (gotCmd){ if (mode == Mode::CONNECTING) {
-    mode = Mode::ONLINE;
-    return;
-  }}
-
-
-  // >>> TODO 2 <<<  Silent for the whole window?
-  //   Compare millis() - connectStart against CONNECT_WINDOW (rollover-safe form).
-  //   If past it: set paired = false; set mode = Mode::PAIRING; then return.
-  //   EXERCISE: why set paired = false first? Press `gd` on onEspNowRecv and read
-  //   what it checks before accepting a PAIR_ACK. Write the answer in a comment.
-
-  if (millis() - connectStart > CONNECT_WINDOW){
-    paired = false;
-    mode = Mode::PAIRING;
-  } 
-  delay(500);                                // retry cadence while connecting
+  if (gotCmd) mode = Mode::ONLINE;
 }
 
 // ONLINE — the normal job: ask the master what state it wants, move if needed.
