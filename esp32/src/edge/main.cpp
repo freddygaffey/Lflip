@@ -88,8 +88,8 @@ constexpr uint32_t SHIP_MAX_WAKES = 10800;  // ~24h, then commission regardless
 
 constexpr uint32_t POLL_EVERY = 3000;   // ms between polls (30000 later)
 constexpr uint32_t REQ_EVERY  = 700;    // ms between pair requests
-constexpr uint32_t CONNECT_WINDOW = 60000;  // fast-retry window after boot...
-constexpr uint32_t SEEK_RETRY_MS  = 5000;   // ...then keep seeking at this gentler pace
+constexpr uint32_t SEEK_RETRY_MIN_MS = 500;    // first retry gap after boot
+constexpr uint32_t SEEK_RETRY_MAX_MS = 60000;  // backoff cap = worst-case reconnect delay
 
 // ── "unplug/replug the USB lead a few times to re-pair" gesture ──────────────
 // The board is battery-powered, so pulling the lead doesn't reset it — we can
@@ -562,11 +562,12 @@ static void handleButton() {
 // CONNECTING — a paired board that just booted. Poke the saved master and listen.
 // Never gives up: the hub may simply not be powered yet, and power-up order must
 // not matter (giving up here is what made a plate look dead until a power-cycle).
-// Retries are ~1/s for the first minute, then back right off to spare the cell.
-// Only the button, serial 'p' or the USB gesture can abandon a saved master now.
+// Exponential backoff: each silent try doubles the gap up to a 60 s cap, so a
+// long separation costs little battery and reconnection is at most a minute
+// late. Only the button, serial 'p' or the USB gesture abandon a saved master.
 static void tryReconnect() {
   static uint32_t lastTry = 0;
-  uint32_t gap = (millis() - connectStart > CONNECT_WINDOW) ? SEEK_RETRY_MS : 500;
+  static uint32_t gap = SEEK_RETRY_MIN_MS;
   if (lastTry && millis() - lastTry < gap) { delay(20); return; }  // loop() keeps running -> button stays live
   lastTry = millis();
 
@@ -575,7 +576,9 @@ static void tryReconnect() {
   sendPoll();
   uint32_t start = millis();
   while (!gotCmd && millis() - start < 500) { delay(5); }
-  if (gotCmd) mode = Mode::ONLINE;
+  if (gotCmd) { gap = SEEK_RETRY_MIN_MS; mode = Mode::ONLINE; return; }
+  gap *= 2;
+  if (gap > SEEK_RETRY_MAX_MS) gap = SEEK_RETRY_MAX_MS;
 }
 
 // ONLINE — the normal job: ask the master what state it wants, move if needed.
