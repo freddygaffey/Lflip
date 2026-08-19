@@ -80,11 +80,10 @@ constexpr bool     DEMO_LOCKED        = false;
 // on it boots normally forever — the gate is a one-way door.
 //
 // The C3 can't be woken by USB (no VBUS on a wake-capable pin), so we wake on a
-// timer, look, and sleep again. Two escape hatches so a bad reading can never
-// strand a plate: holding the button at any wake also commissions it, and after
-// SHIP_MAX_WAKES it gives up and commissions anyway.
+// timer, look, and sleep again. Commissioning happens ONLY on the first plug-in
+// (or a deliberate button hold at a wake) — no timeout, so a boxed plate can
+// never quietly wake itself up and start draining its cell.
 constexpr uint32_t SHIP_WAKE_S    = 8;      // look for a host this often
-constexpr uint32_t SHIP_MAX_WAKES = 10800;  // ~24h, then commission regardless
 
 constexpr uint32_t POLL_EVERY = 3000;   // ms between polls (30000 later)
 constexpr uint32_t REQ_EVERY  = 700;    // ms between pair requests
@@ -157,11 +156,11 @@ static void shipModeGate() {
   bool held    = digitalRead(PIN_BUTTON) == LOW;
   shipWakes++;
 
-  if (plugged || held || shipWakes >= SHIP_MAX_WAKES) {
+  if (plugged || held) {
     prefs.putBool("comm", true);
     prefs.end();
     Serial.printf("commissioned (%s) — normal boot from now on\n",
-                  plugged ? "USB" : held ? "button" : "timeout");
+                  plugged ? "USB" : "button");
     return;
   }
   prefs.end();

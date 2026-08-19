@@ -117,8 +117,8 @@ constexpr uint16_t FAST_POLL_MS = 300;
 constexpr uint16_t IDLE_POLL_MS = 3000;
 
 // ── Ship mode: asleep until first plugged in (same one-way gate as the edge) ─
+// Commissioning happens ONLY on first plug-in or a button hold — no timeout.
 constexpr uint32_t SHIP_WAKE_S    = 8;
-constexpr uint32_t SHIP_MAX_WAKES = 10800;  // ~24h, then commission regardless
 
 // ── "unplug/replug the USB lead a few times to re-pair" gesture ────────────
 constexpr uint8_t  REPLUGS_TO_PAIR   = 3;
@@ -214,11 +214,11 @@ static void shipModeGate() {
   bool held    = digitalRead(PIN_BUTTON) == LOW;
   shipWakes++;
 
-  if (plugged || held || shipWakes >= SHIP_MAX_WAKES) {
+  if (plugged || held) {
     prefs.putBool("comm", true);
     prefs.end();
     Serial.printf("commissioned (%s) — normal boot from now on\n",
-                  plugged ? "USB" : held ? "button" : "timeout");
+                  plugged ? "USB" : "button");
     return;
   }
   prefs.end();
