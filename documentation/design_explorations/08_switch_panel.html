@@ -183,6 +183,18 @@ body{background:var(--canvas);color:var(--light);
 .eval .g h4{color:var(--lp-green)} .eval .b h4{color:var(--lp-red)} .eval .w h4{color:var(--lp-yellow)}
 .eval p{font-size:12.5px;line-height:1.6;color:#c9c9c9}
 .eval>div{flex:1}
+/* ---------- interactive demo ---------- */
+.demo-head{text-align:center;margin:46px 0 22px}
+.demo-head .no{font-size:13px;letter-spacing:.22em;color:var(--grey)}
+.demo-head h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+.demo-head p{font-size:13px;color:var(--grey);max-width:460px;margin:6px auto 0}
+.demo-stage{display:flex;justify-content:center}
+.tgl{cursor:pointer}
+.tgl .paddle{transition:top .18s ease,bottom .18s ease,transform .18s ease,background .18s ease}
+.master-track{cursor:pointer}
+.master-paddle{transition:top .2s ease,bottom .2s ease,background .2s ease,box-shadow .2s ease}
+.flap{transition:top .22s ease,bottom .22s ease,height .22s ease,transform .22s ease}
+.lamp{transition:background .2s ease,box-shadow .2s ease}
 </style>
 
 <div class="page-head">
@@ -453,6 +465,227 @@ body{background:var(--canvas);color:var(--light);
   </div>
 
 </div>
+
+<div class="demo-head">
+  <span class="no">INTERACTIVE</span>
+  <h2>Try it</h2>
+  <p>Tap CAR, SUPERVISOR or ODOMETER to flip them. PLATES throws itself when the simulated BLE link connects. Once all four are up the guard flap opens &mdash; throw the master switch to start, throw it back to stop.</p>
+</div>
+<div class="demo-stage">
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">9:41</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2 id="d8-title">Pre-flight</h2></span>
+        <span class="date" id="d8-date">Sun 17 Aug</span>
+      </div>
+
+      <div id="d8-panel">
+        <div class="panel-grid">
+          <div class="sw-row2">
+            <div class="sw-cell small">
+              <div class="sw-top"><b class="sw-lbl">CAR</b></div>
+              <div class="sw-body">
+                <div class="sw-info"><div class="sw-val">Mum&rsquo;s Corolla</div><div class="sw-sub">YLC 88F</div></div>
+                <div class="tgl up" id="d8-tgl-car"><span class="paddle"><i></i></span></div>
+              </div>
+            </div>
+            <div class="sw-cell small">
+              <div class="sw-top"><b class="sw-lbl">SUPERVISOR</b></div>
+              <div class="sw-body">
+                <div class="sw-info"><div class="sw-val">Sarah Whitman</div><div class="sw-sub">Full licence &middot; 12 yrs</div></div>
+                <div class="tgl up" id="d8-tgl-sup"><span class="paddle"><i></i></span></div>
+              </div>
+              <div class="sw-note">guest &rarr; name + licence</div>
+            </div>
+          </div>
+
+          <div class="sw-cell">
+            <div class="sw-top"><b class="sw-lbl">ODOMETER</b><span class="sw-unit">km at start</span></div>
+            <div class="sw-body">
+              <div class="stepper">
+                <div class="digits"><b>0</b><b>4</b><b>8</b><b>4</b><b>6</b><b class="last">8</b></div>
+                <div class="stepbtns"><span class="stepbtn"><i class="ch u s"></i></span><span class="stepbtn"><i class="ch d s"></i></span></div>
+              </div>
+              <div class="tgl up" id="d8-tgl-odo"><span class="paddle"><i></i></span></div>
+            </div>
+          </div>
+
+          <div class="sw-cell">
+            <div class="sw-top"><b class="sw-lbl">PLATES</b><span class="lamp amber" id="d8-lamp-plates"></span></div>
+            <div class="sw-body">
+              <div class="sw-info"><div class="sw-val" id="d8-plates-val">Searching for link&hellip;</div><div class="sw-sub" id="d8-plates-sub">rear found &middot; front pending</div></div>
+              <div class="tgl mid" id="d8-tgl-plates"><span class="paddle"><i></i></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="d8-rec" style="display:none">
+        <div class="ann-strip">
+          <div class="ann-item"><span class="lamp green"></span><span>CAR</span></div>
+          <div class="ann-item"><span class="lamp green"></span><span>SUP</span></div>
+          <div class="ann-item"><span class="lamp green"></span><span>ODO</span></div>
+          <div class="ann-item"><span class="lamp green"></span><span>PLATES</span></div>
+        </div>
+
+        <div class="rec-zone">
+          <div class="rec-lamp-row"><span class="lamp red"></span><b>RECORDING</b></div>
+          <div class="timer" id="d8-timer">00:00:00</div>
+          <div class="timer-sub" id="d8-timer-sub">started &middot; Kambah, ACT</div>
+        </div>
+
+        <div class="rec-odo-row">
+          <div class="digits"><b>0</b><b>4</b><b>8</b><b>4</b><b>8</b><b class="last">2</b></div>
+        </div>
+        <div class="rec-odo-cap">LIVE ODOMETER &middot; KM</div>
+
+        <div class="rec-facts">
+          <div class="fact"><b>14.6</b><span>km this drive</span></div>
+          <div class="fact"><b>61</b><span>km/h now</span></div>
+          <div class="fact"><b>87:40</b><span>hrs total</span></div>
+        </div>
+
+        <div class="rec-who">
+          <span class="ava">SW</span>
+          <span><b>Sarah Whitman</b> supervising &middot; <b>Mum&rsquo;s Corolla</b></span>
+        </div>
+      </div>
+
+      <div class="guard-zone">
+        <span class="guard-cap" id="d8-guardcap">3 of 4 armed &middot; guard locked</span>
+        <div class="guard-housing">
+          <div class="master-track off" id="d8-mastertrack"><div class="master-paddle" id="d8-masterpaddle">ARM</div></div>
+          <div class="flap closed" id="d8-flap"><span id="d8-flaplabel">GUARDED</span><span class="rivet l"></span><span class="rivet r"></span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Live prototype</strong></div>
+    <div class="slot-note">Every switch, the guard and the master throw are live.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tglCar = document.getElementById('d8-tgl-car');
+  var tglSup = document.getElementById('d8-tgl-sup');
+  var tglOdo = document.getElementById('d8-tgl-odo');
+  var tglPlates = document.getElementById('d8-tgl-plates');
+  var lampPlates = document.getElementById('d8-lamp-plates');
+  var platesVal = document.getElementById('d8-plates-val');
+  var platesSub = document.getElementById('d8-plates-sub');
+  var guardcap = document.getElementById('d8-guardcap');
+  var mastertrack = document.getElementById('d8-mastertrack');
+  var masterpaddle = document.getElementById('d8-masterpaddle');
+  var flap = document.getElementById('d8-flap');
+  var flaplabel = document.getElementById('d8-flaplabel');
+  var panel = document.getElementById('d8-panel');
+  var rec = document.getElementById('d8-rec');
+  var title = document.getElementById('d8-title');
+  var dateEl = document.getElementById('d8-date');
+  var timerEl = document.getElementById('d8-timer');
+  var timerSub = document.getElementById('d8-timer-sub');
+
+  var recording = false;
+  var timerId = null, startTime = null;
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+
+  function isUp(el){ return el.classList.contains('up'); }
+
+  function armCount(){
+    return [tglCar, tglSup, tglOdo, tglPlates].filter(isUp).length;
+  }
+
+  function updateGuard(){
+    var n = armCount();
+    if(recording){
+      guardcap.textContent = 'guard open · throw down to stop';
+      flap.className = 'flap open';
+      flaplabel.style.display = 'none';
+      return;
+    }
+    guardcap.textContent = n + ' of 4 armed · guard ' + (n === 4 ? 'open' : 'locked');
+    if(n === 4){
+      flap.className = 'flap open';
+      flaplabel.style.display = 'none';
+    } else {
+      flap.className = 'flap closed';
+      flaplabel.style.display = 'block';
+    }
+  }
+
+  function toggleSwitch(el){
+    if(recording) return;
+    if(isUp(el)){ el.className = 'tgl down'; }
+    else { el.className = 'tgl up'; }
+    updateGuard();
+  }
+
+  tglCar.addEventListener('click', function(){ toggleSwitch(tglCar); });
+  tglSup.addEventListener('click', function(){ toggleSwitch(tglSup); });
+  tglOdo.addEventListener('click', function(){ toggleSwitch(tglOdo); });
+
+  function platesConnected(){
+    tglPlates.className = 'tgl up';
+    lampPlates.className = 'lamp green';
+    platesVal.textContent = 'Front + rear linked';
+    platesSub.textContent = 'connected · steady green';
+    updateGuard();
+  }
+
+  function tick(){
+    var s = Math.floor((Date.now() - startTime) / 1000);
+    var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
+    timerEl.textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+  }
+
+  function startRecording(){
+    recording = true;
+    panel.style.display = 'none';
+    rec.style.display = 'block';
+    title.textContent = 'In flight';
+    dateEl.textContent = 'recording';
+    mastertrack.className = 'master-track on';
+    masterpaddle.className = 'master-paddle hot';
+    masterpaddle.textContent = 'STOP';
+    startTime = Date.now();
+    var now = new Date();
+    timerSub.innerHTML = 'started <b>' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + '</b> &middot; Kambah, ACT';
+    tick();
+    timerId = setInterval(tick, 1000);
+    updateGuard();
+  }
+
+  function stopRecording(){
+    recording = false;
+    clearInterval(timerId);
+    panel.style.display = 'block';
+    rec.style.display = 'none';
+    title.textContent = 'Pre-flight';
+    dateEl.textContent = 'Sun 17 Aug';
+    mastertrack.className = 'master-track off';
+    masterpaddle.className = 'master-paddle';
+    masterpaddle.textContent = 'ARM';
+    updateGuard();
+  }
+
+  mastertrack.addEventListener('click', function(){
+    if(recording){ stopRecording(); }
+    else if(armCount() === 4){ startRecording(); }
+  });
+
+  updateGuard();
+  setTimeout(platesConnected, 2500);
+})();
+</script>
 
 <div class="eval">
   <div class="g"><h4>Strengths</h4>

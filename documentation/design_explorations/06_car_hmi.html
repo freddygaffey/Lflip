@@ -190,6 +190,16 @@
   .selfeval .wk h3{color:#ff8c93}
   .selfeval .ww h3{color:#d8d24a}
   .selfeval p{font-size:13.5px;line-height:1.5;color:#c9c9cc}
+
+  /* ---------- interactive demo ---------- */
+  .demo-wrap{margin:44px auto 0;max-width:1690px;text-align:center}
+  .demo-wrap h2{font-size:13px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--secondary)}
+  .demo-wrap h2 span{color:var(--light)}
+  .demo-wrap p.demo-sub{font-size:13px;color:var(--secondary);margin-top:6px;max-width:480px;margin-left:auto;margin-right:auto}
+  .demo-stage{display:flex;justify-content:center;margin-top:22px}
+  #d6-gobar{border:none;width:100%;font-family:inherit}
+  #d6-gobar[disabled]{cursor:not-allowed}
+  #d6-stopbtn{border:none;width:100%;font-family:inherit;margin-top:auto}
 </style>
 </head>
 <body>
@@ -469,6 +479,157 @@
   </figure>
 
 </div>
+
+<section class="demo-wrap">
+  <h2>Interactive &mdash; <span>try it</span></h2>
+  <p class="demo-sub">Plates pair automatically on load. Once the bar turns green, start the trip and watch the timer run &mdash; stop it whenever you like.</p>
+  <div class="demo-stage">
+    <figure>
+      <figcaption><span class="cap-chip">Live prototype</span></figcaption>
+      <div class="phone">
+        <div class="statusbar">
+          <span>15:31</span>
+          <span class="sbicons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><rect y="7" width="3" height="4" rx="1"/><rect x="4.6" y="4.8" width="3" height="6.2" rx="1"/><rect x="9.2" y="2.4" width="3" height="8.6" rx="1"/><rect x="13.8" width="3" height="11" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1.8 4.6a9 9 0 0 1 12.4 0" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><path d="M4.4 7.3a5.3 5.3 0 0 1 7.2 0" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="10.4" r="1.5" fill="#fff"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.2" stroke="rgba(255,255,255,.5)" fill="none"/><rect x="2" y="2" width="16" height="8" rx="1.8" fill="#fff"/><path d="M23 3.9v4.2a2.3 2.3 0 0 0 0-4.2" fill="rgba(255,255,255,.5)"/></svg>
+          </span>
+        </div>
+        <div class="screen">
+          <div class="apphead">
+            <div class="mini">L</div>
+            <h2>Log Trip</h2>
+            <span class="conn"><span class="dot amber" id="d6-dot"></span><span id="d6-connlabel">Pairing&hellip;</span></span>
+          </div>
+
+          <div id="d6-setup" style="display:flex;flex-direction:column;flex:1;min-height:0">
+            <div class="tiles">
+              <div class="tile">
+                <span class="k">Odometer</span>
+                <span class="v num">48,468<span class="u">km</span></span>
+                <span class="s">From last trip &middot; tap to adjust</span>
+              </div>
+              <div class="tile">
+                <span class="k">Car</span>
+                <span class="v">Mum&rsquo;s Corolla</span>
+                <span class="s">Toyota Corolla &middot; YKW 04C</span>
+              </div>
+              <div class="tile">
+                <span class="k">Supervisor</span>
+                <span class="v">Sarah Whitman</span>
+                <span class="s">Full licence &middot; 11 yrs held</span>
+              </div>
+              <div class="tile">
+                <span class="k">L-plates</span>
+                <span class="v state warn" id="d6-platetile"><span class="plateglyph">L</span><span id="d6-platetext">Searching</span></span>
+                <span class="s" id="d6-platesub">Rear plate found &middot; front pending</span>
+              </div>
+            </div>
+            <button class="gobar connecting" id="d6-gobar" disabled><span class="spin"></span>Connecting to L-plates&hellip;</button>
+            <p class="gonote" id="d6-gonote">Hang tight &mdash; usually under ten seconds.</p>
+          </div>
+
+          <div id="d6-rec" class="recwrap" style="display:none">
+            <div class="recstate"><span class="dot red"></span>Recording</div>
+            <div class="elapsed" id="d6-elapsed">00:00:00</div>
+            <div class="started" id="d6-started">Started &middot; Curtin, ACT</div>
+            <div class="recfacts">
+              <div class="row"><span class="rk">Car</span><span class="rv">Mum&rsquo;s Corolla</span></div>
+              <div class="row"><span class="rk">Supervisor</span><span class="rv">Sarah Whitman</span></div>
+              <div class="row"><span class="rk">Odometer start</span><span class="rv">48,468 km</span></div>
+              <div class="row"><span class="rk">L-plates</span><span class="rv ok"><span class="dot green"></span>Up &amp; holding</span></div>
+            </div>
+            <button class="gobar stop" id="d6-stopbtn"><span class="stopsq"></span>Stop trip</button>
+            <p class="gonote">Feel free to lock your phone &mdash; the trip keeps recording in the background.</p>
+          </div>
+        </div>
+        <nav class="tabbar">
+          <span class="tab active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M7.2 3.5 4.6 20.5M16.8 3.5l2.6 17M12 3.5v3.4M12 10.3v3.4M12 17.1v3.4"/></svg>
+            <span class="tl">Log</span>
+          </span>
+          <span class="tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 16.5a8 8 0 1 1 16 0"/><path d="M12 16.5l3.8-4.6"/><circle cx="12" cy="16.5" r="1.7" fill="currentColor" stroke="none"/></svg>
+            <span class="tl">Dashboard</span>
+          </span>
+          <span class="tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 6a2.6 2.6 0 0 1 2.6-2.6h10.8A2.6 2.6 0 0 1 20 6v6.6a2.6 2.6 0 0 1-2.6 2.6H10l-4.6 4v-4H6.6A2.6 2.6 0 0 1 4 12.6z"/></svg>
+            <span class="tl">AI Chat</span>
+          </span>
+          <span class="tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 6.4h16M4 12h16M4 17.6h16"/><circle cx="14.6" cy="6.4" r="2" fill="var(--lp-dark)"/><circle cx="8.6" cy="12" r="2" fill="var(--lp-dark)"/><circle cx="16.2" cy="17.6" r="2" fill="var(--lp-dark)"/></svg>
+            <span class="tl">Settings</span>
+          </span>
+          <span class="homebar"></span>
+        </nav>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<script>
+(function(){
+  var dot = document.getElementById('d6-dot');
+  var connlabel = document.getElementById('d6-connlabel');
+  var platetile = document.getElementById('d6-platetile');
+  var platetext = document.getElementById('d6-platetext');
+  var platesub = document.getElementById('d6-platesub');
+  var gobar = document.getElementById('d6-gobar');
+  var gonote = document.getElementById('d6-gonote');
+  var setupEl = document.getElementById('d6-setup');
+  var recEl = document.getElementById('d6-rec');
+  var stopbtn = document.getElementById('d6-stopbtn');
+  var elapsedEl = document.getElementById('d6-elapsed');
+  var startedEl = document.getElementById('d6-started');
+
+  var ready = false;
+  var timerId = null;
+  var startTime = null;
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+
+  function setReady(){
+    ready = true;
+    dot.className = 'dot green';
+    connlabel.textContent = 'Plates linked';
+    platetile.className = 'v state ok';
+    platetext.textContent = 'Connected';
+    platesub.textContent = 'Front & rear · batteries 87%';
+    gobar.className = 'gobar start';
+    gobar.innerHTML = '<span class="playtri"></span>Start trip';
+    gobar.disabled = false;
+    gonote.textContent = 'Plates flip up automatically when the trip starts.';
+  }
+
+  function tick(){
+    var s = Math.floor((Date.now() - startTime) / 1000);
+    var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
+    elapsedEl.textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+  }
+
+  function startTrip(){
+    if(!ready) return;
+    startTime = Date.now();
+    setupEl.style.display = 'none';
+    recEl.style.display = 'flex';
+    var now = new Date();
+    startedEl.textContent = 'Started ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ' · Curtin, ACT';
+    tick();
+    timerId = setInterval(tick, 1000);
+  }
+
+  function stopTrip(){
+    clearInterval(timerId);
+    recEl.style.display = 'none';
+    setupEl.style.display = 'flex';
+  }
+
+  gobar.addEventListener('click', startTrip);
+  stopbtn.addEventListener('click', stopTrip);
+
+  setTimeout(setReady, 2500);
+})();
+</script>
 
 <section class="selfeval">
   <div class="st">

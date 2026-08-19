@@ -118,6 +118,16 @@ body{background:var(--canvas);color:var(--light);
 .eval .g h4{color:var(--lp-green)} .eval .b h4{color:var(--lp-red)} .eval .w h4{color:var(--lp-yellow)}
 .eval p{font-size:12.5px;line-height:1.6;color:#c9c9c9}
 .eval>div{flex:1}
+/* ---------- interactive demo ---------- */
+.demo-head{text-align:center;margin:46px 0 22px}
+.demo-head .no{font-size:13px;letter-spacing:.22em;color:var(--grey)}
+.demo-head h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+.demo-head p{font-size:13px;color:var(--grey);max-width:460px;margin:6px auto 0}
+.demo-stage{display:flex;justify-content:center}
+#d9-thread{overflow-y:auto;scrollbar-width:none}
+#d9-thread::-webkit-scrollbar{display:none}
+.chip{cursor:pointer;transition:transform .12s ease,background .12s ease}
+.chip:active{transform:scale(.94)}
 </style>
 
 <div class="page-head">
@@ -279,6 +289,192 @@ body{background:var(--canvas);color:var(--light);
   </div>
 
 </div>
+
+<div class="demo-head">
+  <span class="no">INTERACTIVE</span>
+  <h2>Try it</h2>
+  <p>Tap the chips to actually hold the conversation &mdash; set up the drive, wait for the plates to flip, then Go. Stop whenever you like for a summary.</p>
+</div>
+<div class="demo-stage">
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">6:47</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="chat-head" id="d9-chathead">
+        <span class="lplate">L</span>
+        <span class="ti"><h2>L Flip</h2><span class="sub"><span class="pip"></span>setting up your drive</span></span>
+      </div>
+      <div class="rec-pin" id="d9-recpin" style="display:none">
+        <span class="rec-badge"><span class="pip"></span>RECORDING</span>
+        <span class="rec-timer" id="d9-timer">00:00:00</span>
+        <span class="rec-car">Corolla &middot; Sarah W.</span>
+      </div>
+
+      <div class="thread" id="d9-thread">
+        <div class="daysep">Today</div>
+      </div>
+
+      <div class="botbar" id="d9-botbar" style="display:none">
+        <div class="cap">only action available</div>
+        <div class="chiprow"><span class="chip stop" id="d9-stopchip">Stop drive</span></div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Live prototype</strong></div>
+    <div class="slot-note">Every chip tap is real &mdash; this is the whole setup-to-drive conversation.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var thread = document.getElementById('d9-thread');
+  var chathead = document.getElementById('d9-chathead');
+  var recpin = document.getElementById('d9-recpin');
+  var botbar = document.getElementById('d9-botbar');
+  var stopchip = document.getElementById('d9-stopchip');
+  var timerEl = document.getElementById('d9-timer');
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function nowHM(){ var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function scrollBottom(){ thread.scrollTop = thread.scrollHeight; }
+
+  function addApp(html, cls){
+    var row = document.createElement('div');
+    row.className = 'row-msg app';
+    var b = document.createElement('div');
+    b.className = 'bubble app' + (cls ? ' ' + cls : '');
+    b.innerHTML = html;
+    row.appendChild(b);
+    thread.appendChild(row);
+    scrollBottom();
+    return b;
+  }
+  function addMe(text){
+    var row = document.createElement('div');
+    row.className = 'row-msg me';
+    var b = document.createElement('div');
+    b.className = 'bubble me';
+    b.textContent = text;
+    row.appendChild(b);
+    thread.appendChild(row);
+    scrollBottom();
+  }
+  function addSys(html, ok){
+    var d = document.createElement('div');
+    d.className = 'syslog' + (ok ? ' ok' : '');
+    d.innerHTML = html;
+    thread.appendChild(d);
+    scrollBottom();
+  }
+  function addChips(items){
+    var row = document.createElement('div');
+    row.className = 'chiprow';
+    items.forEach(function(it){
+      var c = document.createElement('span');
+      c.className = 'chip' + (it.cls ? ' ' + it.cls : '');
+      c.textContent = it.label;
+      c.addEventListener('click', function(){
+        row.remove();
+        it.onPick();
+      });
+      row.appendChild(c);
+    });
+    thread.appendChild(row);
+    scrollBottom();
+    return row;
+  }
+
+  function step1(){
+    addApp('Evening Jordan. Ready to log a drive &mdash; which car tonight?');
+    addChips([{ label: 'Mum’s Corolla', onPick: function(){
+      addMe('Mum’s Corolla');
+      setTimeout(step2, 500);
+    }}]);
+  }
+  function step2(){
+    addApp('Got it. Who’s supervising you tonight?');
+    addChips([{ label: 'Sarah Whitman', onPick: function(){
+      addMe('Sarah Whitman');
+      setTimeout(step3, 500);
+    }}]);
+  }
+  function step3(){
+    addApp('Odometer reading? Last trip ended at 48412&nbsp;km.');
+    addChips([{ label: '48468', onPick: function(){
+      addMe('48468');
+      setTimeout(step4, 500);
+    }}]);
+  }
+  function step4(){
+    addApp('Nice, that’s 56&nbsp;km since Tuesday &mdash; checks out. One more thing: keep GPS running in the background for this trip?');
+    addChips([
+      { label: 'Yes, always', onPick: function(){ addMe('Yes, always'); setTimeout(function(){ step5('GPS will stay on for every trip from now.'); }, 500); } },
+      { label: 'Just this trip', onPick: function(){ addMe('Just this trip'); setTimeout(function(){ step5('Sweet &mdash; GPS will run for this drive only, then switch off.'); }, 500); } },
+      { label: 'No thanks', onPick: function(){ addMe('No thanks'); setTimeout(function(){ step5('No worries &mdash; GPS stays off for this drive.'); }, 500); } }
+    ]);
+  }
+  function step5(gpsReply){
+    addApp(gpsReply);
+    setTimeout(function(){
+      addApp('Mum’s Corolla, Sarah supervising, odometer 48468&nbsp;km. Locking that in.');
+      addChips([{ label: 'Sounds right', onPick: function(){
+        addMe('Sounds right');
+        setTimeout(step6, 500);
+      }}]);
+    }, 600);
+  }
+  function step6(){
+    var b = addApp('Flipping your L-plates now&hellip;<div class="typing"><i></i><i></i><i></i></div><div class="status-line"><span class="pip"></span>rear plate found &middot; front pending</div>', 'wait');
+    setTimeout(function(){
+      b.classList.remove('wait');
+      b.innerHTML = 'Plates are up, showing L front and rear. Ready when you are.';
+      scrollBottom();
+      addChips([{ label: 'Go', cls: 'go', onPick: function(){
+        addMe('Go');
+        setTimeout(startRecording, 400);
+      }}]);
+    }, 2500);
+  }
+
+  var recInterval = null, recStart = null;
+  function tick(){
+    var s = Math.floor((Date.now() - recStart) / 1000);
+    var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
+    timerEl.textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+  }
+  function startRecording(){
+    chathead.style.display = 'none';
+    recpin.style.display = 'flex';
+    botbar.style.display = 'block';
+    recStart = Date.now();
+    addSys('<b>' + nowHM() + '</b> &mdash; Trip started &middot; Mum’s Corolla &middot; Sarah Whitman supervising', true);
+    setTimeout(function(){
+      addSys('<b>' + nowHM() + '</b> &mdash; Plates showing L, front and rear', true);
+      addApp('Looking good. I’ll keep logging in the background &mdash; no need to touch the phone.');
+    }, 900);
+    tick();
+    recInterval = setInterval(tick, 1000);
+  }
+  function stopRecording(){
+    clearInterval(recInterval);
+    var s = Math.floor((Date.now() - recStart) / 1000);
+    var mins = Math.max(1, Math.floor(s / 60));
+    addSys('<b>' + nowHM() + '</b> &mdash; Trip stopped', true);
+    addApp('Nice work &mdash; that drive is logged. ' + mins + ' minute' + (mins === 1 ? '' : 's') + ' on the road, starting odometer 48468&nbsp;km.');
+    botbar.style.display = 'none';
+    recpin.style.display = 'none';
+    chathead.style.display = 'flex';
+  }
+  stopchip.addEventListener('click', stopRecording);
+
+  step1();
+})();
+</script>
 
 <div class="eval">
   <div class="g"><h4>Strengths</h4>

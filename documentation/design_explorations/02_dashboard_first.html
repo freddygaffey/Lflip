@@ -214,6 +214,17 @@
   .se-strength h3{color:#6fca5f}
   .se-weak h3{color:#e0da4a}
   .se-wins h3{color:#8d7ff0}
+
+  /* ---------- interactive demo ---------- */
+  .ix-section{margin-top:36px;display:flex;flex-direction:column;align-items:center}
+  .ix-section .ix-heading{
+    font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:#cfcfcf;margin-bottom:14px;
+  }
+  .ix-section .frame-note{margin-top:12px}
+  .ix-section .btn{cursor:pointer;transition:transform .12s ease,background .2s ease}
+  .ix-section .btn:active{transform:scale(.97)}
+  .ix-ring-fill{transition:background 1s linear}
 </style>
 </head>
 <body>
@@ -609,6 +620,125 @@
 
 </div>
 
+<section class="ix-section">
+  <h2 class="ix-heading">Interactive &mdash; try it</h2>
+  <div class="frame-col">
+    <div class="phone">
+      <div class="statusbar">
+        <span>15:41</span>
+        <div class="notch"></div>
+        <div class="sb-icons">
+          <div class="sig"><i></i><i></i><i></i><i></i></div>
+          <div class="batt"></div>
+        </div>
+      </div>
+
+      <div class="screen">
+        <div class="screen-title-row">
+          <div class="mini-tile">L</div>
+          <h2>Log Trip</h2>
+          <span class="date">Wed 19 Aug</span>
+        </div>
+
+        <div class="card hero-card">
+          <div class="hero">
+            <div class="ring ring-total" id="ixRing">
+              <div class="hole">
+                <div class="big" id="ixRingBig">63.5<small> h</small></div>
+                <div class="cap">of 100 h</div>
+              </div>
+            </div>
+            <div class="sats">
+              <div class="sat">
+                <div class="ring ring-day"><div class="hole"></div></div>
+                <div class="sat-txt">
+                  <div class="v">54.3<small> h</small></div>
+                  <div class="k">Day hours</div>
+                </div>
+              </div>
+              <div class="sat">
+                <div class="ring ring-night"><div class="hole"></div></div>
+                <div class="sat-txt">
+                  <div class="v">9.2<small> / 10 h</small></div>
+                  <div class="k">Night hours</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-footnote" id="ixFootnote">36.5 h to go — about 9 weeks at your current pace.</div>
+        </div>
+
+        <div id="ixReady">
+          <div class="card form-card">
+            <div class="form-title">Next drive</div>
+            <div class="field">
+              <label>Odometer (start)</label>
+              <div class="input"><span>48,468</span><span class="unit">km</span></div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Car</label>
+                <div class="select"><span>Mum's Corolla</span><span class="caret"></span></div>
+              </div>
+              <div class="field">
+                <label>Supervising driver</label>
+                <div class="select"><span>Sarah Whitman</span><span class="caret"></span></div>
+              </div>
+            </div>
+            <div class="guest-hint">Use a guest driver instead <span>— full name and licence number</span></div>
+          </div>
+
+          <div class="plate-status ps-wait" id="ixPlateStatus">
+            <span class="pdot"></span><span id="ixPlateLabel">Connecting to L-plates&hellip;</span>
+            <span class="ps-sub" id="ixPlateSub">rear plate found</span>
+          </div>
+
+          <button class="btn btn-wait" id="ixStartBtn">Start trip</button>
+          <div class="btn-hint" id="ixBtnHint">Connecting to L-plates&hellip; you can start once both plates respond.</div>
+        </div>
+
+        <div id="ixRec" style="display:none">
+          <div class="card rec-card">
+            <div class="rec-live"><span class="pdot"></span>Recording</div>
+            <div class="rec-elapsed" id="ixElapsed">00:00</div>
+            <div class="rec-meta" id="ixRecMeta">Started &ndash;&ndash;:&ndash;&ndash; &middot; Mum's Corolla &middot; Sarah Whitman</div>
+            <div class="rec-lock">GPS keeps recording in the background — feel free to lock your phone.</div>
+          </div>
+
+          <div class="card trip-facts">
+            <div class="fact"><span class="k">Odometer at start</span><span class="v">48,468 km</span></div>
+            <div class="fact"><span class="k">L-plates</span><span class="v" style="color:var(--lp-green)">Displayed &middot; front + rear</span></div>
+          </div>
+
+          <button class="btn btn-stop" id="ixStopBtn">Stop recording</button>
+          <button class="btn btn-ghost" id="ixCancelBtn">Cancel trip</button>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Log
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>
+          Dashboard
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M9 12h.01M13 12h.01M17 12h.01"/></svg>
+          AI Chat
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>
+          Settings
+        </div>
+      </div>
+      <div class="homebar"></div>
+    </div>
+    <div class="frame-note">Tap Start once the plates connect — the total-hours ring creeps up while you record.</div>
+  </div>
+</section>
+
 <div class="selfeval">
   <div class="col se-strength">
     <h3>Strengths</h3>
@@ -624,5 +754,86 @@
   </div>
 </div>
 
+<script>
+(function(){
+  var totalBase = 63.5;
+  var ring = document.getElementById('ixRing');
+  var ringBig = document.getElementById('ixRingBig');
+  var footnote = document.getElementById('ixFootnote');
+  var plateStatus = document.getElementById('ixPlateStatus');
+  var plateLabel = document.getElementById('ixPlateLabel');
+  var plateSub = document.getElementById('ixPlateSub');
+  var startBtn = document.getElementById('ixStartBtn');
+  var btnHint = document.getElementById('ixBtnHint');
+  var readyEl = document.getElementById('ixReady');
+  var recEl = document.getElementById('ixRec');
+  var elapsedEl = document.getElementById('ixElapsed');
+  var recMeta = document.getElementById('ixRecMeta');
+  var stopBtn = document.getElementById('ixStopBtn');
+  var cancelBtn = document.getElementById('ixCancelBtn');
+
+  var state = 'connecting';
+  var timerHandle = null;
+  var startTime = null;
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function fmtClock(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+  function setRing(hours){
+    var pct = Math.min(100, hours / 100 * 100).toFixed(2);
+    ring.style.background = 'conic-gradient(var(--lp-green) 0 ' + pct + '%, var(--ring-empty) ' + pct + '% 100%)';
+    ringBig.innerHTML = hours.toFixed(1) + '<small> h</small>';
+    var togo = Math.max(0, 100 - hours);
+    footnote.textContent = togo.toFixed(1) + ' h to go — about ' + Math.max(1, Math.round(togo / 4)) + ' weeks at your current pace.';
+  }
+
+  function setReady(){
+    state = 'ready';
+    startBtn.className = 'btn btn-start';
+    startBtn.textContent = 'Start trip';
+    plateStatus.className = 'plate-status ps-ok';
+    plateLabel.textContent = 'L-plates connected';
+    plateSub.textContent = 'front + rear';
+    btnHint.style.display = 'none';
+  }
+
+  function tick(){
+    var secs = Math.floor((Date.now() - startTime) / 1000);
+    var h = Math.floor(secs / 3600);
+    var m = Math.floor((secs % 3600) / 60);
+    var s = secs % 60;
+    elapsedEl.textContent = h > 0 ? (pad(h) + ':' + pad(m) + ':' + pad(s)) : (pad(m) + ':' + pad(s));
+    setRing(totalBase + secs * 0.003);
+  }
+
+  function startRecording(){
+    if (state !== 'ready') return;
+    state = 'recording';
+    readyEl.style.display = 'none';
+    recEl.style.display = 'block';
+    startTime = Date.now();
+    recMeta.textContent = 'Started ' + fmtClock(new Date()) + ' · Mum’s Corolla · Sarah Whitman';
+    tick();
+    timerHandle = setInterval(tick, 1000);
+  }
+
+  function stopRecording(){
+    if (state !== 'recording') return;
+    clearInterval(timerHandle);
+    timerHandle = null;
+    recEl.style.display = 'none';
+    readyEl.style.display = 'block';
+    elapsedEl.textContent = '00:00';
+    setRing(totalBase);
+    state = 'ready';
+  }
+
+  startBtn.addEventListener('click', startRecording);
+  stopBtn.addEventListener('click', stopRecording);
+  cancelBtn.addEventListener('click', stopRecording);
+
+  setTimeout(setReady, 2500);
+})();
+</script>
 </body>
 </html>

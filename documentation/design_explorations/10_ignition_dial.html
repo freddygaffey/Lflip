@@ -103,6 +103,18 @@ body{background:var(--canvas);color:var(--light);
 .eval .g h4{color:var(--lp-green)} .eval .b h4{color:var(--lp-red)} .eval .w h4{color:var(--lp-yellow)}
 .eval p{font-size:12.5px;line-height:1.6;color:#c9c9c9}
 .eval>div{flex:1}
+/* ---------- interactive demo ---------- */
+.demo-head{text-align:center;margin:46px 0 22px}
+.demo-head .no{font-size:13px;letter-spacing:.22em;color:var(--grey)}
+.demo-head h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+.demo-head p{font-size:13px;color:var(--grey);max-width:460px;margin:6px auto 0}
+.demo-stage{display:flex;justify-content:center}
+.dial-svg-demo .d-det{cursor:pointer}
+.dial-svg-demo .d-det:active{opacity:.55}
+#d10-pointer{transition:transform .35s cubic-bezier(.2,.7,.3,1)}
+#d10-ring{transition:stroke .3s ease}
+@keyframes d10pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.ring-wait{animation:d10pulse 1.6s ease-in-out infinite}
 </style>
 
 <div class="page-head">
@@ -407,6 +419,241 @@ body{background:var(--canvas);color:var(--light);
   </div>
 
 </div>
+
+<div class="demo-head">
+  <span class="no">INTERACTIVE</span>
+  <h2>Try it</h2>
+  <p>Tap OFF, then CHECK, then START to advance the dial &mdash; START only unlocks once the plates finish pairing. Tap CHECK or OFF again to stop.</p>
+</div>
+<div class="demo-stage">
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">9:41</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2 id="d10-title">New drive</h2></span>
+        <span class="date" id="d10-date">Mon 17 Aug</span>
+      </div>
+
+      <div class="dial-zone">
+        <div class="dial-base"></div>
+        <div class="tick-ring"></div>
+        <svg class="dial-svg dial-svg-demo" viewBox="0 0 330 330">
+          <defs>
+            <radialGradient id="face10" cx="32%" cy="26%" r="80%">
+              <stop offset="0%" stop-color="#3c3c3c"/><stop offset="48%" stop-color="#202020"/><stop offset="100%" stop-color="#0d0d0d"/>
+            </radialGradient>
+          </defs>
+          <circle cx="165" cy="165" r="116" fill="url(#face10)" stroke="#000" stroke-width="2"/>
+          <circle id="d10-ring" class="ring-wait" cx="165" cy="165" r="127" fill="none" stroke="#c5bf10" stroke-width="5"/>
+          <circle id="d10-progress" cx="165" cy="165" r="127" fill="none" stroke="#36a225" stroke-width="3"
+                  stroke-dasharray="442 798" stroke-linecap="round" transform="rotate(-90 165 165)" style="display:none"/>
+
+          <text x="165" y="34" text-anchor="middle" class="d-cap">SUPERVISOR</text>
+          <text x="165" y="49" text-anchor="middle" class="d-val">Sarah Whitman</text>
+          <text x="165" y="61" text-anchor="middle" class="d-sub">Guest &#8594; add name + licence</text>
+
+          <text x="60" y="150" text-anchor="middle" class="d-cap">CAR</text>
+          <text x="60" y="164" text-anchor="middle" class="d-val">Corolla</text>
+          <text x="60" y="177" text-anchor="middle" class="d-sub">YLC 88F</text>
+
+          <text x="270" y="157" text-anchor="middle" class="d-cap">ODOMETER</text>
+          <text x="270" y="176" text-anchor="middle" class="d-num" font-size="15">48468</text>
+          <text x="270" y="188" text-anchor="middle" class="d-sub">km</text>
+
+          <circle id="d10-platedot" cx="165" cy="252" r="5" fill="#c5bf10"/>
+          <text id="d10-platelabel" x="165" y="265" text-anchor="middle" class="d-cap" fill="#c5bf10">SEARCHING&#8230;</text>
+
+          <text id="d10-lbl-off" x="165" y="84" text-anchor="middle" class="d-det" fill="#f4f4f4">OFF</text>
+          <text id="d10-lbl-check" x="234" y="144" text-anchor="middle" class="d-det" fill="#8b8b8b">CHECK</text>
+          <text id="d10-lbl-start" x="213" y="224" text-anchor="middle" class="d-det" fill="#4a4a4a">START</text>
+
+          <g id="d10-pawl" transform="translate(191,213)">
+            <rect x="0" y="5" width="11" height="9" rx="2" fill="#8b8b8b"/>
+            <path d="M2.2,5 v-2.6 a3.3,3.3 0 0 1 6.6,0 v2.6" fill="none" stroke="#8b8b8b" stroke-width="1.6"/>
+          </g>
+
+          <g id="d10-pointer" transform="rotate(0,165,165)">
+            <line x1="165" y1="165" x2="165" y2="107" stroke="#f4f4f4" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="165" cy="165" r="7" fill="#f4f4f4"/>
+          </g>
+
+          <text id="d10-clustertext" x="165" y="152" text-anchor="middle" font-family="ui-monospace,'SF Mono',Menlo,monospace"
+                font-size="21" font-weight="700" fill="#f4f4f4" style="display:none">00:00:00</text>
+          <text id="d10-startedtext" x="182" y="195" text-anchor="end" font-size="10.5" fill="#8b8b8b" style="display:none">started</text>
+
+          <rect x="149" y="149" width="32" height="32" rx="7" fill="#fff"/>
+          <text x="165" y="172" text-anchor="middle" font-family="Georgia,serif" font-weight="800" font-size="20" fill="#c5bf10">L</text>
+        </svg>
+      </div>
+      <div class="dial-note"><span class="pip" id="d10-dialpip" style="background:#5a5a5a"></span><span id="d10-dialnote">Key at OFF &middot; tap CHECK to continue</span></div>
+      <div class="fact-row" style="margin-top:26px">
+        <div class="fact"><b>87:40</b><span>hrs logged</span></div>
+        <div class="fact" id="d10-elapsedfact" style="opacity:.4"><b id="d10-elapsed">&mdash;</b><span>elapsed</span></div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Live prototype</strong></div>
+    <div class="slot-note">Tap the detent labels &mdash; OFF, CHECK, START are all live.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ring = document.getElementById('d10-ring');
+  var progress = document.getElementById('d10-progress');
+  var platedot = document.getElementById('d10-platedot');
+  var platelabel = document.getElementById('d10-platelabel');
+  var lblOff = document.getElementById('d10-lbl-off');
+  var lblCheck = document.getElementById('d10-lbl-check');
+  var lblStart = document.getElementById('d10-lbl-start');
+  var pawl = document.getElementById('d10-pawl');
+  var pointer = document.getElementById('d10-pointer');
+  var clustertext = document.getElementById('d10-clustertext');
+  var startedtext = document.getElementById('d10-startedtext');
+  var dialpip = document.getElementById('d10-dialpip');
+  var dialnote = document.getElementById('d10-dialnote');
+  var elapsedfact = document.getElementById('d10-elapsedfact');
+  var elapsedEl = document.getElementById('d10-elapsed');
+  var title = document.getElementById('d10-title');
+  var dateEl = document.getElementById('d10-date');
+
+  var ANGLES = { OFF: 0, CHECK: 70, START: 140 };
+  var pos = 'OFF';
+  var bleReady = false;
+  var timerId = null, startTime = null;
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+
+  function paintLabels(){
+    lblOff.setAttribute('fill', pos === 'OFF' ? '#f4f4f4' : '#5a5a5a');
+    lblCheck.setAttribute('fill', pos === 'CHECK' ? '#f4f4f4' : '#8b8b8b');
+    lblStart.setAttribute('fill', pos === 'START' ? '#ff8f97' : (bleReady ? '#36a225' : '#4a4a4a'));
+  }
+
+  function updateRing(){
+    if(pos === 'START'){
+      ring.classList.remove('ring-wait');
+      ring.setAttribute('stroke', '#2c2c2c');
+      progress.style.display = 'block';
+    } else if(bleReady){
+      ring.classList.remove('ring-wait');
+      ring.setAttribute('stroke', '#36a225');
+      progress.style.display = 'none';
+    } else {
+      ring.classList.add('ring-wait');
+      ring.setAttribute('stroke', '#c5bf10');
+      progress.style.display = 'none';
+    }
+  }
+
+  function updatePlate(){
+    if(bleReady){
+      platedot.setAttribute('fill', '#36a225');
+      platelabel.setAttribute('fill', '#36a225');
+      platelabel.textContent = 'L-PLATES PAIRED';
+    } else {
+      platedot.setAttribute('fill', '#c5bf10');
+      platelabel.setAttribute('fill', '#c5bf10');
+      platelabel.textContent = 'SEARCHING…';
+    }
+  }
+
+  function updatePawl(){
+    pawl.style.display = (bleReady || pos === 'START') ? 'none' : 'block';
+  }
+
+  function updateNote(){
+    if(pos === 'START'){
+      dialpip.style.background = '#b90413';
+      dialnote.textContent = 'Recording · tap CHECK or OFF to stop';
+    } else if(pos === 'CHECK' && !bleReady){
+      dialpip.style.background = '#c5bf10';
+      dialnote.textContent = 'Connecting to L-plates…';
+    } else if(pos === 'CHECK' && bleReady){
+      dialpip.style.background = '#36a225';
+      dialnote.textContent = 'Ring solid green · tap START';
+    } else {
+      dialpip.style.background = '#5a5a5a';
+      dialnote.textContent = 'Key at OFF · tap CHECK to continue';
+    }
+  }
+
+  function setPos(newPos){
+    pos = newPos;
+    pointer.setAttribute('transform', 'rotate(' + ANGLES[pos] + ',165,165)');
+    paintLabels();
+    updateRing();
+    updatePawl();
+    updateNote();
+  }
+
+  function tick(){
+    var s = Math.floor((Date.now() - startTime) / 1000);
+    var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
+    elapsedEl.textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+    clustertext.textContent = pad(hh) + ':' + pad(mm) + ':' + pad(ss);
+  }
+
+  function startRecording(){
+    title.textContent = 'Recording';
+    dateEl.textContent = 'Kambah, ACT';
+    clustertext.style.display = 'block';
+    startedtext.style.display = 'block';
+    elapsedfact.style.opacity = '1';
+    startTime = Date.now();
+    var now = new Date();
+    startedtext.textContent = 'started ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+    tick();
+    timerId = setInterval(tick, 1000);
+  }
+
+  function stopRecording(){
+    clearInterval(timerId);
+    title.textContent = 'New drive';
+    dateEl.textContent = 'Mon 17 Aug';
+    clustertext.style.display = 'none';
+    startedtext.style.display = 'none';
+    elapsedfact.style.opacity = '.4';
+    elapsedEl.textContent = '—';
+  }
+
+  lblOff.addEventListener('click', function(){
+    if(pos === 'START'){ stopRecording(); }
+    setPos('OFF');
+  });
+  lblCheck.addEventListener('click', function(){
+    if(pos === 'START'){ stopRecording(); }
+    setPos('CHECK');
+  });
+  lblStart.addEventListener('click', function(){
+    if(pos === 'CHECK' && bleReady){
+      setPos('START');
+      startRecording();
+    }
+  });
+
+  updateRing();
+  updatePlate();
+  updatePawl();
+  paintLabels();
+  updateNote();
+
+  setTimeout(function(){
+    bleReady = true;
+    updateRing();
+    updatePlate();
+    updatePawl();
+    paintLabels();
+    updateNote();
+  }, 2500);
+})();
+</script>
 
 <div class="eval">
   <div class="g"><h4>Strengths</h4>

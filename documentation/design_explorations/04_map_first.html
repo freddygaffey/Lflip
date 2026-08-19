@@ -106,6 +106,15 @@
   .evalstrip h3{ font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; margin-bottom:7px; display:flex; align-items:center; gap:8px; }
   .evalstrip .bar{ width:14px; height:4px; border-radius:2px; flex:none; }
   .evalstrip p{ font-size:12.5px; color:#b7bbb4; line-height:1.55; }
+
+  /* ---------- interactive demo ---------- */
+  .ix-section{ margin-top:34px; display:flex; flex-direction:column; align-items:center; }
+  .ix-section .ix-heading{ font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#cfd2cc; margin-bottom:14px; }
+  .ix-section .caption{ text-align:center; }
+  .ix-section .startpill,.ix-section .stopbtn{ cursor:pointer; transition:transform .12s ease; user-select:none; }
+  .ix-section .startpill:active,.ix-section .stopbtn:active{ transform:scale(.96); }
+  .ix-route-draw{ stroke-dasharray:800; stroke-dashoffset:800; animation:ixdraw 14s linear forwards; }
+  @keyframes ixdraw{ to{ stroke-dashoffset:0; } }
 </style>
 </head>
 <body>
@@ -393,6 +402,86 @@
 
 </div>
 
+<section class="ix-section">
+  <h2 class="ix-heading">Interactive &mdash; try it</h2>
+  <div class="unit">
+    <div class="phone"><div class="screen">
+      <svg class="mapsvg" id="ixMapReady" viewBox="0 0 390 844"><use href="#map-base"/><use href="#loc-dot"/></svg>
+      <svg class="mapsvg" id="ixMapRoute" viewBox="0 0 390 844" style="display:none">
+        <use href="#map-base"/>
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path id="ixRouteCasing" class="ix-route-draw" d="M167,568 C170,540 172,500 176,462 C180,430 187,400 195,366 A36,36 0 0 1 195,294 L195,212" stroke="#ffffff" stroke-width="9" opacity="0.9"/>
+          <path id="ixRouteLine" class="ix-route-draw" d="M167,568 C170,540 172,500 176,462 C180,430 187,400 195,366 A36,36 0 0 1 195,294 L195,212" stroke="#36a225" stroke-width="5"/>
+        </g>
+        <use href="#loc-dot"/>
+      </svg>
+      <div class="island"></div>
+      <div class="sbar">
+        <span class="time">15:52</span>
+        <span class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11"><g fill="#1d1d1d"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></g></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11"><g fill="none" stroke="#1d1d1d" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 3.6 a9.5 9.5 0 0 1 13 0"/><path d="M4 6.3 a6 6 0 0 1 8 0"/></g><circle cx="8" cy="9.3" r="1.5" fill="#1d1d1d"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="#1d1d1d" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.8" fill="#1d1d1d"/><rect x="22.7" y="3.8" width="2" height="4.4" rx="1" fill="#1d1d1d" opacity=".4"/></svg>
+        </span>
+      </div>
+      <div class="brandpill"><div class="lt">L</div><span>Log Trip</span></div>
+      <div class="roundbtn layersbtn"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5a5a5a" stroke-width="2" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5z"/><path d="M3 12.5l9 5 9-5"/><path d="M3 17l9 5 9-5"/></svg></div>
+
+      <div class="elapsed" id="ixElapsed" style="display:none">
+        <span class="recdot"></span><b id="ixElapsedTime">00:00</b><i id="ixElapsedStarted">Started &ndash;&ndash;:&ndash;&ndash;</i>
+      </div>
+
+      <div class="stack">
+        <div class="roundbtn locate"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4a4a4a" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="6"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/><circle cx="12" cy="12" r="1.6" fill="#4a4a4a" stroke="none"/></svg></div>
+
+        <div class="startpill amber" id="ixStartPill"><span class="spin"></span>Connecting to L-plates&hellip;</div>
+
+        <div class="sheet" id="ixReadySheet">
+          <div class="handle"></div>
+          <div class="chiprow">
+            <div class="chip">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M4 13 5.4 8.6A2 2 0 0 1 7.3 7.2h9.4a2 2 0 0 1 1.9 1.4L20 13v4.4a.9.9 0 0 1-.9.9h-1.4a.9.9 0 0 1-.9-.9V16.4H7.2v1a.9.9 0 0 1-.9.9H4.9a.9.9 0 0 1-.9-.9Z"/><path d="M6.6 13h10.8"/></svg>
+              <span class="txt"><b>Mum&rsquo;s Corolla</b><i>Car</i></span>
+            </div>
+            <div class="chip">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6a6a6a" stroke-width="1.8" stroke-linecap="round"><path d="M4 17a8.2 8.2 0 1 1 16 0"/><path d="M12 17 16.2 11"/></svg>
+              <span class="txt"><b>48,468 km</b><i>Odometer</i></span>
+            </div>
+          </div>
+          <div class="suprow">
+            <div class="avatar">SW</div>
+            <div class="who"><b>Sarah Whitman</b><i>Supervising driver &middot; full licence</i></div>
+            <svg width="8" height="13" viewBox="0 0 8 13" fill="none" stroke="#b5b5b5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 1.5 6.5 6.5 1.5 11.5"/></svg>
+          </div>
+          <div class="guesthint">Guest supervisor? Add their name and licence no.</div>
+          <div class="platecard">
+            <span class="dot amber" id="ixPlateDot"></span>
+            <span class="txt"><b id="ixPlateLabel">Searching for L-plates&hellip;</b><i id="ixPlateSub">Check plates are switched on, or move closer</i></span>
+          </div>
+        </div>
+
+        <div class="sheet" id="ixRecSheet" style="display:none">
+          <div class="handle"></div>
+          <div class="statrow">
+            <div class="stat"><b id="ixDistance">0.0 km</b><i>Distance</i></div>
+            <div class="stat"><b id="ixSpeed">&ndash;&ndash; km/h</b><i>Avg speed</i></div>
+            <div class="stat"><b>Showing L</b><i>Plates</i></div>
+          </div>
+          <div class="stopbtn" id="ixStopBtn"><span class="stopsq"></span>Stop Recording</div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on"><svg width="22" height="22" viewBox="0 0 24 24" fill="#36a225" fill-rule="evenodd"><path d="M12 2.5c-3.9 0-7 3-7 6.9 0 5 5.6 9.7 6.7 10.6a.5.5 0 0 0 .6 0c1.1-.9 6.7-5.6 6.7-10.6 0-3.9-3.1-6.9-7-6.9zm0 9.4a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2z"/></svg><span>Log</span></div>
+        <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="#8a8a8a"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg><span>Dashboard</span></div>
+        <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="#8a8a8a"><path d="M6 4h12a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-6.6L7 19.6a.6.6 0 0 1-1-.5V16a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/></svg><span>AI Chat</span></div>
+        <div class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8a8a8a" stroke-width="2" stroke-linecap="round"><path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17"/><circle cx="15" cy="6.5" r="2.6" fill="#1d1d1d"/><circle cx="8.5" cy="12" r="2.6" fill="#1d1d1d"/><circle cx="16.5" cy="17.5" r="2.6" fill="#1d1d1d"/></svg><span>Settings</span></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <div class="caption"><b>Try it</b><i>Tap Start once plates connect &mdash; the route draws live on the map; Stop ends the trip.</i></div>
+  </div>
+</section>
+
 <div class="evalstrip">
   <div>
     <h3><span class="bar" style="background:var(--lp-green)"></span>Strengths</h3>
@@ -408,5 +497,92 @@
   </div>
 </div>
 
+<script>
+(function(){
+  var mapReady = document.getElementById('ixMapReady');
+  var mapRoute = document.getElementById('ixMapRoute');
+  var routeCasing = document.getElementById('ixRouteCasing');
+  var routeLine = document.getElementById('ixRouteLine');
+  var elapsedWrap = document.getElementById('ixElapsed');
+  var elapsedTime = document.getElementById('ixElapsedTime');
+  var elapsedStarted = document.getElementById('ixElapsedStarted');
+  var startPill = document.getElementById('ixStartPill');
+  var readySheet = document.getElementById('ixReadySheet');
+  var recSheet = document.getElementById('ixRecSheet');
+  var plateDot = document.getElementById('ixPlateDot');
+  var plateLabel = document.getElementById('ixPlateLabel');
+  var plateSub = document.getElementById('ixPlateSub');
+  var distanceEl = document.getElementById('ixDistance');
+  var speedEl = document.getElementById('ixSpeed');
+  var stopBtn = document.getElementById('ixStopBtn');
+
+  var state = 'connecting';
+  var timerHandle = null;
+  var startTime = null;
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function fmtClock(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+  function setReady(){
+    state = 'ready';
+    startPill.className = 'startpill';
+    startPill.innerHTML = '<svg width="15" height="15" viewBox="0 0 15 15"><path d="M3 1.5 L13 7.5 L3 13.5 Z" fill="#fff"/></svg>Start Trip';
+    plateDot.className = 'dot';
+    plateLabel.textContent = 'L-plates connected';
+    plateSub.textContent = 'Front & rear · showing L';
+  }
+
+  function tick(){
+    var secs = Math.floor((Date.now() - startTime) / 1000);
+    var h = Math.floor(secs / 3600);
+    var m = Math.floor((secs % 3600) / 60);
+    var s = secs % 60;
+    elapsedTime.textContent = h > 0 ? (pad(h) + ':' + pad(m) + ':' + pad(s)) : (pad(m) + ':' + pad(s));
+    var km = secs / 3600 * 32;
+    distanceEl.textContent = km.toFixed(1) + ' km';
+    speedEl.textContent = secs > 3 ? '32 km/h' : '–– km/h';
+  }
+
+  function restartRouteAnim(){
+    [routeCasing, routeLine].forEach(function(p){
+      p.style.animation = 'none';
+      void p.offsetWidth;
+      p.style.animation = '';
+    });
+  }
+
+  function startRecording(){
+    if (state !== 'ready') return;
+    state = 'recording';
+    mapReady.style.display = 'none';
+    mapRoute.style.display = 'block';
+    restartRouteAnim();
+    readySheet.style.display = 'none';
+    recSheet.style.display = 'block';
+    elapsedWrap.style.display = 'flex';
+    startTime = Date.now();
+    elapsedStarted.textContent = 'Started ' + fmtClock(new Date());
+    tick();
+    timerHandle = setInterval(tick, 1000);
+  }
+
+  function stopRecording(){
+    if (state !== 'recording') return;
+    clearInterval(timerHandle);
+    timerHandle = null;
+    mapRoute.style.display = 'none';
+    mapReady.style.display = 'block';
+    recSheet.style.display = 'none';
+    readySheet.style.display = 'block';
+    elapsedWrap.style.display = 'none';
+    state = 'ready';
+  }
+
+  startPill.addEventListener('click', startRecording);
+  stopBtn.addEventListener('click', stopRecording);
+
+  setTimeout(setReady, 2500);
+})();
+</script>
 </body>
 </html>

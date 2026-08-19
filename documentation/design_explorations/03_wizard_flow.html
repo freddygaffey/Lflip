@@ -191,6 +191,28 @@
   .eval p{font-size:12.5px;color:#c2c2c2;line-height:1.5}
 
   svg{display:block}
+
+  /* ---------- interactive demo ---------- */
+  .ix-section{margin-top:26px;display:flex;flex-direction:column;align-items:center}
+  .ix-section .ix-heading{
+    font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:#bdbdbd;margin-bottom:10px;
+  }
+  .ix-section .frame-label{text-align:center}
+  .ix-section #ixWizard{display:none;flex-direction:column;flex:1;min-height:0}
+  .ix-section #ixWizard.ix-active{display:flex}
+  .ix-section .ix-step{display:none;flex-direction:column;flex:1;min-height:0}
+  .ix-section .ix-step.ix-active{display:flex}
+  .ix-section #ixRec{display:none;flex-direction:column;flex:1;min-height:0}
+  .ix-section #ixRec.ix-active{display:flex}
+  .ix-section .opt{cursor:pointer;transition:border-color .15s ease}
+  .ix-section .btn{cursor:pointer;user-select:none;transition:transform .1s ease}
+  .ix-section .btn:active{transform:scale(.97)}
+  .ix-section .go-btn{cursor:pointer;transition:opacity .3s ease,transform .12s ease}
+  .ix-section .go-btn.ix-off{opacity:.5;pointer-events:none}
+  .ix-section .go-btn:active{transform:scale(.97)}
+  .ix-section .cancel-link{cursor:pointer}
+  .ix-section .sumrow{cursor:default}
 </style>
 
 <div class="page-head">
@@ -451,6 +473,154 @@
 
 </div>
 
+<section class="ix-section">
+  <h2 class="ix-heading">Interactive &mdash; try it</h2>
+  <div class="frame-col">
+    <div class="frame-label">
+      <span class="tag">Try the stepper</span>
+      <div class="why">Tap through car &rarr; supervisor &rarr; odometer &rarr; GO, then Stop to loop back.</div>
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="statusbar">
+        <span class="time">15:52</span>
+        <span class="right">
+          <span class="sigbars"><i></i><i></i><i></i><i></i></span>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 10.6a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8Z" fill="#000"/><path d="M4.9 6.9a4.6 4.6 0 0 1 6.2 0M2.6 4.4a7.9 7.9 0 0 1 10.8 0" stroke="#000" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span class="battery"><i></i></span>
+        </span>
+      </div>
+      <div class="content">
+
+        <div id="ixWizard" class="ix-active">
+          <div class="app-head"><h2>New trip</h2><span class="stepcount" id="ixStepCount">Step 1 of 4</span></div>
+          <div class="steps" id="ixSteps">
+            <div class="step active"><div class="dot">1</div><div class="slabel">Car</div></div>
+            <div class="step"><div class="dot">2</div><div class="slabel">Supervisor</div></div>
+            <div class="step"><div class="dot">3</div><div class="slabel">Odometer</div></div>
+            <div class="step"><div class="dot">4</div><div class="slabel">Go</div></div>
+          </div>
+
+          <!-- STEP 1: CAR -->
+          <div class="ix-step ix-active" id="ixStepCar">
+            <div class="q">Which car are you driving?</div>
+            <div class="qsub">Pick the car for this trip.</div>
+            <div class="card opt selected" id="ixCarOpt1">
+              <div class="radio on"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.2 4.6 8.8 10 3.2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="opt-body"><div class="t">Mum&rsquo;s Corolla</div><div class="s">Default car &middot; 41 trips logged</div></div>
+            </div>
+            <div class="card opt" id="ixCarOpt2">
+              <div class="radio"></div>
+              <div class="opt-body"><div class="t">Dad&rsquo;s Hilux</div><div class="s">Used 6 times</div></div>
+            </div>
+            <div class="btnrow">
+              <div class="btn ghost" style="visibility:hidden">Back</div>
+              <div class="btn primary" id="ixNext1">Next</div>
+            </div>
+          </div>
+
+          <!-- STEP 2: SUPERVISOR -->
+          <div class="ix-step" id="ixStepSup">
+            <div class="q">Who&rsquo;s supervising this drive?</div>
+            <div class="qsub">They&rsquo;ll need a full licence and a spare hour.</div>
+            <div class="card opt selected" id="ixSupOpt1">
+              <div class="radio on"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.2 4.6 8.8 10 3.2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="opt-body"><div class="t">Sarah Whitman</div><div class="s">Full licence &middot; supervised 41 of your trips</div></div>
+            </div>
+            <div class="card opt" id="ixSupOpt2">
+              <div class="radio"></div>
+              <div class="opt-body">
+                <div class="t">Guest supervisor</div>
+                <div class="s">Someone new, just for this drive</div>
+              </div>
+            </div>
+            <div class="btnrow">
+              <div class="btn ghost" id="ixBack2">Back</div>
+              <div class="btn primary" id="ixNext2">Next</div>
+            </div>
+          </div>
+
+          <!-- STEP 3: ODOMETER -->
+          <div class="ix-step" id="ixStepOdo">
+            <div class="q">Confirm today&rsquo;s odometer</div>
+            <div class="qsub">Reading before you set off.</div>
+            <div class="card">
+              <div class="field">
+                <label>Odometer (km)</label>
+                <div class="input" style="color:#111;font-weight:600">48,468</div>
+              </div>
+            </div>
+            <div class="btnrow">
+              <div class="btn ghost" id="ixBack3">Back</div>
+              <div class="btn primary" id="ixNext3">Next</div>
+            </div>
+          </div>
+
+          <!-- STEP 4: GO -->
+          <div class="ix-step" id="ixStepGo">
+            <div class="q">All set &mdash; quick check</div>
+            <div class="qsub">Tap Back to change anything.</div>
+            <div class="card" style="padding-top:6px;padding-bottom:6px">
+              <div class="sumrow"><div><div class="k">Car</div><div class="v" id="ixSumCar">Mum&rsquo;s Corolla</div></div></div>
+              <div class="sumrow"><div><div class="k">Supervisor</div><div class="v" id="ixSumSup">Sarah Whitman</div></div></div>
+              <div class="sumrow"><div><div class="k">Odometer</div><div class="v">48,468 km</div></div></div>
+            </div>
+            <div class="card statusline">
+              <span class="pulse amber" id="ixGoPulse"></span>
+              <div>
+                <div class="t amber" id="ixGoText">Connecting to L-plates&hellip;</div>
+                <div class="s" id="ixGoSub">Keep your phone near the car &mdash; usually takes a few seconds.</div>
+              </div>
+            </div>
+            <div class="go-btn ix-off" id="ixGoBtn">
+              <div class="big">GO</div>
+              <div class="sub">Start recording this trip</div>
+            </div>
+            <div class="go-caption">Plates flip up automatically once they connect &mdash; you don&rsquo;t have to wait to head off.</div>
+            <div class="btnrow" style="margin-top:8px">
+              <div class="btn ghost" id="ixBack4">Back</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECORDING -->
+        <div id="ixRec">
+          <div class="rec-head"><span class="pulse green"></span><h2>Recording</h2></div>
+          <div class="card timer-card">
+            <div class="timer" id="ixTimer">00:00</div>
+            <div class="timer-sub" id="ixTimerSub">Started &ndash;&ndash;:&ndash;&ndash;</div>
+          </div>
+          <div class="card" style="padding-top:6px;padding-bottom:6px">
+            <div class="sumrow"><div><div class="k">Car</div><div class="v" id="ixRecCar">Mum&rsquo;s Corolla</div></div></div>
+            <div class="sumrow"><div><div class="k">Supervisor</div><div class="v" id="ixRecSup">Sarah Whitman</div></div></div>
+            <div class="sumrow"><div><div class="k">Odometer at start</div><div class="v">48,468 km</div></div></div>
+          </div>
+          <div class="card statusline">
+            <span class="pulse green"></span>
+            <div>
+              <div class="t green">L-plates are up</div>
+              <div class="s">Connected &middot; plate battery 82%</div>
+            </div>
+          </div>
+          <div class="lock-note">Feel free to lock your phone &mdash; the trip keeps recording in the background.</div>
+          <div class="btnrow" style="margin-top:auto;flex-direction:column;gap:0;padding-bottom:6px">
+            <div class="btn danger" id="ixStopBtn">Stop recording</div>
+            <div class="cancel-link" id="ixCancelBtn">Cancel trip</div>
+            <div class="cancel-sub">Nothing will be saved</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="tabbar">
+        <div class="tab active"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 8.5h6M9 12h6M9 15.5h3.5"/></svg><span class="tl">Log</span></div>
+        <div class="tab"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.8"/></svg><span class="tl">Dashboard</span></div>
+        <div class="tab"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7a2.5 2.5 0 0 1 2.5-2.5h10A2.5 2.5 0 0 1 19.5 7v7a2.5 2.5 0 0 1-2.5 2.5h-6.5L6 20v-3.5A2.5 2.5 0 0 1 4.5 14z"/></svg><span class="tl">AI Chat</span></div>
+        <div class="tab"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7.5h9M17 7.5h3M4 16.5h3M11 16.5h9"/><circle cx="15" cy="7.5" r="2.2"/><circle cx="9" cy="16.5" r="2.2"/></svg><span class="tl">Settings</span></div>
+      </div>
+      <div class="homebar"><i></i></div>
+    </div></div>
+  </div>
+</section>
+
 <div class="eval">
   <div class="col">
     <h3>Strengths</h3>
@@ -465,3 +635,168 @@
     <p>First weeks with the app, shared family phones, and anywhere a skipped odometer reading would quietly corrupt the logbook.</p>
   </div>
 </div>
+
+<script>
+(function(){
+  var checkSvg = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.2 4.6 8.8 10 3.2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var doneSvg = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5 5.5 10.5 11.5 3.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  var wizard = document.getElementById('ixWizard');
+  var rec = document.getElementById('ixRec');
+  var stepEls = [
+    document.getElementById('ixStepCar'),
+    document.getElementById('ixStepSup'),
+    document.getElementById('ixStepOdo'),
+    document.getElementById('ixStepGo')
+  ];
+  var dotEls = document.querySelectorAll('#ixSteps .step');
+  var stepCount = document.getElementById('ixStepCount');
+
+  var carOpts = [document.getElementById('ixCarOpt1'), document.getElementById('ixCarOpt2')];
+  var carNames = ['Mum’s Corolla', 'Dad’s Hilux'];
+  var supOpts = [document.getElementById('ixSupOpt1'), document.getElementById('ixSupOpt2')];
+  var supNames = ['Sarah Whitman', 'Guest supervisor'];
+
+  var sumCar = document.getElementById('ixSumCar');
+  var sumSup = document.getElementById('ixSumSup');
+  var recCar = document.getElementById('ixRecCar');
+  var recSup = document.getElementById('ixRecSup');
+
+  var goPulse = document.getElementById('ixGoPulse');
+  var goText = document.getElementById('ixGoText');
+  var goSub = document.getElementById('ixGoSub');
+  var goBtn = document.getElementById('ixGoBtn');
+
+  var timerEl = document.getElementById('ixTimer');
+  var timerSub = document.getElementById('ixTimerSub');
+  var stopBtn = document.getElementById('ixStopBtn');
+  var cancelBtn = document.getElementById('ixCancelBtn');
+
+  var carValue = carNames[0];
+  var supValue = supNames[0];
+  var currentStep = 1;
+  var plateState = 'connecting';
+  var timerHandle = null;
+  var startTime = null;
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function fmtClock(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+  function setOptSelected(opts, selectedIndex){
+    opts.forEach(function(el, i){
+      var radio = el.querySelector('.radio');
+      if (i === selectedIndex) {
+        el.classList.add('selected');
+        radio.classList.add('on');
+        radio.innerHTML = checkSvg;
+      } else {
+        el.classList.remove('selected');
+        radio.classList.remove('on');
+        radio.innerHTML = '';
+      }
+    });
+  }
+
+  carOpts.forEach(function(el, i){
+    el.addEventListener('click', function(){
+      setOptSelected(carOpts, i);
+      carValue = carNames[i];
+      sumCar.textContent = carValue;
+      recCar.textContent = carValue;
+    });
+  });
+  supOpts.forEach(function(el, i){
+    el.addEventListener('click', function(){
+      setOptSelected(supOpts, i);
+      supValue = supNames[i];
+      sumSup.textContent = supValue;
+      recSup.textContent = supValue;
+    });
+  });
+
+  function updateStepsRow(n){
+    dotEls.forEach(function(stepEl, i){
+      var idx = i + 1;
+      var dot = stepEl.querySelector('.dot');
+      if (idx < n) {
+        stepEl.className = 'step done';
+        dot.innerHTML = doneSvg;
+      } else if (idx === n) {
+        stepEl.className = 'step active';
+        dot.textContent = idx;
+      } else {
+        stepEl.className = 'step';
+        dot.textContent = idx;
+      }
+    });
+    stepCount.textContent = 'Step ' + n + ' of 4';
+  }
+
+  function showStep(n){
+    currentStep = n;
+    stepEls.forEach(function(el, i){
+      el.classList.toggle('ix-active', i === n - 1);
+    });
+    updateStepsRow(n);
+    if (n === 4) updateGoUI();
+  }
+
+  function updateGoUI(){
+    if (plateState === 'ready') {
+      goPulse.className = 'pulse green';
+      goText.className = 't green';
+      goText.textContent = 'L-plates are up';
+      goSub.textContent = 'Connected — ready to record.';
+      goBtn.classList.remove('ix-off');
+    } else {
+      goPulse.className = 'pulse amber';
+      goText.className = 't amber';
+      goText.textContent = 'Connecting to L-plates…';
+      goSub.textContent = 'Keep your phone near the car — usually takes a few seconds.';
+      goBtn.classList.add('ix-off');
+    }
+  }
+
+  function tick(){
+    var secs = Math.floor((Date.now() - startTime) / 1000);
+    var h = Math.floor(secs / 3600);
+    var m = Math.floor((secs % 3600) / 60);
+    var s = secs % 60;
+    timerEl.textContent = h > 0 ? (pad(h) + ':' + pad(m) + ':' + pad(s)) : (pad(m) + ':' + pad(s));
+  }
+
+  function startRecording(){
+    if (plateState !== 'ready') return;
+    wizard.classList.remove('ix-active');
+    rec.classList.add('ix-active');
+    startTime = Date.now();
+    timerSub.textContent = 'Started ' + fmtClock(new Date());
+    tick();
+    timerHandle = setInterval(tick, 1000);
+  }
+
+  function stopRecording(){
+    clearInterval(timerHandle);
+    timerHandle = null;
+    rec.classList.remove('ix-active');
+    wizard.classList.add('ix-active');
+    timerEl.textContent = '00:00';
+    showStep(1);
+  }
+
+  document.getElementById('ixNext1').addEventListener('click', function(){ showStep(2); });
+  document.getElementById('ixBack2').addEventListener('click', function(){ showStep(1); });
+  document.getElementById('ixNext2').addEventListener('click', function(){ showStep(3); });
+  document.getElementById('ixBack3').addEventListener('click', function(){ showStep(2); });
+  document.getElementById('ixNext3').addEventListener('click', function(){ showStep(4); });
+  document.getElementById('ixBack4').addEventListener('click', function(){ showStep(3); });
+  goBtn.addEventListener('click', startRecording);
+  stopBtn.addEventListener('click', stopRecording);
+  cancelBtn.addEventListener('click', stopRecording);
+
+  setTimeout(function(){
+    plateState = 'ready';
+    if (currentStep === 4) updateGoUI();
+  }, 2500);
+})();
+</script>
