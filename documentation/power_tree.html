@@ -32,7 +32,7 @@
       <line x1="448" y1="30" x2="466" y2="30" stroke="#1c2734" stroke-width="1.2" marker-start="url(#arr)" marker-end="url(#arr)"/>
       <rect x="468" y="8" width="324" height="44" rx="3" fill="#f2f4f7" stroke="#1c2734" stroke-width="1.2"/>
       <text x="630" y="26" text-anchor="middle" font-weight="600" font-size="10">USB-C IN &#183; run + charge</text>
-      <text x="630" y="41" text-anchor="middle" font-size="8.8">onboard charger tops the cell &#8212; charge like a phone</text>
+      <text x="630" y="41" text-anchor="middle" font-size="8.8">charger tops the cell &#183; runs with no cell too (bench)</text>
 
       <!-- ship gate -->
       <line x1="400" y1="52" x2="400" y2="72" stroke="#1c2734" stroke-width="1.2" marker-end="url(#arr)"/>
@@ -87,6 +87,9 @@
       <text x="88" y="246" text-anchor="middle" font-size="9" fill="#5b6472">no</text>
       <path d="M 112 322 C 150 344 180 362 198 378" fill="none" stroke="#1c2734" stroke-width="1.2" marker-end="url(#arr)"/>
       <text x="112" y="362" font-size="9" fill="#5b6472">adopted</text>
+      <path d="M 126 396 C 100 380 82 362 72 346" fill="none" stroke="#5b6472" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+      <text x="8" y="392" font-size="8" fill="#5b6472">re-pair: button tap,</text>
+      <text x="8" y="403" font-size="8" fill="#5b6472">3&#215; replug, hub UNPAIR</text>
 
       <line x1="236" y1="264" x2="236" y2="284" stroke="#1c2734" stroke-width="1.2" marker-end="url(#arr)"/>
       <text x="243" y="279" font-size="9" fill="#5b6472">yes</text>
@@ -154,13 +157,14 @@
       <text x="486" y="424" text-anchor="middle" font-size="8.8">(connecting gets ~1 s slower)</text>
 
       <!-- servo box -->
-      <rect x="620" y="472" width="172" height="66" rx="3" fill="#f2f4f7" stroke="#1c2734" stroke-width="1.2"/>
+      <rect x="620" y="472" width="172" height="78" rx="3" fill="#f2f4f7" stroke="#1c2734" stroke-width="1.2"/>
       <text x="630" y="488" font-size="9.5" font-weight="600">SERVO &#183; solved</text>
       <rect x="726" y="479" width="40" height="12" rx="2" fill="#e2f0e6"/>
       <text x="746" y="488.5" text-anchor="middle" font-size="7.5" fill="#256b3c" font-weight="700">BUILT</text>
       <text x="630" y="503" font-size="9">powered only for a ~2 s</text>
       <text x="630" y="516" font-size="9">move; PWM low at rest; shares</text>
-      <text x="630" y="529" font-size="9">the rail &#8212; a move sags it</text>
+      <text x="630" y="529" font-size="9">the rail &#8212; a move sags it;</text>
+      <text x="630" y="542" font-size="9">cal holds it, cut 8 s idle</text>
 
       <!-- result band -->
       <line x1="486" y1="430" x2="486" y2="552" stroke="#1c2734" stroke-width="1.4" marker-end="url(#arr)"/>
@@ -169,6 +173,8 @@
       <text x="400" y="573" text-anchor="middle" font-weight="700" font-size="10">RESULT &#183; demo always runs full-speed (a phone is connected) &#183; parked = low draw &#183; charge like a phone</text>
       <text x="400" y="589" text-anchor="middle" font-size="9">est. idle life ~1&#8211;2 days today &#8594; ~4&#8211;7 days with the naps &#183; flat cell: its protection IC cuts out,</text>
       <text x="400" y="602" text-anchor="middle" font-size="9">recharge over USB-C &#8212; pairing + calibration survive in flash, nothing to set up again</text>
+
+      <text x="400" y="622" text-anchor="middle" font-size="8" fill="#5b6472">scoped out (no meaningful power draw): hub&#8217;s 60 s pairing window &#183; status LED &#183; serial logs</text>
 
       <!-- legend -->
       <g font-size="8.5" fill="#5b6472">
