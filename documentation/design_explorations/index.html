@@ -1,0 +1,98 @@
+<title>L Flip Design Explorations</title>
+<style>
+  :root{--ink:#e8e8ea;--mut:#9a9aa2;--bg:#141416;--card:#1c1c20;--hair:#2c2c32;--yellow:#c5bf10;--green:#36a225}
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif}
+  .wrap{max-width:1240px;margin:0 auto;padding:40px 24px 64px;display:flex;flex-direction:column;gap:28px}
+  header{display:flex;gap:18px;align-items:center}
+  .badge{width:52px;height:52px;border-radius:13px;background:#ffd60a;color:#1a1a2e;font-family:Impact,sans-serif;
+         font-size:36px;display:flex;align-items:center;justify-content:center;flex:none}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.01em}
+  header p{color:var(--mut);font-size:13.5px;margin-top:4px;max-width:80ch;line-height:1.45}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .card{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:14px;display:flex;flex-direction:column;
+        gap:10px;text-decoration:none;color:var(--ink)}
+  .card:hover{border-color:var(--yellow)}
+  .card-head{display:flex;align-items:baseline;gap:10px}
+  .num{font-family:"SF Mono",Menlo,monospace;color:var(--yellow);font-weight:700;font-size:14px}
+  h2{font-size:16.5px;font-weight:700}
+  .file{margin-left:auto;font-family:"SF Mono",Menlo,monospace;font-size:10.5px;color:var(--mut)}
+  .shot{width:100%;aspect-ratio:1800/1290;overflow:hidden;border-radius:8px;background:#0d0d0f;position:relative}
+  .shot iframe{width:1800px;height:1290px;border:0;position:absolute;top:0;left:0;
+               transform:scale(0.31);transform-origin:0 0;pointer-events:none}
+  .verdict{font-size:12.5px;color:var(--mut);line-height:1.5}
+  .section{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:18px}
+  .matrix{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+  th,td{border:1px solid var(--hair);padding:7px 10px;text-align:center;font-variant-numeric:tabular-nums}
+  th{font-size:12px;font-weight:700} th span{display:block;font-weight:400;color:var(--mut);font-size:10px}
+  td:first-child,th:first-child{text-align:left}
+  td.best{color:var(--green);font-weight:700}
+  tr.total td{border-top:2px solid var(--ink);font-weight:700}
+  .decide{border-left:4px solid var(--green);font-size:14px;line-height:1.6}
+  .decide h2{margin-bottom:8px;font-size:18px} .decide p{margin-bottom:10px} .decide p:last-child{margin-bottom:0}
+  .method{color:var(--mut);font-size:12px;line-height:1.5}
+</style>
+<div class="wrap">
+  <header>
+    <div class="badge">L</div>
+    <div>
+      <h1>Log Trip — six design directions, one decision</h1>
+      <p>Each direction was built independently as a four-frame static prototype (ready, plates connecting, recording, and a
+         rejected in-direction variant with its reason), then all six were scored on the same criteria. Click any card for the
+         full-size sheet.</p>
+    </div>
+  </header>
+  <div class="grid">
+    <a class="card" href="01_big_button.html" target="_blank">
+      <div class="card-head"><span class="num">01</span><h2>Big Button + grid</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="01_big_button.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Red start (record convention) built and rejected: brand reserves red for Stop/errors; green-means-go reads from a cradle.</p>
+    </a>
+    <a class="card" href="02_dashboard_first.html" target="_blank">
+      <div class="card-head"><span class="num">02</span><h2>Dashboard-first</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="02_dashboard_first.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">One dominant 63.5/100 h ring beat three equal rings. Cost: the start action sits below decoration on every drive.</p>
+    </a>
+    <a class="card" href="03_wizard_flow.html" target="_blank">
+      <div class="card-head"><span class="num">03</span><h2>Wizard flow</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="03_wizard_flow.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Numbered dots beat a vertical checklist wasting half the screen. Bulletproof for first-timers; a tap tax on repeats.</p>
+    </a>
+    <a class="card" href="04_map_first.html" target="_blank">
+      <div class="card-head"><span class="num">04</span><h2>Map-first</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="04_map_first.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Chips + floating start beat a tall form sheet that buried the map. Best recording state; pre-trip the map is decoration.</p>
+    </a>
+    <a class="card" href="05_paper_logbook.html" target="_blank">
+      <div class="card-head"><span class="num">05</span><h2>Paper logbook</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="05_paper_logbook.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Clean ledger beat the skeuomorph (texture reads as novelty). Its real home is the history / evidence view.</p>
+    </a>
+    <a class="card" href="06_car_hmi.html" target="_blank">
+      <div class="card-head"><span class="num">06</span><h2>Car-dashboard HMI</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="06_car_hmi.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Filled cards beat hairline outlines that wash out in glare. Unbeatable in the cradle; heavy-handed off it.</p>
+    </a></div>
+  <section class="section matrix">
+    <div class="card-head"><span class="num">07</span><h2>Scoring matrix</h2></div>
+    <p class="verdict" style="margin-top:6px">Scored 1&ndash;5 from operating the prototypes against real use: a learner starting a
+       repeat drive one-handed, phone soon cradled, with BLE plate hardware that can be slow or absent.</p>
+    <table><thead><tr><th>Criterion</th><th>01<br><span>Big Button + grid</span></th><th>02<br><span>Dashboard-first</span></th><th>03<br><span>Wizard flow</span></th><th>04<br><span>Map-first</span></th><th>05<br><span>Paper logbook</span></th><th>06<br><span>Car-dashboard HMI</span></th></tr></thead><tbody><tr><td>Taps to start (repeat trip)</td><td class="best">5</td><td class="">3</td><td class="">1</td><td class="">4</td><td class="">3</td><td class="best">5</td></tr><tr><td>One-handed reach</td><td class="best">5</td><td class="">3</td><td class="">4</td><td class="">3</td><td class="">2</td><td class="best">5</td></tr><tr><td>Glanceability in the car</td><td class="best">5</td><td class="">3</td><td class="">2</td><td class="">4</td><td class="">1</td><td class="best">5</td></tr><tr><td>Error-proofing (odo / guest)</td><td class="">3</td><td class="">3</td><td class="best">5</td><td class="">2</td><td class="">3</td><td class="">3</td></tr><tr><td>Plate status visibility</td><td class="">4</td><td class="">4</td><td class="">4</td><td class="">3</td><td class="">2</td><td class="best">5</td></tr><tr><td>Build cost in Ionic (5 = cheapest)</td><td class="best">5</td><td class="">4</td><td class="">2</td><td class="">1</td><td class="">3</td><td class="">3</td></tr><tr class='total'><td>Total / 30</td><td class="best">27</td><td class="">20</td><td class="">18</td><td class="">17</td><td class="">14</td><td class="">26</td></tr></tbody></table>
+  </section>
+  <section class="section decide">
+    <h2>Decision</h2>
+    <p><strong>Big Button + grid is the shipped design (27/30).</strong> It ties the Car HMI on every in-car criterion but stays
+       comfortable off the cradle, and is the cheapest to reach from the existing Ionic screen. The Car HMI (26/30) loses only where
+       its own evaluation admits: it is heavy-handed the moment the phone leaves the windscreen.</p>
+    <p>The losing directions still contribute: the HMI&rsquo;s tile discipline <em>is</em> the grid under the button; the wizard&rsquo;s
+       field-gating survives as the start button refusing to enable until odometer and supervisor are valid; the dashboard rings stay
+       on the Dashboard tab; the ledger is the right shape for the history / evidence view; the map earns its place after the trip, in
+       the trip-detail route view.</p>
+    <p><strong>Colour remains a live decision.</strong> The exploration favoured green on brand grounds (red is reserved for Stop and
+       errors); the red record-convention build is preserved as evidence. If red is chosen, Stop must be differentiated by shape and
+       position so two red actions cannot be confused.</p>
+  </section>
+  <p class="method">Method: six parallel builds from one shared brief, none seeing the others&rsquo; work; every prototype self-verified
+     by rendering and correcting its own screenshot; weaknesses recorded by each direction&rsquo;s own author before comparison.</p>
+</div>

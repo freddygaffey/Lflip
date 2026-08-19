@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L Flip — Design Exploration 05 — Paper Logbook</title>
+<style>
+  :root{
+    --lp-red:#b90413;
+    --lp-yellow:#c5bf10;
+    --lp-green:#36a225;
+    --lp-dark:#1d1d1d;
+    --lp-blue:#4232b4;
+    --lp-light:#f4f4f4;
+    --lp-secondary:#8b8b8b;
+    --paper:#faf6ea;
+    --paper-line:#ddd5bd;
+    --paper-rule:#c3cfe4;
+    --ink:#2a2a2a;
+    --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#262626;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+    color:#e8e8e8;
+    padding:36px 40px 44px;
+  }
+
+  /* ---------- page chrome ---------- */
+  .page-head{max-width:1720px;margin:0 auto 26px;display:flex;align-items:center;gap:18px;}
+  .brand-tile{
+    width:52px;height:52px;border-radius:12px;background:var(--lp-yellow);
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+    box-shadow:0 2px 10px rgba(0,0,0,.45);
+  }
+  .brand-tile span{
+    font-family:Impact,"Arial Black",sans-serif;font-size:36px;color:#000;line-height:1;
+    transform:translateY(-1px);
+  }
+  .page-head h1{font-size:24px;font-weight:700;letter-spacing:.2px;}
+  .page-head h1 small{display:block;font-size:13px;font-weight:500;color:#a5a5a5;margin-top:4px;letter-spacing:.4px;}
+  .page-head .dirno{
+    margin-left:auto;font-size:12px;color:#8f8f8f;text-align:right;line-height:1.5;
+  }
+
+  .frames{
+    max-width:1720px;margin:0 auto;
+    display:flex;gap:24px;justify-content:center;align-items:flex-start;
+  }
+  .frame-col{display:flex;flex-direction:column;gap:12px;width:390px;flex:0 0 auto;}
+  .frame-label{
+    display:flex;align-items:baseline;gap:8px;font-size:13px;font-weight:600;color:#dcdcdc;
+    padding:0 4px;min-height:34px;
+  }
+  .frame-label .tag{
+    font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.4px;
+    flex:0 0 auto;
+  }
+  .tag-ready{background:rgba(54,162,37,.22);color:#7ed86e;}
+  .tag-amber{background:rgba(197,191,16,.2);color:#d9d34a;}
+  .tag-rec{background:rgba(185,4,19,.25);color:#ff7d88;}
+  .tag-rej{background:rgba(139,139,139,.25);color:#bdbdbd;}
+  .frame-label .why{font-size:11px;font-weight:400;color:#9a9a9a;line-height:1.35;}
+
+  /* ---------- phone ---------- */
+  .phone{
+    width:390px;height:844px;border-radius:46px;background:var(--lp-light);
+    border:10px solid #0c0c0c;
+    box-shadow:0 18px 50px rgba(0,0,0,.55), 0 0 0 1px #3a3a3a;
+    overflow:hidden;position:relative;
+    display:flex;flex-direction:column;color:var(--ink);
+  }
+
+  .statusbar{
+    height:46px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px 0 30px;font-size:14px;font-weight:600;color:#111;position:relative;
+    background:var(--lp-light);
+  }
+  .statusbar .island{
+    position:absolute;left:50%;top:9px;transform:translateX(-50%);
+    width:110px;height:26px;border-radius:16px;background:#0c0c0c;
+  }
+  .statusbar .icons{display:flex;align-items:center;gap:6px;}
+  .statusbar svg{display:block;}
+
+  .apphead{
+    flex:0 0 auto;display:flex;align-items:center;gap:11px;padding:10px 18px 12px;
+    background:var(--lp-light);
+  }
+  .apphead .mini-tile{
+    width:36px;height:36px;border-radius:9px;background:var(--lp-yellow);
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  }
+  .apphead .mini-tile span{font-family:Impact,"Arial Black",sans-serif;font-size:24px;color:#000;line-height:1;}
+  .apphead h2{font-size:19px;font-weight:700;color:#1d1d1d;line-height:1.15;}
+  .apphead .sub{font-size:11px;color:var(--lp-secondary);font-weight:500;margin-top:1px;}
+  .apphead .hours{
+    margin-left:auto;text-align:right;font-size:10.5px;color:var(--lp-secondary);font-weight:500;line-height:1.3;
+  }
+  .apphead .hours b{display:block;font-size:14px;color:#1d1d1d;font-weight:700;}
+
+  .screen{
+    flex:1 1 auto;overflow:hidden;display:flex;flex-direction:column;gap:12px;
+    padding:2px 14px 12px;background:var(--lp-light);
+  }
+
+  /* ---------- paper ledger card (winning treatment: ledger-inspired flat) ---------- */
+  .paper{
+    background:var(--paper);border:1px solid #e2dcc8;border-radius:var(--radius);
+    padding:12px 12px 10px;box-shadow:0 1px 3px rgba(60,50,20,.08);
+    flex:0 0 auto;
+  }
+  .paper .paper-title{
+    display:flex;align-items:baseline;justify-content:space-between;margin:0 2px 8px;
+  }
+  .paper .paper-title h3{
+    font-family:"American Typewriter","Courier New",serif;font-size:12.5px;font-weight:700;
+    letter-spacing:.6px;color:#4b452f;
+  }
+  .paper .paper-title .pageno{
+    font-family:"American Typewriter","Courier New",serif;font-size:10px;color:#9a9276;
+  }
+  table.ledger{width:100%;border-collapse:collapse;table-layout:fixed;}
+  table.ledger th{
+    font-family:"American Typewriter","Courier New",serif;font-size:8.5px;font-weight:700;
+    color:#7a7256;text-align:left;letter-spacing:.3px;
+    border-bottom:2px solid #b9b092;padding:0 3px 5px;text-transform:none;
+  }
+  table.ledger td{
+    border-bottom:1px solid var(--paper-line);
+    font-size:11px;color:var(--ink);padding:8px 3px;vertical-align:middle;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  table.ledger .c-date{width:47px;}
+  table.ledger .c-odo{width:47px;}
+  table.ledger .c-hrs{width:33px;}
+  table.ledger .c-dn{width:26px;}
+  table.ledger .c-sup{width:auto;}
+  td.num{font-variant-numeric:tabular-nums;}
+  td .sig{
+    font-family:"Snell Roundhand","Bradley Hand",cursive;font-size:13px;color:#3d3d6b;
+  }
+  .dn-pill{
+    display:inline-block;font-size:9px;font-weight:700;padding:2px 5px;border-radius:8px;
+  }
+  .dn-d{background:#efe9c9;color:#7a6d20;}
+  .dn-n{background:#dcd8f2;color:var(--lp-blue);}
+
+  tr.current td{
+    background:#f2fbef;border-bottom:1px solid #bfe0b6;border-top:1px solid #bfe0b6;
+    font-weight:600;
+  }
+  tr.current td:first-child{border-radius:8px 0 0 8px;}
+  tr.current td:last-child{border-radius:0 8px 8px 0;}
+  td .pending{color:#b3ab8c;font-weight:500;letter-spacing:1px;}
+  td .live{
+    color:var(--lp-green);font-weight:700;font-variant-numeric:tabular-nums;
+  }
+  tr.guest td{
+    border-bottom:none;padding-top:7px;padding-bottom:2px;
+  }
+  .guest-cells{display:flex;gap:8px;align-items:flex-end;}
+  .guest-cell{flex:1;}
+  .guest-cell .blank{
+    border-bottom:1px dashed #b7ad8b;height:16px;
+  }
+  .guest-cell label{
+    display:block;font-family:"American Typewriter","Courier New",serif;
+    font-size:8px;color:#9a9276;margin-top:3px;letter-spacing:.3px;
+  }
+  .guest-note{
+    font-size:9.5px;color:#8b8468;margin:6px 2px 0;font-style:italic;
+  }
+
+  /* ---------- trip details ---------- */
+  .details{
+    background:#fff;border:1px solid #e6e6e6;border-radius:var(--radius);
+    padding:11px 13px;flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr;gap:9px 12px;
+  }
+  .kv .k{font-size:10px;color:var(--lp-secondary);font-weight:600;margin-bottom:2px;}
+  .kv .v{font-size:13.5px;font-weight:600;color:#1d1d1d;}
+  .kv .v small{font-size:10.5px;color:var(--lp-secondary);font-weight:500;}
+  .kv.wide{grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;}
+  .kv.wide .swap{
+    font-size:11px;font-weight:600;color:var(--lp-blue);flex:0 0 auto;
+  }
+
+  /* ---------- hardware status ---------- */
+  .hw{
+    border-radius:var(--radius);padding:10px 13px;display:flex;align-items:center;gap:10px;
+    flex:0 0 auto;font-size:12.5px;font-weight:600;
+  }
+  .hw .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;}
+  .hw small{display:block;font-size:10px;font-weight:500;margin-top:1px;}
+  .hw-ok{background:#e8f5e4;color:#207013;border:1px solid #c9e6c1;}
+  .hw-ok .dot{background:var(--lp-green);}
+  .hw-ok small{color:#5a9350;}
+  .hw-amber{background:#f7f5df;color:#6f6a08;border:1px solid #e3dfa8;}
+  .hw-amber .dot{background:var(--lp-yellow);}
+  .hw-amber small{color:#938d2e;}
+  .hw .hw-plates{margin-left:auto;display:flex;gap:5px;}
+  .hw .plate{
+    width:22px;height:22px;border-radius:5px;background:var(--lp-yellow);
+    display:flex;align-items:center;justify-content:center;
+    font-family:Impact,"Arial Black",sans-serif;font-size:14px;color:#000;
+  }
+  .hw .plate.dim{opacity:.38;}
+
+  /* ---------- recording banner ---------- */
+  .recbar{
+    background:#1d1d1d;border-radius:var(--radius);padding:12px 15px;color:#fff;
+    display:flex;align-items:center;gap:12px;flex:0 0 auto;
+  }
+  .recbar .recdot{
+    width:12px;height:12px;border-radius:50%;background:var(--lp-red);flex:0 0 auto;
+    box-shadow:0 0 0 4px rgba(185,4,19,.25);
+  }
+  .recbar .elapsed{
+    font-variant-numeric:tabular-nums;font-size:24px;font-weight:700;letter-spacing:.5px;
+  }
+  .recbar .meta{margin-left:auto;text-align:right;font-size:10.5px;color:#a9a9a9;line-height:1.45;}
+  .recbar .meta b{color:#fff;font-weight:600;}
+
+  /* ---------- actions ---------- */
+  .actions{margin-top:auto;flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding-bottom:2px;}
+  .btn{
+    border-radius:var(--radius);padding:15px 16px;font-size:15.5px;font-weight:600;
+    text-align:center;border:none;letter-spacing:.1px;
+  }
+  .btn-start{background:var(--lp-green);color:#fff;box-shadow:0 3px 10px rgba(54,162,37,.3);}
+  .btn-amber{background:var(--lp-yellow);color:#3a3805;box-shadow:0 3px 10px rgba(197,191,16,.28);}
+  .btn-amber .spin{
+    display:inline-block;width:13px;height:13px;border-radius:50%;
+    border:2.5px solid rgba(58,56,5,.28);border-top-color:#3a3805;vertical-align:-2px;margin-right:8px;
+  }
+  .btn-stop{background:var(--lp-red);color:#fff;box-shadow:0 3px 10px rgba(185,4,19,.28);}
+  .btn-ghost{background:transparent;color:var(--lp-secondary);padding:9px;font-size:13.5px;}
+  .btn-hint{font-size:10.5px;color:var(--lp-secondary);text-align:center;font-weight:500;}
+
+  /* ---------- tab bar ---------- */
+  .tabbar{
+    flex:0 0 auto;background:var(--lp-dark);display:flex;
+    padding:9px 6px 22px;
+  }
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .tab svg{display:block;}
+  .tab span{font-size:10px;font-weight:600;color:#8b8b8b;letter-spacing:.2px;}
+  .tab.active span{color:var(--lp-green);}
+
+  /* ================= REJECTED SKEUOMORPH TREATMENT ================= */
+  .skeu .screen{
+    background:
+      repeating-linear-gradient(0deg,transparent 0 27px,rgba(120,140,190,.28) 27px 28px),
+      linear-gradient(90deg,transparent 0 30px,rgba(200,60,60,.35) 30px 31px,transparent 31px),
+      radial-gradient(ellipse at 30% 10%,#fbf7e9 0%,#f3ecd6 55%,#eae1c4 100%);
+  }
+  .skeu .apphead,.skeu .statusbar{background:#efe8d2;}
+  .skeu .paper{
+    background:transparent;border:none;box-shadow:none;border-radius:0;padding:6px 4px 0 22px;
+  }
+  .skeu .paper .paper-title h3{font-size:13px;color:#5c5233;}
+  .skeu table.ledger th{
+    font-size:8.5px;color:#6d6444;border-bottom:2px solid #8d8360;
+  }
+  .skeu table.ledger td{
+    border-bottom:none;font-family:"Bradley Hand","Comic Sans MS",cursive;
+    font-size:12px;color:#33355e;padding:6px 3px 7px;
+  }
+  .skeu td .sig{font-size:12px;}
+  .skeu td.num{font-variant-numeric:normal;}
+  .skeu tr.current td{background:rgba(54,162,37,.08);border:none;font-weight:400;}
+  .skeu .details{
+    background:rgba(255,255,255,.55);border:1px dashed #b7ad8b;border-radius:4px;
+  }
+  .skeu .kv .v{font-family:"Bradley Hand","Comic Sans MS",cursive;font-weight:400;color:#33355e;}
+  .skeu .btn-start{
+    border-radius:6px;
+    background:linear-gradient(180deg,#49b437,#2f8f20);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 3px 8px rgba(40,90,20,.35);
+    text-shadow:0 1px 1px rgba(0,0,0,.25);
+  }
+  .skeu .hw-ok{background:rgba(232,245,228,.7);}
+  .skeu .stamp{
+    position:absolute;right:56px;top:575px;transform:rotate(-8deg);
+    font-family:"American Typewriter","Courier New",serif;font-size:11px;font-weight:700;
+    color:rgba(185,4,19,.55);border:2.5px solid rgba(185,4,19,.45);border-radius:6px;
+    padding:4px 10px;letter-spacing:2px;
+  }
+
+  /* ---------- self-evaluation ---------- */
+  .selfeval{
+    max-width:1720px;margin:30px auto 0;background:#1f1f1f;border:1px solid #383838;
+    border-radius:var(--radius);padding:18px 24px;display:flex;gap:34px;
+  }
+  .selfeval .cell{flex:1;}
+  .selfeval h4{
+    font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:7px;
+  }
+  .selfeval .s h4{color:#7ed86e;}
+  .selfeval .w h4{color:#ff8b95;}
+  .selfeval .u h4{color:#d9d34a;}
+  .selfeval p{font-size:12.5px;line-height:1.55;color:#c9c9c9;}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="brand-tile"><span>L</span></div>
+  <h1>Design exploration 05 — Paper logbook
+    <small>Log Trip screen · the trip ledger mirrors the official ACT paper learner logbook — a new drive is just the next row</small>
+  </h1>
+  <div class="dirno">L Flip · design portfolio<br>Static visual mock · iPhone 390&times;844</div>
+</div>
+
+<div class="frames">
+
+  <!-- ============ FRAME 1 : READY ============ -->
+  <div class="frame-col">
+    <div class="frame-label"><span class="tag tag-ready">Ready</span> New row prepared, plates connected, start available</div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>15:53</span>
+        <div class="island"></div>
+        <div class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="#111"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="#111"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#111"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#111"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11"><path d="M8 9.5 L5.6 7.1 a3.4 3.4 0 0 1 4.8 0 Z M3.5 5 a6.4 6.4 0 0 1 9 0 L11 6.5 a4.3 4.3 0 0 0-6 0 Z M1 2.5 a9.9 9.9 0 0 1 14 0 L13.5 4 a7.8 7.8 0 0 0-11 0 Z" fill="#111"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="#111" stroke-opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="#111"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="#111" fill-opacity=".4"/></svg>
+        </div>
+      </div>
+
+      <div class="apphead">
+        <div class="mini-tile"><span>L</span></div>
+        <div><h2>Log Trip</h2><div class="sub">ACT learner logbook</div></div>
+        <div class="hours"><b>42.3 h</b>of 100 h logged</div>
+      </div>
+
+      <div class="screen">
+        <div class="paper">
+          <div class="paper-title"><h3>Trip ledger</h3><span class="pageno">page 6</span></div>
+          <table class="ledger">
+            <tr>
+              <th class="c-date">Date</th><th class="c-odo">Odo start</th><th class="c-odo">Odo end</th>
+              <th class="c-hrs">Hrs</th><th class="c-dn">D/N</th><th class="c-sup">Supervisor</th>
+            </tr>
+            <tr>
+              <td>9 Aug</td><td class="num">48 302</td><td class="num">48 371</td>
+              <td class="num">1.2</td><td><span class="dn-pill dn-d">D</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr>
+              <td>12 Aug</td><td class="num">48 371</td><td class="num">48 441</td>
+              <td class="num">1.4</td><td><span class="dn-pill dn-n">N</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr>
+              <td>15 Aug</td><td class="num">48 441</td><td class="num">48 468</td>
+              <td class="num">0.6</td><td><span class="dn-pill dn-d">D</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr class="current">
+              <td>Today</td><td class="num">48 468</td><td><span class="pending">— —</span></td>
+              <td><span class="pending">—</span></td><td><span class="pending">—</span></td><td>Sarah Whitman</td>
+            </tr>
+            <tr class="guest">
+              <td colspan="6">
+                <div class="guest-cells">
+                  <div class="guest-cell" style="flex:1.4"><div class="blank"></div><label>Guest supervisor — full name</label></div>
+                  <div class="guest-cell"><div class="blank"></div><label>Licence no.</label></div>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <div class="guest-note">Driving with someone else today? Their details fill these cells.</div>
+        </div>
+
+        <div class="details">
+          <div class="kv"><div class="k">Car</div><div class="v">Mum's Corolla</div></div>
+          <div class="kv"><div class="k">Odometer</div><div class="v">48 468 <small>km</small></div></div>
+          <div class="kv wide">
+            <div><div class="k">Supervising driver</div><div class="v">Sarah Whitman <small>· lic. 09716244</small></div></div>
+            <div class="swap">Change</div>
+          </div>
+        </div>
+
+        <div class="hw hw-ok">
+          <div class="dot"></div>
+          <div>L-plates connected<small>Front &amp; rear · will flip up when you start</small></div>
+          <div class="hw-plates"><div class="plate">L</div><div class="plate">L</div></div>
+        </div>
+
+        <div class="actions">
+          <div class="btn btn-start">Start recording trip</div>
+          <div class="btn-hint">Odometer and time are written to the row as you drive</div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#36a225" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M9 8h7M9 11.5h5"/></svg>
+          <span>Log</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/></svg>
+          <span>Dashboard</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.2-2.6A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4.5"/></svg>
+          <span>AI Chat</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 2 : CONNECTING ============ -->
+  <div class="frame-col">
+    <div class="frame-label"><span class="tag tag-amber">Plates connecting</span> BLE handshake in progress, start held in amber</div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>15:54</span>
+        <div class="island"></div>
+        <div class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="#111"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="#111"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#111"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#111"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11"><path d="M8 9.5 L5.6 7.1 a3.4 3.4 0 0 1 4.8 0 Z M3.5 5 a6.4 6.4 0 0 1 9 0 L11 6.5 a4.3 4.3 0 0 0-6 0 Z M1 2.5 a9.9 9.9 0 0 1 14 0 L13.5 4 a7.8 7.8 0 0 0-11 0 Z" fill="#111"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="#111" stroke-opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="#111"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="#111" fill-opacity=".4"/></svg>
+        </div>
+      </div>
+
+      <div class="apphead">
+        <div class="mini-tile"><span>L</span></div>
+        <div><h2>Log Trip</h2><div class="sub">ACT learner logbook</div></div>
+        <div class="hours"><b>42.3 h</b>of 100 h logged</div>
+      </div>
+
+      <div class="screen">
+        <div class="paper">
+          <div class="paper-title"><h3>Trip ledger</h3><span class="pageno">page 6</span></div>
+          <table class="ledger">
+            <tr>
+              <th class="c-date">Date</th><th class="c-odo">Odo start</th><th class="c-odo">Odo end</th>
+              <th class="c-hrs">Hrs</th><th class="c-dn">D/N</th><th class="c-sup">Supervisor</th>
+            </tr>
+            <tr>
+              <td>9 Aug</td><td class="num">48 302</td><td class="num">48 371</td>
+              <td class="num">1.2</td><td><span class="dn-pill dn-d">D</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr>
+              <td>12 Aug</td><td class="num">48 371</td><td class="num">48 441</td>
+              <td class="num">1.4</td><td><span class="dn-pill dn-n">N</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr>
+              <td>15 Aug</td><td class="num">48 441</td><td class="num">48 468</td>
+              <td class="num">0.6</td><td><span class="dn-pill dn-d">D</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr class="current">
+              <td>Today</td><td class="num">48 468</td><td><span class="pending">— —</span></td>
+              <td><span class="pending">—</span></td><td><span class="pending">—</span></td><td>Sarah Whitman</td>
+            </tr>
+            <tr class="guest">
+              <td colspan="6">
+                <div class="guest-cells">
+                  <div class="guest-cell" style="flex:1.4"><div class="blank"></div><label>Guest supervisor — full name</label></div>
+                  <div class="guest-cell"><div class="blank"></div><label>Licence no.</label></div>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <div class="guest-note">Driving with someone else today? Their details fill these cells.</div>
+        </div>
+
+        <div class="details">
+          <div class="kv"><div class="k">Car</div><div class="v">Mum's Corolla</div></div>
+          <div class="kv"><div class="k">Odometer</div><div class="v">48 468 <small>km</small></div></div>
+          <div class="kv wide">
+            <div><div class="k">Supervising driver</div><div class="v">Sarah Whitman <small>· lic. 09716244</small></div></div>
+            <div class="swap">Change</div>
+          </div>
+        </div>
+
+        <div class="hw hw-amber">
+          <div class="dot"></div>
+          <div>Connecting to L-plates<small>Front plate found · waiting for rear</small></div>
+          <div class="hw-plates"><div class="plate">L</div><div class="plate dim">L</div></div>
+        </div>
+
+        <div class="actions">
+          <div class="btn btn-amber"><span class="spin"></span>Connecting to L-plates&hellip;</div>
+          <div class="btn-hint">Recording starts as soon as both plates respond</div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#36a225" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M9 8h7M9 11.5h5"/></svg>
+          <span>Log</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/></svg>
+          <span>Dashboard</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.2-2.6A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4.5"/></svg>
+          <span>AI Chat</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 3 : RECORDING ============ -->
+  <div class="frame-col">
+    <div class="frame-label"><span class="tag tag-rec">Recording</span> Row live-filling · started 15:54</div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>16:17</span>
+        <div class="island"></div>
+        <div class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="#111"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="#111"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#111"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#111"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11"><path d="M8 9.5 L5.6 7.1 a3.4 3.4 0 0 1 4.8 0 Z M3.5 5 a6.4 6.4 0 0 1 9 0 L11 6.5 a4.3 4.3 0 0 0-6 0 Z M1 2.5 a9.9 9.9 0 0 1 14 0 L13.5 4 a7.8 7.8 0 0 0-11 0 Z" fill="#111"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="#111" stroke-opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="1.5" fill="#111"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="#111" fill-opacity=".4"/></svg>
+        </div>
+      </div>
+
+      <div class="apphead">
+        <div class="mini-tile"><span>L</span></div>
+        <div><h2>Log Trip</h2><div class="sub">ACT learner logbook</div></div>
+        <div class="hours"><b>42.3 h</b>of 100 h logged</div>
+      </div>
+
+      <div class="screen">
+        <div class="recbar">
+          <div class="recdot"></div>
+          <div class="elapsed">00:23:45</div>
+          <div class="meta">Started <b>15:54</b><br>Mum's Corolla &middot; daytime</div>
+        </div>
+
+        <div class="paper">
+          <div class="paper-title"><h3>Trip ledger</h3><span class="pageno">page 6</span></div>
+          <table class="ledger">
+            <tr>
+              <th class="c-date">Date</th><th class="c-odo">Odo start</th><th class="c-odo">Odo end</th>
+              <th class="c-hrs">Hrs</th><th class="c-dn">D/N</th><th class="c-sup">Supervisor</th>
+            </tr>
+            <tr>
+              <td>9 Aug</td><td class="num">48 302</td><td class="num">48 371</td>
+              <td class="num">1.2</td><td><span class="dn-pill dn-d">D</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr>
+              <td>12 Aug</td><td class="num">48 371</td><td class="num">48 441</td>
+              <td class="num">1.4</td><td><span class="dn-pill dn-n">N</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr>
+              <td>15 Aug</td><td class="num">48 441</td><td class="num">48 468</td>
+              <td class="num">0.6</td><td><span class="dn-pill dn-d">D</span></td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr class="current">
+              <td>17 Aug</td><td class="num">48 468</td><td><span class="pending">&hellip;</span></td>
+              <td><span class="live">0:23</span></td><td><span class="dn-pill dn-d">D</span></td><td>Sarah Whitman</td>
+            </tr>
+          </table>
+          <div class="guest-note">Row is being written as you drive — odometer end and hours fill in at stop.</div>
+        </div>
+
+        <div class="hw hw-ok">
+          <div class="dot"></div>
+          <div>L-plates up &amp; showing<small>Front &amp; rear · flip down when you stop</small></div>
+          <div class="hw-plates"><div class="plate">L</div><div class="plate">L</div></div>
+        </div>
+
+        <div class="actions">
+          <div class="btn btn-stop">Stop recording</div>
+          <div class="btn btn-ghost">Cancel trip</div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#36a225" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M9 8h7M9 11.5h5"/></svg>
+          <span>Log</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/></svg>
+          <span>Dashboard</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.2-2.6A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4.5"/></svg>
+          <span>AI Chat</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 4 : REJECTED SKEUOMORPH ============ -->
+  <div class="frame-col">
+    <div class="frame-label">
+      <span class="tag tag-rej">Rejected variant</span>
+      <span class="why">Full skeuomorph — handwriting face and paper texture cut legibility; reads as a novelty, not a tool.</span>
+    </div>
+    <div class="phone skeu">
+      <div class="statusbar">
+        <span>15:53</span>
+        <div class="island"></div>
+        <div class="icons">
+          <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="#111"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="#111"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#111"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#111"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11"><path d="M8 9.5 L5.6 7.1 a3.4 3.4 0 0 1 4.8 0 Z M3.5 5 a6.4 6.4 0 0 1 9 0 L11 6.5 a4.3 4.3 0 0 0-6 0 Z M1 2.5 a9.9 9.9 0 0 1 14 0 L13.5 4 a7.8 7.8 0 0 0-11 0 Z" fill="#111"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="#111" stroke-opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="1.5" fill="#111"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="#111" fill-opacity=".4"/></svg>
+        </div>
+      </div>
+
+      <div class="apphead">
+        <div class="mini-tile"><span>L</span></div>
+        <div><h2>Log Trip</h2><div class="sub">ACT learner logbook</div></div>
+        <div class="hours"><b>42.3 h</b>of 100 h logged</div>
+      </div>
+
+      <div class="screen">
+        <div class="stamp">L FLIP · ACT</div>
+        <div class="paper">
+          <div class="paper-title"><h3>Learner trip record</h3><span class="pageno">form L2 · p.6</span></div>
+          <table class="ledger">
+            <tr>
+              <th class="c-date">Date</th><th class="c-odo">Odo start</th><th class="c-odo">Odo end</th>
+              <th class="c-hrs">Hrs</th><th class="c-dn">D/N</th><th class="c-sup">Supervisor</th>
+            </tr>
+            <tr>
+              <td>9 Aug</td><td class="num">48302</td><td class="num">48371</td>
+              <td class="num">1.2</td><td>D</td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr>
+              <td>12 Aug</td><td class="num">48371</td><td class="num">48441</td>
+              <td class="num">1.4</td><td>N</td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr>
+              <td>15 Aug</td><td class="num">48441</td><td class="num">48468</td>
+              <td class="num">0.6</td><td>D</td><td><span class="sig">S. Whitman</span></td>
+            </tr>
+            <tr class="current">
+              <td>Today</td><td class="num">48468</td><td></td>
+              <td></td><td></td><td>Sarah W.</td>
+            </tr>
+            <tr class="guest">
+              <td colspan="6">
+                <div class="guest-cells">
+                  <div class="guest-cell" style="flex:1.4"><div class="blank"></div><label>Guest supervisor — full name</label></div>
+                  <div class="guest-cell"><div class="blank"></div><label>Licence no.</label></div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="details">
+          <div class="kv"><div class="k">Car</div><div class="v">Mum's Corolla</div></div>
+          <div class="kv"><div class="k">Odometer</div><div class="v">48468 km</div></div>
+          <div class="kv wide">
+            <div><div class="k">Supervising driver</div><div class="v">Sarah Whitman</div></div>
+            <div class="swap">Change</div>
+          </div>
+        </div>
+
+        <div class="hw hw-ok">
+          <div class="dot"></div>
+          <div>L-plates connected<small>Front &amp; rear ready</small></div>
+          <div class="hw-plates"><div class="plate">L</div><div class="plate">L</div></div>
+        </div>
+
+        <div class="actions">
+          <div class="btn btn-start">Start recording trip</div>
+          <div class="btn-hint">The next ruled line is your trip</div>
+        </div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#36a225" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M9 8h7M9 11.5h5"/></svg>
+          <span>Log</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/></svg>
+          <span>Dashboard</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2.2-2.6A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4.5"/></svg>
+          <span>AI Chat</span>
+        </div>
+        <div class="tab">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="selfeval">
+  <div class="cell s">
+    <h4>Strengths</h4>
+    <p>Zero learning curve — the ledger is the ACT paper logbook every learner and supervisor already knows. Instant credibility with parents and assessors; the new trip as "the next row" makes the mental model obvious.</p>
+  </div>
+  <div class="cell w">
+    <h4>Weaknesses</h4>
+    <p>Six columns are cramped on 390&nbsp;px; cells are too small to be touch targets, so editing must happen elsewhere. Nostalgia fights usability — the skeuomorph variant proved texture and handwriting cost more legibility than they buy trust.</p>
+  </div>
+  <div class="cell u">
+    <h4>When this design wins</h4>
+    <p>When the audience is supervisors and assessors reviewing history, or in an evidence/export view. Less suited as the primary start-trip surface, where one big action beats a dense table.</p>
+  </div>
+</div>
+
+</body>
+</html>

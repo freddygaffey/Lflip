@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L Flip — Design exploration 01 — Big Button + Grid</title>
+<style>
+  :root{
+    --lp-red:#b90413;
+    --lp-yellow:#c5bf10;
+    --lp-green:#36a225;
+    --lp-dark:#1d1d1d;
+    --lp-blue:#4232b4;
+    --app-bg:#f4f4f4;
+    --txt-2:#8b8b8b;
+    --radius:14px;
+    --card-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#141414;
+    color:#ececec;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:34px 40px 40px;
+  }
+
+  /* ---------- page header ---------- */
+  .page-head{display:flex;align-items:center;gap:16px;margin-bottom:26px}
+  .brandmark{
+    width:46px;height:46px;border-radius:11px;background:var(--lp-yellow);
+    display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .brandmark span{font-family:Impact,"Arial Black",sans-serif;font-size:30px;color:#000;line-height:1}
+  .page-head h1{font-size:24px;font-weight:700;letter-spacing:-.2px}
+  .page-head .kicker{font-size:12px;color:#9a9a9a;margin-bottom:2px}
+  .page-head .meta{font-size:12.5px;color:#9a9a9a;margin-top:3px}
+
+  /* ---------- frame row ---------- */
+  .frames{display:flex;gap:26px;align-items:flex-start}
+  .col{width:390px;flex:none}
+
+  .phone{
+    position:relative;
+    width:390px;height:844px;background:var(--app-bg);
+    border:10px solid #060606;border-radius:54px;overflow:hidden;
+    box-shadow:0 0 0 2px #2c2c2c,0 18px 40px rgba(0,0,0,.55);
+    display:flex;flex-direction:column;
+  }
+
+  /* status bar */
+  .status{
+    height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;
+    padding:0 26px 0 30px;color:var(--lp-dark);
+  }
+  .status .time{font-size:15px;font-weight:600;letter-spacing:.2px}
+  .status .sicons{display:flex;align-items:center;gap:6px}
+  .island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:112px;height:29px;border-radius:16px;background:#060606;z-index:5}
+
+  /* app header */
+  .apphead{flex:none;display:flex;align-items:center;gap:11px;padding:6px 22px 4px}
+  .apphead .lmark{
+    width:32px;height:32px;border-radius:8px;background:var(--lp-yellow);
+    display:flex;align-items:center;justify-content:center;flex:none;
+  }
+  .apphead .lmark span{font-family:Impact,"Arial Black",sans-serif;font-size:21px;color:#000;line-height:1}
+  .apphead h2{font-size:21px;font-weight:700;color:var(--lp-dark);letter-spacing:-.2px}
+
+  /* screen body */
+  .main{flex:1;display:flex;flex-direction:column;padding:10px 20px 14px;min-height:0}
+
+  /* big circular button */
+  .bigwrap{display:flex;flex-direction:column;align-items:center;flex:none}
+  .bigbtn{
+    width:248px;height:248px;border-radius:50%;margin-top:20px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  }
+  .bigbtn .blabel{font-size:22px;font-weight:600}
+  .bigbtn.green{
+    background:var(--lp-green);color:#fff;
+    box-shadow:0 12px 30px rgba(54,162,37,.38),0 2px 8px rgba(0,0,0,.08);
+  }
+  .bigbtn.red{
+    background:var(--lp-red);color:#fff;
+    box-shadow:0 12px 30px rgba(185,4,19,.34),0 2px 8px rgba(0,0,0,.08);
+  }
+  .bigbtn.amber{
+    background:var(--lp-yellow);color:var(--lp-dark);
+    box-shadow:0 12px 30px rgba(197,191,16,.30),0 2px 8px rgba(0,0,0,.08);
+  }
+  .bigbtn.recording{
+    background:var(--lp-dark);color:#fff;border:6px solid var(--lp-red);
+    box-shadow:0 12px 30px rgba(185,4,19,.28),0 2px 8px rgba(0,0,0,.12);
+    gap:4px;
+  }
+  .rec-flag{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#ff5a64}
+  .rec-dot{width:9px;height:9px;border-radius:50%;background:var(--lp-red)}
+  .elapsed{font-size:42px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+  .started{font-size:12.5px;color:var(--txt-2)}
+
+  .hint{margin-top:16px;font-size:13.5px;color:var(--txt-2);display:flex;align-items:center;gap:8px;min-height:20px}
+  .hint.good{color:var(--lp-green);font-weight:600}
+  .spinner{
+    width:15px;height:15px;border-radius:50%;flex:none;
+    border:2.5px solid rgba(197,191,16,.35);border-top-color:#a49f0d;
+    transform:rotate(38deg);
+  }
+
+  /* tile grid */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:26px}
+  .tile{
+    background:#fff;border-radius:var(--radius);box-shadow:var(--card-shadow);
+    padding:12px 14px 11px;min-height:80px;
+    display:flex;flex-direction:column;justify-content:center;gap:3px;
+  }
+  .tile .tl{font-size:11.5px;color:var(--txt-2)}
+  .tile .tv{font-size:15px;font-weight:600;color:var(--lp-dark);display:flex;align-items:center;gap:6px}
+  .tile .tv .unit{font-size:12.5px;font-weight:400;color:var(--txt-2)}
+  .tile .tv .chev{margin-left:auto;flex:none;display:flex}
+  .tile .sub{font-size:11px;color:var(--txt-2)}
+  .tile .odoval{border-bottom:2px solid #e6e6e6;padding-bottom:1px;font-variant-numeric:tabular-nums}
+  .sdot{width:9px;height:9px;border-radius:50%;flex:none}
+  .sdot.g{background:var(--lp-green)}
+  .sdot.y{background:#a49f0d}
+  .guest{margin-top:auto;font-size:12px;color:var(--txt-2);text-align:center;line-height:1.45;padding:20px 10px 0}
+  .guest b{color:#6f6f6f;font-weight:600}
+
+  /* recording extras */
+  .locknote{margin-top:15px;font-size:13px;color:var(--txt-2);text-align:center;line-height:1.45;padding:0 14px}
+  .stopbtn{
+    margin-top:15px;width:100%;padding:15px 0;border:0;border-radius:var(--radius);
+    background:var(--lp-red);color:#fff;font-size:16.5px;font-weight:600;
+    font-family:inherit;box-shadow:var(--card-shadow);
+  }
+  .cancelbtn{
+    margin-top:4px;width:100%;padding:11px 0;border:0;background:none;
+    color:var(--txt-2);font-size:14px;font-weight:600;font-family:inherit;
+  }
+  .grid.muted .tile .tv{color:#5c5c5c}
+
+  /* tab bar */
+  .bottombar{flex:none;margin:auto -20px -14px;background:var(--lp-dark)}
+  .tabbar{display:flex;padding:10px 10px 2px}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#8b8b8b}
+  .tab.active{color:var(--lp-green)}
+  .tab .tname{font-size:10px;font-weight:600}
+  .homebar{padding:9px 0 9px;display:flex;justify-content:center}
+  .homebar i{display:block;width:126px;height:5px;border-radius:3px;background:rgba(255,255,255,.42)}
+
+  /* captions */
+  .caption{margin-top:14px;padding:0 6px}
+  .caption .cname{font-size:14px;font-weight:700;color:#f2f2f2}
+  .caption .cname .tag{
+    display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;
+    margin-right:7px;position:relative;top:-1px;
+  }
+  .tag.g{background:rgba(54,162,37,.18);color:#5fc44e}
+  .tag.y{background:rgba(197,191,16,.16);color:#c5bf10}
+  .tag.r{background:rgba(185,4,19,.22);color:#ff6a72}
+  .caption .cdesc{font-size:12.5px;color:#9a9a9a;margin-top:5px;line-height:1.5}
+
+  /* self-evaluation */
+  .selfeval{
+    margin-top:34px;background:#1d1d1d;border:1px solid #2c2c2c;border-radius:var(--radius);
+    padding:20px 26px 22px;display:flex;gap:34px;
+  }
+  .selfeval .se{flex:1}
+  .selfeval h3{font-size:12.5px;font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:8px}
+  .selfeval h3 i{width:8px;height:8px;border-radius:2px;flex:none}
+  .se-s h3 i{background:var(--lp-green)} .se-s h3{color:#6fce5e}
+  .se-w h3 i{background:var(--lp-yellow)} .se-w h3{color:#c5bf10}
+  .se-v h3 i{background:#7b6ee6} .se-v h3{color:#a99ff2}
+  .selfeval p{font-size:13px;color:#c4c4c4;line-height:1.55}
+</style>
+</head>
+<body>
+
+<header class="page-head">
+  <div class="brandmark"><span>L</span></div>
+  <div>
+    <div class="kicker">L Flip &middot; design exploration 01 &middot; Log Trip screen</div>
+    <h1>Big Button + Grid</h1>
+    <div class="meta">One oversized circular start action, everything else compressed into a tile grid. Maximum thumb reach, minimum reading. Green start chosen over red &mdash; rationale in frame 4.</div>
+  </div>
+</header>
+
+<div class="frames">
+
+  <!-- ============ FRAME 1: READY ============ -->
+  <div class="col">
+    <div class="phone"><div class="island"></div>
+      <div class="status">
+        <span class="time">15:52</span>
+        <span class="sicons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#1d1d1d"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1d1d1d"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#1d1d1d"/><rect x="15" y="0.5" width="3" height="11.5" rx="1" fill="#1d1d1d"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#1d1d1d" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2c4-3.6 10-3.6 14 0"/><path d="M4.2 7c2.5-2.2 6.1-2.2 8.6 0"/><circle cx="8.5" cy="10" r="1.4" fill="#1d1d1d" stroke="none"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="#1d1d1d" stroke-opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="#1d1d1d"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#1d1d1d" fill-opacity=".4"/></svg>
+        </span>
+      </div>
+      <div class="apphead"><div class="lmark"><span>L</span></div><h2>Log trip</h2></div>
+      <div class="main">
+        <div class="bigwrap">
+          <div class="bigbtn green">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.2v13.6L19.2 12z"/></svg>
+            <span class="blabel">Start trip</span>
+          </div>
+          <div class="hint good">L-plates connected &mdash; ready when you are</div>
+        </div>
+        <div class="grid">
+          <div class="tile">
+            <div class="tl">Odometer</div>
+            <div class="tv"><span class="odoval">48468</span><span class="unit">km</span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">Car</div>
+            <div class="tv">Mum&rsquo;s Corolla<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">Supervising driver</div>
+            <div class="tv">Sarah Whitman<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">L-plates</div>
+            <div class="tv"><span class="sdot g"></span>Front &amp; rear</div>
+            <div class="sub">Connected over Bluetooth</div>
+          </div>
+        </div>
+        <div class="guest"><b>Supervisor not on your list?</b> Choose Guest driver and enter their full name and licence number.</div>
+        <div class="bottombar"><nav class="tabbar">
+          <div class="tab active"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8.4"/><path d="M11 7.4v7.2M7.4 11h7.2"/></svg><span class="tname">Log</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="12.5" y="3" width="7" height="7" rx="1.8"/><rect x="3" y="12.5" width="7" height="7" rx="1.8"/><rect x="12.5" y="12.5" width="7" height="7" rx="1.8"/></svg><span class="tname">Dashboard</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M11 3.4c-4.6 0-8.2 3-8.2 6.8 0 2.1 1.1 3.9 2.9 5.2l-.8 3.2 3.5-1.4c.8.2 1.7.3 2.6.3 4.6 0 8.2-3 8.2-6.8s-3.6-7.3-8.2-7.3z"/></svg><span class="tname">AI Chat</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 6.5h15M3.5 11h15M3.5 15.5h15"/><circle cx="8.5" cy="6.5" r="2" fill="#1d1d1d"/><circle cx="14" cy="11" r="2" fill="#1d1d1d"/><circle cx="9.5" cy="15.5" r="2" fill="#1d1d1d"/></svg><span class="tname">Settings</span></div>
+        </nav><div class="homebar"><i></i></div></div>
+      </div>
+    </div>
+    <div class="caption">
+      <div class="cname"><span class="tag g">1</span>Ready</div>
+      <div class="cdesc">Form complete, both plates connected. The circle is the only saturated element on screen &mdash; nothing competes with Start.</div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 2: CONNECTING ============ -->
+  <div class="col">
+    <div class="phone"><div class="island"></div>
+      <div class="status">
+        <span class="time">15:53</span>
+        <span class="sicons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#1d1d1d"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1d1d1d"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#1d1d1d"/><rect x="15" y="0.5" width="3" height="11.5" rx="1" fill="#1d1d1d"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#1d1d1d" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2c4-3.6 10-3.6 14 0"/><path d="M4.2 7c2.5-2.2 6.1-2.2 8.6 0"/><circle cx="8.5" cy="10" r="1.4" fill="#1d1d1d" stroke="none"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="#1d1d1d" stroke-opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="#1d1d1d"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#1d1d1d" fill-opacity=".4"/></svg>
+        </span>
+      </div>
+      <div class="apphead"><div class="lmark"><span>L</span></div><h2>Log trip</h2></div>
+      <div class="main">
+        <div class="bigwrap">
+          <div class="bigbtn amber">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#1d1d1d"><path d="M8 5.2v13.6L19.2 12z"/></svg>
+            <span class="blabel">Start trip</span>
+          </div>
+          <div class="hint"><span class="spinner"></span>Connecting to L-plates&hellip;</div>
+        </div>
+        <div class="grid">
+          <div class="tile">
+            <div class="tl">Odometer</div>
+            <div class="tv"><span class="odoval">48468</span><span class="unit">km</span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">Car</div>
+            <div class="tv">Mum&rsquo;s Corolla<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">Supervising driver</div>
+            <div class="tv">Sarah Whitman<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">L-plates</div>
+            <div class="tv"><span class="sdot y"></span>Connecting&hellip;</div>
+            <div class="sub">Rear plate found, front pending</div>
+          </div>
+        </div>
+        <div class="guest"><b>Supervisor not on your list?</b> Choose Guest driver and enter their full name and licence number.</div>
+        <div class="bottombar"><nav class="tabbar">
+          <div class="tab active"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8.4"/><path d="M11 7.4v7.2M7.4 11h7.2"/></svg><span class="tname">Log</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="12.5" y="3" width="7" height="7" rx="1.8"/><rect x="3" y="12.5" width="7" height="7" rx="1.8"/><rect x="12.5" y="12.5" width="7" height="7" rx="1.8"/></svg><span class="tname">Dashboard</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M11 3.4c-4.6 0-8.2 3-8.2 6.8 0 2.1 1.1 3.9 2.9 5.2l-.8 3.2 3.5-1.4c.8.2 1.7.3 2.6.3 4.6 0 8.2-3 8.2-6.8s-3.6-7.3-8.2-7.3z"/></svg><span class="tname">AI Chat</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 6.5h15M3.5 11h15M3.5 15.5h15"/><circle cx="8.5" cy="6.5" r="2" fill="#1d1d1d"/><circle cx="14" cy="11" r="2" fill="#1d1d1d"/><circle cx="9.5" cy="15.5" r="2" fill="#1d1d1d"/></svg><span class="tname">Settings</span></div>
+        </nav><div class="homebar"><i></i></div></div>
+      </div>
+    </div>
+    <div class="caption">
+      <div class="cname"><span class="tag y">2</span>Plates connecting</div>
+      <div class="cdesc">Bluetooth handshake still in progress. The button drops to the warning amber so the driver knows why Start isn&rsquo;t green yet.</div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 3: RECORDING ============ -->
+  <div class="col">
+    <div class="phone"><div class="island"></div>
+      <div class="status">
+        <span class="time">16:18</span>
+        <span class="sicons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#1d1d1d"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1d1d1d"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#1d1d1d"/><rect x="15" y="0.5" width="3" height="11.5" rx="1" fill="#1d1d1d"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#1d1d1d" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2c4-3.6 10-3.6 14 0"/><path d="M4.2 7c2.5-2.2 6.1-2.2 8.6 0"/><circle cx="8.5" cy="10" r="1.4" fill="#1d1d1d" stroke="none"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="#1d1d1d" stroke-opacity=".4"/><rect x="2" y="2" width="14" height="8" rx="2" fill="#1d1d1d"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#1d1d1d" fill-opacity=".4"/></svg>
+        </span>
+      </div>
+      <div class="apphead"><div class="lmark"><span>L</span></div><h2>Log trip</h2></div>
+      <div class="main">
+        <div class="bigwrap">
+          <div class="bigbtn recording">
+            <span class="rec-flag"><span class="rec-dot"></span>Recording</span>
+            <span class="elapsed">00:23:45</span>
+            <span class="started">Started 15:54</span>
+          </div>
+        </div>
+        <div class="locknote">Feel free to lock your phone &mdash; the trip keeps recording in the background.</div>
+        <button class="stopbtn">Stop recording</button>
+        <button class="cancelbtn">Cancel trip</button>
+        <div class="grid muted" style="margin-top:auto;padding-top:16px">
+          <div class="tile">
+            <div class="tl">Car</div>
+            <div class="tv">Mum&rsquo;s Corolla</div>
+          </div>
+          <div class="tile">
+            <div class="tl">Supervising driver</div>
+            <div class="tv">Sarah Whitman</div>
+          </div>
+          <div class="tile">
+            <div class="tl">Odometer at start</div>
+            <div class="tv"><span style="font-variant-numeric:tabular-nums">48468</span><span class="unit">km</span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">L-plates</div>
+            <div class="tv"><span class="sdot g"></span>Showing</div>
+            <div class="sub">Front &amp; rear flipped out</div>
+          </div>
+        </div>
+        <div class="bottombar"><nav class="tabbar">
+          <div class="tab active"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8.4"/><path d="M11 7.4v7.2M7.4 11h7.2"/></svg><span class="tname">Log</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="12.5" y="3" width="7" height="7" rx="1.8"/><rect x="3" y="12.5" width="7" height="7" rx="1.8"/><rect x="12.5" y="12.5" width="7" height="7" rx="1.8"/></svg><span class="tname">Dashboard</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M11 3.4c-4.6 0-8.2 3-8.2 6.8 0 2.1 1.1 3.9 2.9 5.2l-.8 3.2 3.5-1.4c.8.2 1.7.3 2.6.3 4.6 0 8.2-3 8.2-6.8s-3.6-7.3-8.2-7.3z"/></svg><span class="tname">AI Chat</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 6.5h15M3.5 11h15M3.5 15.5h15"/><circle cx="8.5" cy="6.5" r="2" fill="#1d1d1d"/><circle cx="14" cy="11" r="2" fill="#1d1d1d"/><circle cx="9.5" cy="15.5" r="2" fill="#1d1d1d"/></svg><span class="tname">Settings</span></div>
+        </nav><div class="homebar"><i></i></div></div>
+      </div>
+    </div>
+    <div class="caption">
+      <div class="cname"><span class="tag r">3</span>Recording</div>
+      <div class="cdesc">The circle flips role: elapsed time becomes the hero, red is finally allowed on screen, and both exits (Stop / Cancel) sit under the thumb.</div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 4: REJECTED VARIANT ============ -->
+  <div class="col">
+    <div class="phone"><div class="island"></div>
+      <div class="status">
+        <span class="time">15:52</span>
+        <span class="sicons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#1d1d1d"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#1d1d1d"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#1d1d1d"/><rect x="15" y="0.5" width="3" height="11.5" rx="1" fill="#1d1d1d"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#1d1d1d" stroke-width="1.7" stroke-linecap="round"><path d="M1.5 4.2c4-3.6 10-3.6 14 0"/><path d="M4.2 7c2.5-2.2 6.1-2.2 8.6 0"/><circle cx="8.5" cy="10" r="1.4" fill="#1d1d1d" stroke="none"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="#1d1d1d" stroke-opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="#1d1d1d"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="#1d1d1d" fill-opacity=".4"/></svg>
+        </span>
+      </div>
+      <div class="apphead"><div class="lmark"><span>L</span></div><h2>Log trip</h2></div>
+      <div class="main">
+        <div class="bigwrap">
+          <div class="bigbtn red">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#fff"><path d="M8 5.2v13.6L19.2 12z"/></svg>
+            <span class="blabel">Start trip</span>
+          </div>
+          <div class="hint good">L-plates connected &mdash; ready when you are</div>
+        </div>
+        <div class="grid">
+          <div class="tile">
+            <div class="tl">Odometer</div>
+            <div class="tv"><span class="odoval">48468</span><span class="unit">km</span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">Car</div>
+            <div class="tv">Mum&rsquo;s Corolla<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">Supervising driver</div>
+            <div class="tv">Sarah Whitman<span class="chev"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b8b8b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
+          </div>
+          <div class="tile">
+            <div class="tl">L-plates</div>
+            <div class="tv"><span class="sdot g"></span>Front &amp; rear</div>
+            <div class="sub">Connected over Bluetooth</div>
+          </div>
+        </div>
+        <div class="guest"><b>Supervisor not on your list?</b> Choose Guest driver and enter their full name and licence number.</div>
+        <div class="bottombar"><nav class="tabbar">
+          <div class="tab active"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8.4"/><path d="M11 7.4v7.2M7.4 11h7.2"/></svg><span class="tname">Log</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="12.5" y="3" width="7" height="7" rx="1.8"/><rect x="3" y="12.5" width="7" height="7" rx="1.8"/><rect x="12.5" y="12.5" width="7" height="7" rx="1.8"/></svg><span class="tname">Dashboard</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M11 3.4c-4.6 0-8.2 3-8.2 6.8 0 2.1 1.1 3.9 2.9 5.2l-.8 3.2 3.5-1.4c.8.2 1.7.3 2.6.3 4.6 0 8.2-3 8.2-6.8s-3.6-7.3-8.2-7.3z"/></svg><span class="tname">AI Chat</span></div>
+          <div class="tab"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 6.5h15M3.5 11h15M3.5 15.5h15"/><circle cx="8.5" cy="6.5" r="2" fill="#1d1d1d"/><circle cx="14" cy="11" r="2" fill="#1d1d1d"/><circle cx="9.5" cy="15.5" r="2" fill="#1d1d1d"/></svg><span class="tname">Settings</span></div>
+        </nav><div class="homebar"><i></i></div></div>
+      </div>
+    </div>
+    <div class="caption">
+      <div class="cname"><span class="tag r">4</span>Rejected variant &mdash; red start</div>
+      <div class="cdesc">Red-means-record is a real convention (cameras, Strava), but our brand reserves red for Stop and errors &mdash; a red Start beside a red Stop blurs danger, while green-means-go reads instantly from a car cradle.</div>
+    </div>
+  </div>
+
+</div>
+
+<section class="selfeval">
+  <div class="se se-s">
+    <h3><i></i>Strengths</h3>
+    <p>One unmistakable action, sized for a thumb in a parked car; state is legible at arm&rsquo;s length because the whole circle changes colour, and setup collapses to a four-tile glance.</p>
+  </div>
+  <div class="se se-w">
+    <h3><i></i>Weaknesses</h3>
+    <p>The Guest-driver flow hides behind a tile tap, long car or supervisor names cramp the tiles, and the giant circle wastes vertical space once a trip is already running.</p>
+  </div>
+  <div class="se se-v">
+    <h3><i></i>When this design wins</h3>
+    <p>Quick repeat trips &mdash; same car, same supervisor &mdash; where the learner just wants to hit go and drop the phone in the cradle.</p>
+  </div>
+</section>
+
+</body>
+</html>

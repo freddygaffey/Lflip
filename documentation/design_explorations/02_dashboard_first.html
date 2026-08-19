@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L Flip — Design exploration 02: Dashboard-first</title>
+<style>
+  :root{
+    --lp-red:#b90413;
+    --lp-yellow:#c5bf10;
+    --lp-green:#36a225;
+    --lp-dark:#1d1d1d;
+    --lp-blue:#4232b4;
+    --app-bg:#f4f4f4;
+    --txt-2:#8b8b8b;
+    --ring-empty:#e0e0e0;
+    --radius:14px;
+    --card-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#161616;
+    color:#e8e8e8;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:40px 48px 56px;
+  }
+
+  /* ---------- page header ---------- */
+  .page-head{display:flex;align-items:center;gap:18px;margin-bottom:10px}
+  .brand-tile{
+    width:52px;height:52px;border-radius:12px;background:var(--lp-yellow);
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+    font-family:Impact,"Arial Black",sans-serif;font-size:36px;color:#000;
+  }
+  .page-head h1{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .page-head .sub{color:#9a9a9a;font-size:14px;margin-top:3px;max-width:900px}
+  .direction-pitch{
+    color:#b5b5b5;font-size:13.5px;line-height:1.5;max-width:980px;margin:6px 0 34px 70px;
+  }
+
+  /* ---------- frame row ---------- */
+  .frames{display:flex;gap:28px;align-items:flex-start;justify-content:center}
+  .frame-col{display:flex;flex-direction:column;align-items:center;width:390px;flex:0 0 auto}
+  .frame-label{
+    font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:#cfcfcf;margin-bottom:12px;display:flex;align-items:center;gap:8px;
+  }
+  .frame-label .dot{width:8px;height:8px;border-radius:50%}
+  .dot-green{background:var(--lp-green)}
+  .dot-amber{background:var(--lp-yellow)}
+  .dot-red{background:var(--lp-red)}
+  .dot-grey{background:#6f6f6f}
+  .frame-note{
+    font-size:12px;color:#8f8f8f;margin-top:12px;text-align:center;line-height:1.45;max-width:360px;
+  }
+  .frame-note strong{color:#c9c9c9;font-weight:600}
+
+  /* ---------- phone ---------- */
+  .phone{
+    width:390px;height:844px;background:var(--app-bg);border-radius:46px;
+    border:10px solid #050505;
+    box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 0 1px #2c2c2c;
+    overflow:hidden;position:relative;display:flex;flex-direction:column;
+    color:var(--lp-dark);
+  }
+
+  /* status bar */
+  .statusbar{
+    height:46px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 28px 6px;font-size:14px;font-weight:600;color:var(--lp-dark);position:relative;
+  }
+  .statusbar .notch{
+    position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    width:112px;height:26px;background:#050505;border-radius:16px;
+  }
+  .sb-icons{display:flex;align-items:center;gap:6px}
+  .sig{display:flex;align-items:flex-end;gap:1.5px;height:11px}
+  .sig i{width:3px;background:var(--lp-dark);border-radius:1px;display:block}
+  .sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}
+  .sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:11px}
+  .batt{width:24px;height:12px;border:1.5px solid var(--lp-dark);border-radius:3.5px;position:relative;opacity:.9}
+  .batt::before{content:"";position:absolute;inset:1.5px;right:28%;background:var(--lp-dark);border-radius:1.5px}
+  .batt::after{content:"";position:absolute;right:-4px;top:3px;width:2px;height:4px;background:var(--lp-dark);border-radius:0 1px 1px 0}
+
+  /* screen body */
+  .screen{flex:1 1 auto;overflow:hidden;padding:8px 16px 12px;display:flex;flex-direction:column;gap:12px}
+  .screen-title-row{display:flex;align-items:center;gap:10px;padding:2px 2px 0}
+  .mini-tile{
+    width:30px;height:30px;border-radius:8px;background:var(--lp-yellow);flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    font-family:Impact,"Arial Black",sans-serif;font-size:20px;color:#000;
+  }
+  .screen-title-row h2{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .screen-title-row .date{margin-left:auto;font-size:12.5px;color:var(--txt-2);font-weight:500}
+
+  .card{
+    background:#fff;border-radius:var(--radius);box-shadow:var(--card-shadow);
+    padding:14px 16px;
+  }
+
+  /* ---------- hero: dominant ring + satellites ---------- */
+  .hero{display:flex;align-items:center;gap:14px;padding:16px}
+  .ring{border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .ring .hole{
+    position:absolute;background:#fff;border-radius:50%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .ring-total{width:158px;height:158px;background:conic-gradient(var(--lp-green) 0 63.5%,var(--ring-empty) 63.5% 100%)}
+  .ring-total .hole{width:118px;height:118px}
+  .ring-total .big{font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--lp-dark)}
+  .ring-total .big small{font-size:15px;font-weight:600;color:var(--txt-2);letter-spacing:0}
+  .ring-total .cap{font-size:11.5px;color:var(--txt-2);font-weight:500;margin-top:4px}
+  .sats{display:flex;flex-direction:column;gap:12px;flex:1 1 auto}
+  .sat{display:flex;align-items:center;gap:10px}
+  .ring-day{width:52px;height:52px;background:conic-gradient(var(--lp-yellow) 0 60.3%,var(--ring-empty) 60.3% 100%)}
+  .ring-night{width:52px;height:52px;background:conic-gradient(var(--lp-dark) 0 92%,var(--ring-empty) 92% 100%)}
+  .sat .hole{width:36px;height:36px}
+  .sat-txt .v{font-size:14.5px;font-weight:700;color:var(--lp-dark);line-height:1.15;white-space:nowrap}
+  .sat-txt .v small{font-size:11.5px;font-weight:600;color:var(--txt-2)}
+  .sat-txt .k{font-size:11.5px;color:var(--txt-2);font-weight:500;white-space:nowrap}
+  .hero-footnote{
+    font-size:11.5px;color:var(--txt-2);padding:10px 14px 0;margin-top:2px;
+    border-top:1px solid #efefef;font-weight:500;
+  }
+
+  /* ---------- form ---------- */
+  .form-card{display:flex;flex-direction:column;gap:10px}
+  .form-title{font-size:14.5px;font-weight:700;color:var(--lp-dark)}
+  .field label{display:block;font-size:11.5px;font-weight:600;color:var(--txt-2);margin-bottom:4px}
+  .input,.select{
+    width:100%;border:1.5px solid #e4e4e4;border-radius:10px;background:#fafafa;
+    padding:9px 12px;font-size:14.5px;font-weight:500;color:var(--lp-dark);
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
+  .input .unit{color:var(--txt-2);font-size:12.5px;font-weight:500}
+  .select .caret{width:9px;height:9px;border-right:2px solid #9b9b9b;border-bottom:2px solid #9b9b9b;transform:rotate(45deg) translateY(-2px);flex:0 0 auto}
+  .field-row{display:flex;gap:10px}
+  .field-row .field{flex:1 1 0}
+  .guest-hint{font-size:11.5px;color:var(--lp-blue);font-weight:600;margin-top:5px}
+  .guest-hint span{color:var(--txt-2);font-weight:500}
+
+  /* plate status */
+  .plate-status{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;padding:2px 2px 0}
+  .plate-status .pdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .ps-ok{color:var(--lp-green)}
+  .ps-ok .pdot{background:var(--lp-green)}
+  .ps-wait{color:#8a8508}
+  .ps-wait .pdot{background:var(--lp-yellow)}
+  .plate-status .ps-sub{color:var(--txt-2);font-weight:500;margin-left:auto}
+
+  /* buttons */
+  .btn{
+    display:block;width:100%;text-align:center;border-radius:var(--radius);
+    padding:14px 16px;font-size:16px;font-weight:600;border:none;
+  }
+  .btn-start{background:var(--lp-green);color:#fff;box-shadow:0 2px 8px rgba(54,162,37,.35)}
+  .btn-wait{background:var(--lp-yellow);color:var(--lp-dark);opacity:.85}
+  .btn-stop{background:var(--lp-red);color:#fff;box-shadow:0 2px 8px rgba(185,4,19,.28)}
+  .btn-ghost{background:none;color:var(--txt-2);font-size:14px;padding:8px;font-weight:600}
+  .btn-hint{font-size:11.5px;color:var(--txt-2);text-align:center;margin-top:-4px;font-weight:500}
+  .last-trip{font-size:12px;color:var(--txt-2);text-align:center;font-weight:500;margin-top:2px}
+
+  /* ---------- recording ---------- */
+  .rec-card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 16px 16px}
+  .rec-live{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--lp-red);letter-spacing:.08em;text-transform:uppercase}
+  .rec-live .pdot{width:9px;height:9px;border-radius:50%;background:var(--lp-red)}
+  .rec-elapsed{font-size:44px;font-weight:700;letter-spacing:-.02em;color:var(--lp-dark);font-variant-numeric:tabular-nums;line-height:1.1}
+  .rec-meta{font-size:12.5px;color:var(--txt-2);font-weight:500}
+  .rec-lock{
+    font-size:12px;color:var(--txt-2);font-weight:500;text-align:center;line-height:1.45;
+    background:#f5f5f5;border-radius:10px;padding:8px 12px;margin-top:10px;
+  }
+  .trip-facts{display:flex;flex-direction:column;gap:8px}
+  .fact{display:flex;justify-content:space-between;font-size:13px}
+  .fact .k{color:var(--txt-2);font-weight:500}
+  .fact .v{font-weight:600;color:var(--lp-dark)}
+
+  /* ---------- rejected variant: three equal rings ---------- */
+  .tri-row{display:flex;justify-content:space-between;padding:14px 8px 8px}
+  .tri{display:flex;flex-direction:column;align-items:center;gap:7px;width:33%}
+  .tri .ring{width:92px;height:92px}
+  .tri .hole{width:66px;height:66px}
+  .tri .tval{font-size:15px;font-weight:700;color:var(--lp-dark);line-height:1.1}
+  .tri .tval small{font-size:10.5px;font-weight:600;color:var(--txt-2)}
+  .tri .tkey{font-size:11.5px;color:var(--txt-2);font-weight:600}
+  .r3-day{background:conic-gradient(var(--lp-yellow) 0 60.3%,var(--ring-empty) 60.3% 100%)}
+  .r3-night{background:conic-gradient(var(--lp-dark) 0 92%,var(--ring-empty) 92% 100%)}
+  .r3-total{background:conic-gradient(var(--lp-green) 0 63.5%,var(--ring-empty) 63.5% 100%)}
+
+  /* ---------- tab bar ---------- */
+  .tabbar{
+    flex:0 0 auto;background:var(--lp-dark);display:flex;
+    padding:8px 6px calc(8px + 14px);
+  }
+  .tab{
+    flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:10.5px;font-weight:600;color:#8b8b8b;
+  }
+  .tab svg{width:23px;height:23px;stroke:#8b8b8b;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tab.active{color:var(--lp-green)}
+  .tab.active svg{stroke:var(--lp-green)}
+  .homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#555}
+
+  /* ---------- self-evaluation ---------- */
+  .selfeval{
+    margin:44px auto 0;max-width:1640px;background:#1f1f1f;border:1px solid #303030;
+    border-radius:var(--radius);padding:22px 28px;display:flex;gap:36px;
+  }
+  .selfeval h3{
+    font-size:12px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px;font-weight:700;
+  }
+  .selfeval .col{flex:1 1 0}
+  .selfeval p{font-size:13.5px;line-height:1.55;color:#c4c4c4}
+  .se-strength h3{color:#6fca5f}
+  .se-weak h3{color:#e0da4a}
+  .se-wins h3{color:#8d7ff0}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="brand-tile">L</div>
+  <div>
+    <h1>Design exploration 02 — Dashboard-first</h1>
+    <div class="sub">L Flip · Log Trip screen · static visual study · not final UI</div>
+  </div>
+</div>
+<p class="direction-pitch">
+  Direction: progress is the hero. You open the app to see how close you are to 100 hours —
+  the rings sit on top as motivation, and starting a drive is the natural next step beneath them.
+  Two ring arrangements were tried; the dominant-total layout won and is used in frames 1–3.
+</p>
+
+<div class="frames">
+
+  <!-- ================= FRAME 1: READY ================= -->
+  <div class="frame-col">
+    <div class="frame-label"><span class="dot dot-green"></span>Ready</div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>15:41</span>
+        <div class="notch"></div>
+        <div class="sb-icons">
+          <div class="sig"><i></i><i></i><i></i><i></i></div>
+          <div class="batt"></div>
+        </div>
+      </div>
+
+      <div class="screen">
+        <div class="screen-title-row">
+          <div class="mini-tile">L</div>
+          <h2>Log Trip</h2>
+          <span class="date">Wed 19 Aug</span>
+        </div>
+
+        <div class="card hero-card">
+          <div class="hero">
+            <div class="ring ring-total">
+              <div class="hole">
+                <div class="big">63.5<small> h</small></div>
+                <div class="cap">of 100 h</div>
+              </div>
+            </div>
+            <div class="sats">
+              <div class="sat">
+                <div class="ring ring-day"><div class="hole"></div></div>
+                <div class="sat-txt">
+                  <div class="v">54.3<small> h</small></div>
+                  <div class="k">Day hours</div>
+                </div>
+              </div>
+              <div class="sat">
+                <div class="ring ring-night"><div class="hole"></div></div>
+                <div class="sat-txt">
+                  <div class="v">9.2<small> / 10 h</small></div>
+                  <div class="k">Night hours</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-footnote">36.5 h to go — about 9 weeks at your current pace.</div>
+        </div>
+
+        <div class="card form-card">
+          <div class="form-title">Next drive</div>
+          <div class="field">
+            <label>Odometer (start)</label>
+            <div class="input"><span>48,468</span><span class="unit">km</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Car</label>
+              <div class="select"><span>Mum's Corolla</span><span class="caret"></span></div>
+            </div>
+            <div class="field">
+              <label>Supervising driver</label>
+              <div class="select"><span>Sarah Whitman</span><span class="caret"></span></div>
+            </div>
+          </div>
+          <div class="guest-hint">Use a guest driver instead <span>— full name and licence number</span></div>
+        </div>
+
+        <div class="plate-status ps-ok">
+          <span class="pdot"></span>L-plates connected
+          <span class="ps-sub">front + rear</span>
+        </div>
+
+        <button class="btn btn-start">Start trip</button>
+        <div class="last-trip">Last drive: Sun 16 Aug &middot; 38 min &middot; Kambah loop</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Log
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>
+          Dashboard
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M9 12h.01M13 12h.01M17 12h.01"/></svg>
+          AI Chat
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>
+          Settings
+        </div>
+      </div>
+      <div class="homebar"></div>
+    </div>
+    <div class="frame-note">Everything filled, plates paired — one green tap to go.</div>
+  </div>
+
+  <!-- ================= FRAME 2: CONNECTING ================= -->
+  <div class="frame-col">
+    <div class="frame-label"><span class="dot dot-amber"></span>Plates connecting</div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>15:41</span>
+        <div class="notch"></div>
+        <div class="sb-icons">
+          <div class="sig"><i></i><i></i><i></i><i></i></div>
+          <div class="batt"></div>
+        </div>
+      </div>
+
+      <div class="screen">
+        <div class="screen-title-row">
+          <div class="mini-tile">L</div>
+          <h2>Log Trip</h2>
+          <span class="date">Wed 19 Aug</span>
+        </div>
+
+        <div class="card hero-card">
+          <div class="hero">
+            <div class="ring ring-total">
+              <div class="hole">
+                <div class="big">63.5<small> h</small></div>
+                <div class="cap">of 100 h</div>
+              </div>
+            </div>
+            <div class="sats">
+              <div class="sat">
+                <div class="ring ring-day"><div class="hole"></div></div>
+                <div class="sat-txt">
+                  <div class="v">54.3<small> h</small></div>
+                  <div class="k">Day hours</div>
+                </div>
+              </div>
+              <div class="sat">
+                <div class="ring ring-night"><div class="hole"></div></div>
+                <div class="sat-txt">
+                  <div class="v">9.2<small> / 10 h</small></div>
+                  <div class="k">Night hours</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-footnote">36.5 h to go — about 9 weeks at your current pace.</div>
+        </div>
+
+        <div class="card form-card">
+          <div class="form-title">Next drive</div>
+          <div class="field">
+            <label>Odometer (start)</label>
+            <div class="input"><span>48,468</span><span class="unit">km</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Car</label>
+              <div class="select"><span>Mum's Corolla</span><span class="caret"></span></div>
+            </div>
+            <div class="field">
+              <label>Supervising driver</label>
+              <div class="select"><span>Sarah Whitman</span><span class="caret"></span></div>
+            </div>
+          </div>
+          <div class="guest-hint">Use a guest driver instead <span>— full name and licence number</span></div>
+        </div>
+
+        <div class="plate-status ps-wait">
+          <span class="pdot"></span>Connecting to L-plates&hellip;
+          <span class="ps-sub">rear plate found</span>
+        </div>
+
+        <button class="btn btn-wait">Start trip</button>
+        <div class="btn-hint">Connecting to L-plates&hellip; you can start once both plates respond.</div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Log
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>
+          Dashboard
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M9 12h.01M13 12h.01M17 12h.01"/></svg>
+          AI Chat
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>
+          Settings
+        </div>
+      </div>
+      <div class="homebar"></div>
+    </div>
+    <div class="frame-note">Amber start while BLE pairs — honest about hardware state, never blocks silently.</div>
+  </div>
+
+  <!-- ================= FRAME 3: RECORDING ================= -->
+  <div class="frame-col">
+    <div class="frame-label"><span class="dot dot-red"></span>Recording</div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>16:17</span>
+        <div class="notch"></div>
+        <div class="sb-icons">
+          <div class="sig"><i></i><i></i><i></i><i></i></div>
+          <div class="batt"></div>
+        </div>
+      </div>
+
+      <div class="screen">
+        <div class="screen-title-row">
+          <div class="mini-tile">L</div>
+          <h2>Log Trip</h2>
+          <span class="date">Wed 19 Aug</span>
+        </div>
+
+        <div class="card hero-card">
+          <div class="hero">
+            <div class="ring ring-total">
+              <div class="hole">
+                <div class="big">63.5<small> h</small></div>
+                <div class="cap">of 100 h</div>
+              </div>
+            </div>
+            <div class="sats">
+              <div class="sat">
+                <div class="ring ring-day"><div class="hole"></div></div>
+                <div class="sat-txt">
+                  <div class="v">54.3<small> h</small></div>
+                  <div class="k">Day hours</div>
+                </div>
+              </div>
+              <div class="sat">
+                <div class="ring ring-night"><div class="hole"></div></div>
+                <div class="sat-txt">
+                  <div class="v">9.2<small> / 10 h</small></div>
+                  <div class="k">Night hours</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-footnote">This drive counts towards your day hours.</div>
+        </div>
+
+        <div class="card rec-card">
+          <div class="rec-live"><span class="pdot"></span>Recording</div>
+          <div class="rec-elapsed">00:23:45</div>
+          <div class="rec-meta">Started 15:54 &middot; Mum's Corolla &middot; Sarah Whitman</div>
+          <div class="rec-lock">GPS keeps recording in the background — feel free to lock your phone.</div>
+        </div>
+
+        <div class="card trip-facts">
+          <div class="fact"><span class="k">Odometer at start</span><span class="v">48,468 km</span></div>
+          <div class="fact"><span class="k">L-plates</span><span class="v" style="color:var(--lp-green)">Displayed &middot; front + rear</span></div>
+        </div>
+
+        <button class="btn btn-stop">Stop recording</button>
+        <button class="btn btn-ghost">Cancel trip</button>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Log
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>
+          Dashboard
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M9 12h.01M13 12h.01M17 12h.01"/></svg>
+          AI Chat
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>
+          Settings
+        </div>
+      </div>
+      <div class="homebar"></div>
+    </div>
+    <div class="frame-note">Timer replaces the form; rings stay put so the drive still feels like progress.</div>
+  </div>
+
+  <!-- ================= FRAME 4: REJECTED VARIANT ================= -->
+  <div class="frame-col">
+    <div class="frame-label"><span class="dot dot-grey"></span>Rejected variant</div>
+    <div class="phone">
+      <div class="statusbar">
+        <span>15:41</span>
+        <div class="notch"></div>
+        <div class="sb-icons">
+          <div class="sig"><i></i><i></i><i></i><i></i></div>
+          <div class="batt"></div>
+        </div>
+      </div>
+
+      <div class="screen">
+        <div class="screen-title-row">
+          <div class="mini-tile">L</div>
+          <h2>Log Trip</h2>
+          <span class="date">Wed 19 Aug</span>
+        </div>
+
+        <div class="card">
+          <div class="tri-row">
+            <div class="tri">
+              <div class="ring r3-day"><div class="hole"></div></div>
+              <div class="tval">54.3<small> h</small></div>
+              <div class="tkey">Day</div>
+            </div>
+            <div class="tri">
+              <div class="ring r3-night"><div class="hole"></div></div>
+              <div class="tval">9.2<small> / 10</small></div>
+              <div class="tkey">Night</div>
+            </div>
+            <div class="tri">
+              <div class="ring r3-total"><div class="hole"></div></div>
+              <div class="tval">63.5<small> / 100</small></div>
+              <div class="tkey">Total</div>
+            </div>
+          </div>
+          <div class="hero-footnote">36.5 h to go — about 9 weeks at your current pace.</div>
+        </div>
+
+        <div class="card form-card">
+          <div class="form-title">Next drive</div>
+          <div class="field">
+            <label>Odometer (start)</label>
+            <div class="input"><span>48,468</span><span class="unit">km</span></div>
+          </div>
+          <div class="field">
+            <label>Car</label>
+            <div class="select"><span>Mum's Corolla</span><span class="caret"></span></div>
+          </div>
+          <div class="field">
+            <label>Supervising driver</label>
+            <div class="select"><span>Sarah Whitman</span><span class="caret"></span></div>
+          </div>
+          <div class="guest-hint">Use a guest driver instead <span>— full name and licence number</span></div>
+        </div>
+
+        <div class="plate-status ps-ok">
+          <span class="pdot"></span>L-plates connected
+          <span class="ps-sub">front + rear</span>
+        </div>
+
+        <button class="btn btn-start">Start trip</button>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Log
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>
+          Dashboard
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M9 12h.01M13 12h.01M17 12h.01"/></svg>
+          AI Chat
+        </div>
+        <div class="tab">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>
+          Settings
+        </div>
+      </div>
+      <div class="homebar"></div>
+    </div>
+    <div class="frame-note"><strong>Why it lost:</strong> three equal rings give no focal point — the 100 h goal is the motivator, and the stacked form pushes Start to the very bottom edge.</div>
+  </div>
+
+</div>
+
+<div class="selfeval">
+  <div class="col se-strength">
+    <h3>Strengths</h3>
+    <p>Opening the app answers "how far along am I?" instantly; the dominant total ring makes every drive feel like visible progress, which nudges reluctant learners to start one.</p>
+  </div>
+  <div class="col se-weak">
+    <h3>Weaknesses</h3>
+    <p>The core task — starting a trip — sits below the charts, so frequent users scroll past decoration daily. The hero also duplicates the Dashboard tab's job.</p>
+  </div>
+  <div class="col se-wins">
+    <h3>When this design wins</h3>
+    <p>Early in the 100 hours, when motivation matters more than speed; weaker once logging is habitual and the user just wants the green button.</p>
+  </div>
+</div>
+
+</body>
+</html>
