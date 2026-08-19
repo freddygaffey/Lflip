@@ -1,0 +1,290 @@
+<meta charset="utf-8">
+<title>Exploration 09 — Conversation</title>
+<style>
+:root{
+  --lp-red:#b90413; --lp-yellow:#c5bf10; --lp-green:#36a225;
+  --lp-dark:#1d1d1d; --lp-blue:#4232b4; --light:#f4f4f4; --grey:#8b8b8b;
+  --canvas:#141414; --phone:#0e0e0e; --panel:#1d1d1d; --line:#2c2c2c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--canvas);color:var(--light);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding:28px 40px 34px}
+/* ---------- page header ---------- */
+.page-head{display:flex;align-items:baseline;gap:18px;margin-bottom:22px}
+.page-head .no{font-size:13px;letter-spacing:.22em;color:var(--grey)}
+.page-head h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
+.page-head p{font-size:13px;color:var(--grey)}
+/* ---------- frame row ---------- */
+.row{display:flex;gap:34px;align-items:flex-start}
+.slot{width:390px;flex:none}
+.slot-label{margin-top:12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--grey);text-align:center}
+.slot-label strong{color:var(--light);font-weight:600;letter-spacing:.14em}
+.slot-label.rej strong{color:var(--lp-red)}
+.slot-note{margin-top:5px;font-size:11.5px;color:var(--grey);text-align:center;line-height:1.45}
+/* ---------- phone ---------- */
+.phone{width:390px;height:844px;background:var(--phone);border-radius:48px;
+  border:1px solid #333;box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 0 0 8px #000;
+  overflow:hidden;position:relative;display:flex;flex-direction:column;padding:8px}
+.screen{flex:1;display:flex;flex-direction:column;border-radius:40px;overflow:hidden;
+  background:linear-gradient(180deg,#111 0%,#0d0d0d 100%);min-height:0}
+/* status bar */
+.sbar{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 30px 0}
+.sbar .time{font-size:15px;font-weight:600;letter-spacing:.01em}
+.sicons{display:flex;align-items:flex-end;gap:7px}
+.cell{display:flex;align-items:flex-end;gap:1.5px}
+.cell i{width:3px;background:var(--light);border-radius:1px;display:block}
+.cell i:nth-child(1){height:4px}.cell i:nth-child(2){height:6px}
+.cell i:nth-child(3){height:8px}.cell i:nth-child(4){height:10px}
+.wifi{width:15px;height:11px;position:relative;overflow:hidden}
+.wifi i{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);
+  border:2px solid var(--light);border-radius:50%;background:transparent}
+.wifi i:nth-child(1){width:20px;height:20px;border-color:var(--light) transparent transparent}
+.wifi i:nth-child(2){width:12px;height:12px;border-color:var(--light) transparent transparent}
+.wifi i:nth-child(3){width:4px;height:4px;background:var(--light);border:none;bottom:0}
+.batt{width:24px;height:11px;border:1px solid rgba(244,244,244,.5);border-radius:3px;
+  padding:1.5px;position:relative}
+.batt::after{content:"";position:absolute;right:-4px;top:3px;width:2px;height:4px;
+  background:rgba(244,244,244,.5);border-radius:0 1px 1px 0}
+.batt i{display:block;height:100%;width:78%;background:var(--light);border-radius:1.5px}
+/* ---------- chat header ---------- */
+.lplate{width:26px;height:26px;background:#fff;border-radius:6px;display:flex;flex:none;
+  align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--lp-yellow);
+  font-family:Georgia,serif}
+.chat-head{flex:none;display:flex;align-items:center;gap:10px;padding:12px 20px 12px;
+  border-bottom:1px solid var(--line)}
+.chat-head .ti{display:flex;flex-direction:column;line-height:1.25}
+.chat-head h2{font-size:16px;font-weight:700}
+.chat-head .sub{font-size:11px;color:var(--lp-green);display:flex;align-items:center;gap:5px}
+.chat-head .sub .pip{width:6px;height:6px;border-radius:50%;background:var(--lp-green)}
+/* ---------- thread ---------- */
+.thread{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:11px;
+  padding:16px 18px 6px}
+.daysep{align-self:center;font-size:10.5px;letter-spacing:.1em;color:#5c5c5c;
+  text-transform:uppercase;margin-bottom:2px}
+.row-msg{display:flex}
+.row-msg.app{justify-content:flex-start}
+.row-msg.me{justify-content:flex-end}
+.bubble{max-width:80%;padding:10px 14px;border-radius:17px;font-size:13.5px;line-height:1.44}
+.bubble.app{background:var(--panel);border:1px solid var(--line);color:var(--light);
+  border-bottom-left-radius:5px}
+.bubble.me{background:var(--lp-blue);color:#fff;border-bottom-right-radius:5px}
+.stamp{font-size:9.5px;color:#5c5c5c;margin-top:3px}
+.row-msg.app .stamp{margin-left:3px;text-align:left}
+.row-msg.me .stamp{margin-right:3px;text-align:right}
+/* chips inline under an app message — WINNER mechanism */
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;margin:1px 0 0 3px}
+.chip{border-radius:20px;padding:8px 15px;font-size:12.5px;font-weight:600;
+  border:1.5px solid var(--lp-yellow);color:var(--lp-yellow);background:rgba(197,191,16,.06);
+  white-space:nowrap}
+.chip.go{border-color:var(--lp-green);color:var(--lp-green);background:rgba(54,162,37,.1)}
+.chip.stop{border-color:var(--lp-red);color:#ff9aa2;background:rgba(185,4,19,.12)}
+/* connecting bubble */
+.bubble.wait{border-color:#4a4712}
+.typing{display:flex;gap:4px;margin-top:8px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--lp-yellow);display:block}
+.typing i:nth-child(2){opacity:.66}.typing i:nth-child(3){opacity:.36}
+.status-line{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:11px;color:var(--lp-yellow)}
+.status-line .pip{width:6px;height:6px;border-radius:50%;background:var(--lp-yellow)}
+/* ---------- pinned recording header ---------- */
+.rec-pin{flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:11px 20px;border-bottom:1px solid var(--line);background:#161616}
+.rec-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+  letter-spacing:.1em;color:#ff9aa2}
+.rec-badge .pip{width:7px;height:7px;border-radius:50%;background:var(--lp-red)}
+.rec-timer{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:17px;font-weight:700}
+.rec-car{font-size:10.5px;color:var(--grey)}
+/* system log bubble for recording thread */
+.syslog{align-self:center;max-width:92%;background:#202020;border:1px solid var(--line);
+  border-radius:11px;padding:8px 14px;font-size:11.5px;color:#c4c4c4;text-align:center;
+  line-height:1.4}
+.syslog b{color:var(--light);font-weight:700;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.syslog.ok{border-color:rgba(54,162,37,.4);color:#a9e3a0}
+.syslog.ok b{color:var(--lp-green)}
+/* ---------- rejected: persistent bottom bar mechanism ---------- */
+.botbar{flex:none;border-top:1px solid var(--line);background:#181818;padding:12px 18px 16px}
+.botbar .cap{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--grey);
+  margin-bottom:8px}
+.botbar .chiprow{margin-left:0}
+.plain{font-size:13.5px;line-height:1.44;color:var(--light)}
+.plain.q{color:var(--light)}
+.plain.a{color:#a9a3ff}
+/* ---------- self-evaluation ---------- */
+.eval{margin-top:30px;background:#191919;border:1px solid var(--line);border-radius:14px;
+  padding:18px 24px;display:flex;gap:34px}
+.eval h4{font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:7px}
+.eval .g h4{color:var(--lp-green)} .eval .b h4{color:var(--lp-red)} .eval .w h4{color:var(--lp-yellow)}
+.eval p{font-size:12.5px;line-height:1.6;color:#c9c9c9}
+.eval>div{flex:1}
+</style>
+
+<div class="page-head">
+  <span class="no">EXPLORATION 09</span>
+  <h1>Conversation</h1>
+  <p>Trip setup is a message thread with L Flip — the road-rules chatbot's interface, repurposed to run the drive itself.</p>
+</div>
+
+<div class="row">
+
+  <!-- ================= FRAME 1 : SETUP BY CHAT ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">6:47</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="chat-head">
+        <span class="lplate">L</span>
+        <span class="ti"><h2>L Flip</h2><span class="sub"><span class="pip"></span>setting up your drive</span></span>
+      </div>
+
+      <div class="thread">
+        <div class="daysep">Today</div>
+
+        <div class="row-msg app"><div class="bubble app">Evening Jordan. Ready to log a drive — which car tonight?</div></div>
+        <div class="row-msg me"><div class="bubble me">Mum&rsquo;s Corolla</div></div>
+
+        <div class="row-msg app"><div class="bubble app">Got it. Who&rsquo;s supervising you tonight?</div></div>
+        <div class="row-msg me"><div class="bubble me">Sarah Whitman</div></div>
+
+        <div class="row-msg app"><div class="bubble app">Odometer reading? Last trip ended at 48412&nbsp;km.</div></div>
+        <div class="row-msg me"><div class="bubble me">48468</div></div>
+
+        <div class="row-msg app"><div class="bubble app">Nice, that&rsquo;s 56&nbsp;km since Tuesday — checks out. One more thing: keep GPS running in the background for this trip?</div></div>
+        <div class="chiprow">
+          <span class="chip">Yes, always</span>
+          <span class="chip">Just this trip</span>
+          <span class="chip">No thanks</span>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Setup by chat</strong></div>
+    <div class="slot-note">Each answer becomes the learner&rsquo;s own bubble — the reply chips only ever attach to the question still open.</div>
+  </div>
+
+  <!-- ================= FRAME 2 : PLATES CONNECTING ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">6:48</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="chat-head">
+        <span class="lplate">L</span>
+        <span class="ti"><h2>L Flip</h2><span class="sub"><span class="pip"></span>setting up your drive</span></span>
+      </div>
+
+      <div class="thread">
+        <div class="row-msg me"><div class="bubble me">Just this trip</div></div>
+        <div class="row-msg app"><div class="bubble app">Sweet — GPS will run for this drive only, then switch off.</div></div>
+
+        <div class="row-msg app"><div class="bubble app">Mum&rsquo;s Corolla, Sarah supervising, odometer 48468&nbsp;km. Locking that in.</div></div>
+        <div class="row-msg me"><div class="bubble me">Sounds right</div></div>
+
+        <div class="row-msg app">
+          <div class="bubble app wait">
+            Flipping your L-plates now&hellip;
+            <div class="typing"><i></i><i></i><i></i></div>
+            <div class="status-line"><span class="pip"></span>rear plate found &middot; front pending</div>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Plates connecting</strong></div>
+    <div class="slot-note">No chips while the app is talking to the hardware — plate status lives in the bubble itself, amber until both answer.</div>
+  </div>
+
+  <!-- ================= FRAME 3 : RECORDING ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">7:12</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="rec-pin">
+        <span class="rec-badge"><span class="pip"></span>RECORDING</span>
+        <span class="rec-timer">00:23:45</span>
+        <span class="rec-car">Corolla &middot; Sarah W.</span>
+      </div>
+
+      <div class="thread">
+        <div class="syslog ok"><b>15:54</b> — Trip started &middot; Mum&rsquo;s Corolla &middot; Sarah Whitman supervising</div>
+        <div class="syslog ok"><b>15:58</b> — Plates showing L, front and rear</div>
+        <div class="row-msg app"><div class="bubble app">Looking good. I&rsquo;ll keep logging in the background — no need to touch the phone.</div></div>
+        <div class="syslog"><b>16:07</b> — 12.4&nbsp;km logged &middot; avg 43&nbsp;km/h</div>
+        <div class="syslog"><b>16:15</b> — Approaching Tuggeranong Pkwy, 80 zone</div>
+      </div>
+
+      <div class="botbar">
+        <div class="cap">only action available</div>
+        <div class="chiprow"><span class="chip stop">Stop drive</span></div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Recording</strong></div>
+    <div class="slot-note">The trip <em>is</em> the transcript — a pinned timer up top, a live system log below, one chip to end it.</div>
+  </div>
+
+  <!-- ================= FRAME 4 : REJECTED — PERSISTENT BOTTOM BAR ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">6:47</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="chat-head">
+        <span class="lplate">L</span>
+        <span class="ti"><h2>L Flip</h2><span class="sub"><span class="pip"></span>setting up your drive</span></span>
+      </div>
+
+      <div class="thread">
+        <div class="daysep">Today</div>
+        <div class="row-msg app"><div class="bubble app">Evening Jordan. Ready to log a drive — which car tonight?</div></div>
+        <div class="row-msg me"><div class="bubble me">Mum&rsquo;s Corolla</div></div>
+        <div class="row-msg app"><div class="bubble app">Got it. Who&rsquo;s supervising you tonight?</div></div>
+        <div class="row-msg me"><div class="bubble me">Sarah Whitman</div></div>
+        <div class="row-msg app"><div class="bubble app">Odometer reading? Last trip ended at 48412&nbsp;km.</div></div>
+        <div class="row-msg me"><div class="bubble me">48468</div></div>
+        <div class="row-msg app"><div class="bubble app">One more thing: keep GPS running in the background for this trip?</div></div>
+      </div>
+
+      <div class="botbar">
+        <div class="cap">quick replies &middot; always on screen</div>
+        <div class="chiprow">
+          <span class="chip">Yes, always</span>
+          <span class="chip">Just this trip</span>
+          <span class="chip">No thanks</span>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label rej"><strong>Rejected variant</strong> &mdash; persistent chip bar</div>
+    <div class="slot-note">Faster to thumb, but the chips detach from their question — scroll the transcript back later and the answer sits with nothing to say what it replied to.</div>
+  </div>
+
+</div>
+
+<div class="eval">
+  <div class="g"><h4>Strengths</h4>
+    <p>Setup reuses a screen the learner already trusts, so nothing new to learn; the transcript is honest, timestamped evidence a parent or instructor can read start to finish; plate status and drive events read as sentences, not icons to decode.</p></div>
+  <div class="b"><h4>Weaknesses</h4>
+    <p>Slower than direct manipulation — every field costs a full question-answer round trip. Typing an odometer reading one-handed in a moving car is a bad idea, and a long thread eventually needs scrolling to find the current question.</p></div>
+  <div class="w"><h4>When this design wins</h4>
+    <p>First-time setup, disputed trips, and any moment the log itself needs to be shown as proof — the conversation is the record.</p></div>
+</div>

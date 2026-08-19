@@ -9,6 +9,7 @@
          font-size:36px;display:flex;align-items:center;justify-content:center;flex:none}
   h1{font-size:26px;font-weight:700;letter-spacing:-.01em}
   header p{color:var(--mut);font-size:13.5px;margin-top:4px;max-width:80ch;line-height:1.45}
+  .lane{font-size:15px;font-weight:700;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-bottom:-14px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
   .card{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:14px;display:flex;flex-direction:column;
         gap:10px;text-decoration:none;color:var(--ink)}
@@ -23,9 +24,9 @@
   .verdict{font-size:12.5px;color:var(--mut);line-height:1.5}
   .section{background:var(--card);border:1px solid var(--hair);border-radius:14px;padding:18px}
   .matrix{overflow-x:auto}
-  table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
-  th,td{border:1px solid var(--hair);padding:7px 10px;text-align:center;font-variant-numeric:tabular-nums}
-  th{font-size:12px;font-weight:700} th span{display:block;font-weight:400;color:var(--mut);font-size:10px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:10px}
+  th,td{border:1px solid var(--hair);padding:6px 7px;text-align:center;font-variant-numeric:tabular-nums}
+  th{font-size:11px;font-weight:700} th span{display:block;font-weight:400;color:var(--mut);font-size:9.5px}
   td:first-child,th:first-child{text-align:left}
   td.best{color:var(--green);font-weight:700}
   tr.total td{border-top:2px solid var(--ink);font-weight:700}
@@ -37,12 +38,13 @@
   <header>
     <div class="badge">L</div>
     <div>
-      <h1>Log Trip — six design directions, one decision</h1>
-      <p>Each direction was built independently as a four-frame static prototype (ready, plates connecting, recording, and a
-         rejected in-direction variant with its reason), then all six were scored on the same criteria. Click any card for the
-         full-size sheet.</p>
+      <h1>Log Trip — ten design directions, one decision</h1>
+      <p>Round one explored six layout directions; they converged on form-plus-button, so round two explored four directions where the
+         interaction mechanism itself differs — slide, switches, conversation, rotation — with form fields and primary buttons banned.
+         Each prototype carries a rejected in-direction variant and its author&rsquo;s own weaknesses. Click any card for the full sheet.</p>
     </div>
   </header>
+  <p class="lane">Round one — layout studies</p>
   <div class="grid">
     <a class="card" href="01_big_button.html" target="_blank">
       <div class="card-head"><span class="num">01</span><h2>Big Button + grid</h2><span class="file">open full size</span></div>
@@ -73,26 +75,55 @@
       <div class="card-head"><span class="num">06</span><h2>Car-dashboard HMI</h2><span class="file">open full size</span></div>
       <div class="shot"><iframe src="06_car_hmi.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
       <p class="verdict">Filled cards beat hairline outlines that wash out in glare. Unbeatable in the cradle; heavy-handed off it.</p>
-    </a></div>
-  <section class="section matrix">
-    <div class="card-head"><span class="num">07</span><h2>Scoring matrix</h2></div>
+    </a>
+  </div>
+  <p class="lane">Round two — mechanism studies (form fields and buttons banned)</p>
+  <div class="grid">
+    <a class="card" href="07_slide_to_start.html" target="_blank">
+      <div class="card-head"><span class="num">07</span><h2>Slide to commit</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="07_slide_to_start.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Horizontal slide beat a handbrake pull (vertical drag collides with scroll). The track itself is the plate status light.</p>
+    </a>
+    <a class="card" href="08_switch_panel.html" target="_blank">
+      <div class="card-head"><span class="num">08</span><h2>Pre-flight switch panel</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="08_switch_panel.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Guarded master switch beat auto-countdown: no master switch means no last deliberate no. The plates toggle throws itself on BLE connect.</p>
+    </a>
+    <a class="card" href="09_conversation.html" target="_blank">
+      <div class="card-head"><span class="num">09</span><h2>Conversation</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="09_conversation.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Inline chips beat a persistent reply bar — the transcript stays self-explanatory read back later. Every field costs a round trip.</p>
+    </a>
+    <a class="card" href="10_ignition_dial.html" target="_blank">
+      <div class="card-head"><span class="num">10</span><h2>Ignition dial</h2><span class="file">open full size</span></div>
+      <div class="shot"><iframe src="10_ignition_dial.html" loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+      <p class="verdict">Rotary dial beat key-in-slot (a flat key reads as a lock icon, so testers tapped it). Setup, status and start share one object.</p>
+    </a>
+  </div>
+  <section <section class="section matrix">
+    <div class="card-head"><span class="num">11</span><h2>Scoring matrix</h2></div>
     <p class="verdict" style="margin-top:6px">Scored 1&ndash;5 from operating the prototypes against real use: a learner starting a
        repeat drive one-handed, phone soon cradled, with BLE plate hardware that can be slow or absent.</p>
-    <table><thead><tr><th>Criterion</th><th>01<br><span>Big Button + grid</span></th><th>02<br><span>Dashboard-first</span></th><th>03<br><span>Wizard flow</span></th><th>04<br><span>Map-first</span></th><th>05<br><span>Paper logbook</span></th><th>06<br><span>Car-dashboard HMI</span></th></tr></thead><tbody><tr><td>Taps to start (repeat trip)</td><td class="best">5</td><td class="">3</td><td class="">1</td><td class="">4</td><td class="">3</td><td class="best">5</td></tr><tr><td>One-handed reach</td><td class="best">5</td><td class="">3</td><td class="">4</td><td class="">3</td><td class="">2</td><td class="best">5</td></tr><tr><td>Glanceability in the car</td><td class="best">5</td><td class="">3</td><td class="">2</td><td class="">4</td><td class="">1</td><td class="best">5</td></tr><tr><td>Error-proofing (odo / guest)</td><td class="">3</td><td class="">3</td><td class="best">5</td><td class="">2</td><td class="">3</td><td class="">3</td></tr><tr><td>Plate status visibility</td><td class="">4</td><td class="">4</td><td class="">4</td><td class="">3</td><td class="">2</td><td class="best">5</td></tr><tr><td>Build cost in Ionic (5 = cheapest)</td><td class="best">5</td><td class="">4</td><td class="">2</td><td class="">1</td><td class="">3</td><td class="">3</td></tr><tr class='total'><td>Total / 30</td><td class="best">27</td><td class="">20</td><td class="">18</td><td class="">17</td><td class="">14</td><td class="">26</td></tr></tbody></table>
+    <table><thead><tr><th>Criterion</th><th>01<br><span>Big Button + grid</span></th><th>02<br><span>Dashboard-first</span></th><th>03<br><span>Wizard flow</span></th><th>04<br><span>Map-first</span></th><th>05<br><span>Paper logbook</span></th><th>06<br><span>Car-dashboard HMI</span></th><th>07<br><span>Slide to commit</span></th><th>08<br><span>Pre-flight switch panel</span></th><th>09<br><span>Conversation</span></th><th>10<br><span>Ignition dial</span></th></tr></thead><tbody><tr><td>Taps to start (repeat trip)</td><td class="best">5</td><td class="">3</td><td class="">1</td><td class="">4</td><td class="">3</td><td class="best">5</td><td class="">4</td><td class="">2</td><td class="">2</td><td class="">3</td></tr><tr><td>One-handed reach</td><td class="best">5</td><td class="">3</td><td class="">4</td><td class="">3</td><td class="">2</td><td class="best">5</td><td class="">4</td><td class="">3</td><td class="">3</td><td class="">3</td></tr><tr><td>Glanceability in the car</td><td class="best">5</td><td class="">3</td><td class="">2</td><td class="">4</td><td class="">1</td><td class="best">5</td><td class="">4</td><td class="">4</td><td class="">2</td><td class="">4</td></tr><tr><td>Error-proofing (odo / guest)</td><td class="">3</td><td class="">3</td><td class="best">5</td><td class="">2</td><td class="">3</td><td class="">3</td><td class="">4</td><td class="best">5</td><td class="">4</td><td class="">3</td></tr><tr><td>Plate status visibility</td><td class="">4</td><td class="">4</td><td class="">4</td><td class="">3</td><td class="">2</td><td class="best">5</td><td class="best">5</td><td class="best">5</td><td class="">4</td><td class="">4</td></tr><tr><td>Build cost in Ionic (5 = cheapest)</td><td class="best">5</td><td class="">4</td><td class="">2</td><td class="">1</td><td class="">3</td><td class="">3</td><td class="">2</td><td class="">1</td><td class="">2</td><td class="">1</td></tr><tr class='total'><td>Total / 30</td><td class="best">27</td><td class="">20</td><td class="">18</td><td class="">17</td><td class="">14</td><td class="">26</td><td class="">23</td><td class="">20</td><td class="">17</td><td class="">18</td></tr></tbody></table>
   </section>
   <section class="section decide">
     <h2>Decision</h2>
     <p><strong>Big Button + grid is the shipped design (27/30).</strong> It ties the Car HMI on every in-car criterion but stays
        comfortable off the cradle, and is the cheapest to reach from the existing Ionic screen. The Car HMI (26/30) loses only where
        its own evaluation admits: it is heavy-handed the moment the phone leaves the windscreen.</p>
-    <p>The losing directions still contribute: the HMI&rsquo;s tile discipline <em>is</em> the grid under the button; the wizard&rsquo;s
-       field-gating survives as the start button refusing to enable until odometer and supervisor are valid; the dashboard rings stay
-       on the Dashboard tab; the ledger is the right shape for the history / evidence view; the map earns its place after the trip, in
-       the trip-detail route view.</p>
+    <p>The mechanism round changed the shipped design in one important way: Slide-to-commit and the switch panel both beat every
+       layout study on plate-status visibility by putting the status <em>inside the control</em> — so the shipped start button doubles
+       as the status light (amber while connecting, green when ready), and the wizard&rsquo;s and switch panel&rsquo;s guarded-commitment
+       thinking survives as the can&rsquo;t-start-until-valid gating and the &ldquo;plates not connected — start anyway / wait&rdquo;
+       fail-safe dialog.</p>
+    <p>The rest still contributes: the HMI&rsquo;s tile discipline is the grid under the button; the dashboard rings stay on the
+       Dashboard tab; the ledger shapes the history / evidence view; the map earns its place after the trip in trip detail; the
+       conversation&rsquo;s timestamped transcript shapes how recorded trips are presented as evidence.</p>
     <p><strong>Colour remains a live decision.</strong> The exploration favoured green on brand grounds (red is reserved for Stop and
        errors); the red record-convention build is preserved as evidence. If red is chosen, Stop must be differentiated by shape and
        position so two red actions cannot be confused.</p>
   </section>
-  <p class="method">Method: six parallel builds from one shared brief, none seeing the others&rsquo; work; every prototype self-verified
-     by rendering and correcting its own screenshot; weaknesses recorded by each direction&rsquo;s own author before comparison.</p>
+  <p class="method">Method: ten parallel builds from shared briefs, none seeing the others&rsquo; work; round two banned the form-and-button
+     vocabulary round one converged on; every prototype self-verified by rendering and correcting its own screenshot; weaknesses recorded
+     by each direction&rsquo;s own author before comparison.</p>
 </div>

@@ -1,0 +1,459 @@
+<meta charset="utf-8">
+<style>
+:root{
+  --lp-red:#b90413; --lp-yellow:#c5bf10; --lp-green:#36a225;
+  --lp-dark:#1d1d1d; --lp-blue:#4232b4; --light:#f4f4f4; --grey:#8b8b8b;
+  --canvas:#141414; --phone:#0e0e0e; --panel:#1d1d1d; --line:#2c2c2c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--canvas);color:var(--light);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding:28px 40px 34px}
+/* ---------- page header ---------- */
+.page-head{display:flex;align-items:baseline;gap:18px;margin-bottom:22px}
+.page-head .no{font-size:13px;letter-spacing:.22em;color:var(--grey)}
+.page-head h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
+.page-head p{font-size:13px;color:var(--grey)}
+/* ---------- frame row ---------- */
+.row{display:flex;gap:34px;align-items:flex-start}
+.slot{width:390px;flex:none}
+.slot-label{margin-top:12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--grey);text-align:center}
+.slot-label strong{color:var(--light);font-weight:600;letter-spacing:.14em}
+.slot-label.rej strong{color:var(--lp-red)}
+.slot-note{margin-top:5px;font-size:11.5px;color:var(--grey);text-align:center;line-height:1.45}
+/* ---------- phone ---------- */
+.phone{width:390px;height:844px;background:var(--phone);border-radius:48px;
+  border:1px solid #333;box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 0 0 8px #000;
+  overflow:hidden;position:relative;display:flex;flex-direction:column;padding:8px}
+.screen{flex:1;display:flex;flex-direction:column;border-radius:40px;overflow:hidden;
+  background:linear-gradient(180deg,#111 0%,#0d0d0d 100%)}
+/* status bar */
+.sbar{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 30px 0}
+.sbar .time{font-size:15px;font-weight:600;letter-spacing:.01em}
+.sicons{display:flex;align-items:flex-end;gap:7px}
+.cell{display:flex;align-items:flex-end;gap:1.5px}
+.cell i{width:3px;background:var(--light);border-radius:1px;display:block}
+.cell i:nth-child(1){height:4px}.cell i:nth-child(2){height:6px}
+.cell i:nth-child(3){height:8px}.cell i:nth-child(4){height:10px}
+.wifi{width:15px;height:11px;position:relative;overflow:hidden}
+.wifi i{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);
+  border:2px solid var(--light);border-radius:50%;background:transparent}
+.wifi i:nth-child(1){width:20px;height:20px;border-color:var(--light) transparent transparent}
+.wifi i:nth-child(2){width:12px;height:12px;border-color:var(--light) transparent transparent}
+.wifi i:nth-child(3){width:4px;height:4px;background:var(--light);border:none;bottom:0}
+.batt{width:24px;height:11px;border:1px solid rgba(244,244,244,.5);border-radius:3px;
+  padding:1.5px;position:relative}
+.batt::after{content:"";position:absolute;right:-4px;top:3px;width:2px;height:4px;
+  background:rgba(244,244,244,.5);border-radius:0 1px 1px 0}
+.batt i{display:block;height:100%;width:78%;background:var(--light);border-radius:1.5px}
+/* app header */
+.ahead{flex:none;padding:14px 26px 4px;display:flex;justify-content:space-between;align-items:baseline}
+.ahead .brand{display:flex;align-items:center;gap:9px}
+.lplate{width:26px;height:26px;background:#fff;border-radius:5px;display:flex;
+  align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--lp-yellow);
+  font-family:Georgia,serif}
+.ahead h2{font-size:19px;font-weight:700}
+.ahead .date{font-size:12px;color:var(--grey)}
+/* ---------- odometer ---------- */
+.odo-wrap{flex:none;margin:16px 26px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:18px;padding:16px 18px 14px}
+.odo-cap{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px}
+.odo-cap b{font-size:11px;letter-spacing:.2em;color:var(--grey);font-weight:600}
+.odo-cap span{font-size:11px;color:var(--grey)}
+.odo{display:flex;justify-content:center;gap:0;background:#000;border-radius:10px;
+  padding:7px 9px;box-shadow:inset 0 3px 10px rgba(0,0,0,.9),inset 0 -2px 6px rgba(0,0,0,.8);
+  border:1px solid #383838}
+.wheel{width:44px;height:64px;overflow:hidden;position:relative;flex:none;
+  background:linear-gradient(180deg,#000 0%,#3a3a3a 22%,#454545 50%,#3a3a3a 78%,#000 100%);
+  border-left:1px solid #000;border-right:1px solid #222}
+.wheel:first-child{border-radius:5px 0 0 5px}
+.wheel:last-child{border-radius:0 5px 5px 0}
+.col{position:absolute;left:0;width:100%;text-align:center;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:34px;font-weight:700;
+  color:#f4f4f4;line-height:64px;top:0;transform:translateY(-64px)}
+.col b{display:block;height:64px;font-weight:700}
+/* neighbours faintly visible through the top/bottom shade */
+.wheel::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,rgba(0,0,0,.92) 100%)}
+.wheel.mid .col{transform:translateY(-96px)}          /* caught half-way between digits */
+.wheel.mid{box-shadow:inset 0 0 0 2px var(--lp-yellow)}
+.wheel.mid::after{background:linear-gradient(180deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 70%,rgba(0,0,0,.75) 100%)}
+.odo-hint{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:10px;
+  font-size:11px;color:var(--lp-yellow)}
+.odo-hint .updown{display:flex;flex-direction:column;gap:3px}
+/* chevrons (pure css) */
+.ch{width:8px;height:8px;border-top:2.5px solid currentColor;border-right:2.5px solid currentColor;
+  display:inline-block;flex:none}
+.ch.r{transform:rotate(45deg)} .ch.l{transform:rotate(-135deg)}
+.ch.d{transform:rotate(135deg)} .ch.u{transform:rotate(-45deg)}
+.ch.s{width:6px;height:6px;border-width:2px}
+/* ---------- carousels ---------- */
+.caro{flex:none;margin-top:18px}
+.caro-cap{padding:0 26px;font-size:11px;letter-spacing:.2em;color:var(--grey);
+  font-weight:600;margin-bottom:9px;display:flex;justify-content:space-between}
+.caro-cap span{letter-spacing:0;font-weight:400;color:#5c5c5c;text-transform:none}
+.lane{display:flex;align-items:stretch;gap:12px;overflow:hidden;padding:2px 0}
+.lane .spacer{flex:none;width:-6px}
+.car-card{flex:none;width:190px;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;padding:13px 15px;opacity:.38}
+.car-card.active{opacity:1;border-color:#4a4a4a;background:#232323;
+  box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.car-card h3{font-size:15px;font-weight:700;margin-bottom:3px;white-space:nowrap}
+.car-card .sub{font-size:11.5px;color:var(--grey);white-space:nowrap;margin-bottom:9px}
+.rego{display:inline-block;background:#fff;color:var(--lp-blue);font-weight:800;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;letter-spacing:.12em;
+  padding:2.5px 8px;border-radius:4px;border:1.5px solid var(--lp-blue)}
+.car-card.guest{border-style:dashed;border-color:#4a4a4a}
+.car-card.guest h3{color:var(--grey)}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.dots i{width:5px;height:5px;border-radius:50%;background:#3c3c3c}
+.dots i.on{background:var(--light)}
+/* supervisor lane */
+.sup{flex:none;width:118px;display:flex;flex-direction:column;align-items:center;gap:7px;
+  opacity:.38;text-align:center}
+.sup.active{opacity:1}
+.ava{width:58px;height:58px;border-radius:50%;background:var(--lp-blue);display:flex;
+  align-items:center;justify-content:center;font-weight:700;font-size:19px;color:#fff}
+.sup.active .ava{box-shadow:0 0 0 3px #0d0d0d,0 0 0 5px var(--lp-green)}
+.sup .nm{font-size:12.5px;font-weight:600;white-space:nowrap}
+.sup .meta{font-size:10.5px;color:var(--grey);white-space:nowrap}
+.sup.guest .ava{background:#262626;border:2px dashed #4a4a4a;color:var(--grey);font-size:24px;font-weight:400}
+.sup.guest .nm{color:var(--grey)}
+/* ---------- slide track ---------- */
+.track-zone{margin-top:auto;flex:none;padding:0 26px 26px}
+.track-note{font-size:11px;color:var(--grey);text-align:center;margin-bottom:10px}
+.track{height:68px;border-radius:34px;position:relative;display:flex;align-items:center;
+  overflow:hidden}
+.track .lbl{position:absolute;left:0;right:0;text-align:center;font-size:15px;font-weight:600;
+  letter-spacing:.02em}
+.thumb{width:56px;height:56px;border-radius:50%;background:#fff;flex:none;margin:0 6px;
+  display:flex;align-items:center;justify-content:center;gap:2px;position:relative;z-index:2;
+  box-shadow:0 3px 10px rgba(0,0,0,.45)}
+.track.go{background:linear-gradient(90deg,#1e5c15,#2a7d1d);border:1px solid #3f9a30}
+.track.go .lbl{color:#d9f2d3;padding-left:44px}
+.track.go .thumb{color:var(--lp-green)}
+.track.wait{background:linear-gradient(90deg,#5d5a0c,#6e6a0e);border:1px solid #8a850f}
+.track.wait .lbl{color:#efeab4;padding-left:44px}
+.track.wait .thumb{background:#d8d3a0;color:#6e6a0e}
+.track.wait .thumb .ring{position:absolute;inset:9px;border-radius:50%;
+  border:3px solid rgba(110,106,14,.25);border-top-color:#6e6a0e;transform:rotate(38deg)}
+.track.stop{background:linear-gradient(270deg,#7c0410,#9a0511);border:1px solid var(--lp-red);
+  justify-content:flex-end}
+.track.stop .lbl{color:#ffd9dc;padding-right:44px}
+.track.stop .thumb{color:var(--lp-red)}
+/* connecting extra */
+.plate-line{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;
+  font-size:11px;color:var(--lp-yellow)}
+.plate-line .pip{width:7px;height:7px;border-radius:50%;background:var(--lp-yellow)}
+.plate-line.ok{color:var(--lp-green)}.plate-line.ok .pip{background:var(--lp-green)}
+/* ---------- recording screen ---------- */
+.rec-top{flex:none;display:flex;justify-content:space-between;align-items:center;padding:14px 26px 0}
+.rec-chip{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#ff8f97}
+.rec-chip .pip{width:8px;height:8px;border-radius:50%;background:var(--lp-red)}
+.rec-plate{font-size:11px;color:var(--lp-green);display:flex;align-items:center;gap:6px}
+.rec-plate .pip{width:6px;height:6px;border-radius:50%;background:var(--lp-green)}
+.timer-zone{flex:none;text-align:center;margin-top:44px}
+.timer{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:64px;font-weight:700;
+  letter-spacing:.01em;line-height:1}
+.timer small{font-size:34px;color:var(--grey);font-weight:600}
+.timer-sub{margin-top:12px;font-size:13px;color:var(--grey)}
+.timer-sub b{color:var(--light);font-weight:600}
+.rec-odo{margin:38px 26px 0}
+.rec-facts{display:flex;justify-content:center;gap:30px;margin-top:30px}
+.fact{text-align:center}
+.fact b{display:block;font-size:20px;font-weight:700;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.fact span{font-size:10.5px;letter-spacing:.14em;color:var(--grey);text-transform:uppercase}
+.rec-who{margin-top:30px;display:flex;justify-content:center;align-items:center;gap:10px;
+  font-size:12.5px;color:var(--grey)}
+.rec-who .ava{width:30px;height:30px;font-size:12px;flex:none}
+.rec-who b{color:var(--light);font-weight:600}
+/* ---------- handbrake (rejected) ---------- */
+.hb-body{flex:1;display:flex;padding:8px 26px 26px;gap:18px;min-height:0}
+.hb-left{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+.hb-panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.hb-panel b{font-size:10.5px;letter-spacing:.18em;color:var(--grey);display:block;margin-bottom:7px}
+.hb-panel .v{font-size:14px;font-weight:600;white-space:nowrap}
+.hb-panel .s{font-size:11px;color:var(--grey);margin-top:2px;white-space:nowrap}
+.hb-warn{margin-top:auto;background:rgba(185,4,19,.12);border:1px solid rgba(185,4,19,.45);
+  border-radius:12px;padding:11px 13px;font-size:11.5px;line-height:1.5;color:#ff9aa2}
+.hb-rail-wrap{flex:none;width:104px;display:flex;flex-direction:column;align-items:center}
+.hb-rail{flex:1;width:88px;background:linear-gradient(180deg,#2a2a2a,#1a1a1a);
+  border:1px solid #3a3a3a;border-radius:44px;position:relative;display:flex;
+  flex-direction:column;align-items:center;padding-top:8px}
+.hb-handle{width:72px;height:72px;border-radius:50%;background:#fff;flex:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--lp-dark);box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.hb-handle .grip{width:26px;height:3px;border-radius:2px;background:#bbb}
+.hb-rail .vlabel{position:absolute;top:56%;left:50%;transform:translate(-50%,-50%) rotate(90deg);
+  transform-origin:center;white-space:nowrap;font-size:12px;font-weight:600;letter-spacing:.22em;
+  color:var(--grey)}
+.hb-rail .down-chs{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;gap:5px;color:#4a4a4a}
+/* ---------- self-evaluation ---------- */
+.eval{margin-top:30px;background:#191919;border:1px solid var(--line);border-radius:14px;
+  padding:18px 24px;display:flex;gap:34px}
+.eval h4{font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:7px}
+.eval .g h4{color:var(--lp-green)} .eval .b h4{color:var(--lp-red)} .eval .w h4{color:var(--lp-yellow)}
+.eval p{font-size:12.5px;line-height:1.6;color:#c9c9c9}
+.eval>div{flex:1}
+</style>
+
+<div class="page-head">
+  <span class="no">EXPLORATION 07</span>
+  <h1>Slide to Commit</h1>
+  <p>Starting a drive is a deliberate physical gesture — drag, roll and slide; nothing here is a tap on a form.</p>
+</div>
+
+<div class="row">
+
+  <!-- ================= FRAME 1 : READY ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">9:41</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2>New drive</h2></span>
+        <span class="date">Sun 17 Aug</span>
+      </div>
+
+      <div class="odo-wrap">
+        <div class="odo-cap"><b>ODOMETER</b><span>km at start</span></div>
+        <div class="odo">
+          <div class="wheel"><div class="col"><b>9</b><b>0</b><b>1</b></div></div>
+          <div class="wheel"><div class="col"><b>3</b><b>4</b><b>5</b></div></div>
+          <div class="wheel"><div class="col"><b>7</b><b>8</b><b>9</b></div></div>
+          <div class="wheel"><div class="col"><b>3</b><b>4</b><b>5</b></div></div>
+          <div class="wheel"><div class="col"><b>5</b><b>6</b><b>7</b></div></div>
+          <div class="wheel mid"><div class="col"><b>7</b><b>8</b><b>9</b><b>0</b></div></div>
+        </div>
+        <div class="odo-hint">
+          <span>drag the last drum to correct</span>
+          <span class="updown"><i class="ch u s"></i><i class="ch d s"></i></span>
+        </div>
+      </div>
+
+      <div class="caro">
+        <div class="caro-cap"><b>CAR</b><span>swipe</span></div>
+        <div class="lane" style="margin-left:-96px">
+          <div class="car-card"><h3>Dad&rsquo;s Hilux</h3><div class="sub">Toyota Hilux &middot; diesel &middot; man.</div><span class="rego">YJH 60K</span></div>
+          <div class="car-card active"><h3>Mum&rsquo;s Corolla</h3><div class="sub">Toyota Corolla &middot; petrol &middot; auto</div><span class="rego">YLC 88F</span></div>
+          <div class="car-card guest"><h3>Guest car</h3><div class="sub">add rego on the fly</div><span class="rego" style="opacity:.4">&mdash; &mdash; &mdash;</span></div>
+        </div>
+        <div class="dots"><i></i><i class="on"></i><i></i></div>
+      </div>
+
+      <div class="caro">
+        <div class="caro-cap"><b>SUPERVISOR</b><span>swipe</span></div>
+        <div class="lane" style="margin-left:-40px;justify-content:flex-start">
+          <div class="sup"><span class="ava" style="background:#6b4632">MW</span><span class="nm">Mark Whitman</span><span class="meta">Full licence &middot; 22 yrs</span></div>
+          <div class="sup active"><span class="ava">SW</span><span class="nm">Sarah Whitman</span><span class="meta">Full licence &middot; 12 yrs</span></div>
+          <div class="sup guest"><span class="ava">+</span><span class="nm">Guest</span><span class="meta">add name + licence</span></div>
+        </div>
+        <div class="dots"><i></i><i class="on"></i><i></i></div>
+      </div>
+
+      <div class="track-zone">
+        <div class="plate-line ok"><span class="pip"></span>L-plates paired &middot; front and rear</div>
+        <div class="track go">
+          <span class="lbl">Slide to start drive</span>
+          <span class="thumb"><i class="ch r"></i><i class="ch r"></i><i class="ch r"></i></span>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Ready</strong></div>
+    <div class="slot-note">Green track: plates paired, gesture armed.</div>
+  </div>
+
+  <!-- ================= FRAME 2 : CONNECTING ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">9:41</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2>New drive</h2></span>
+        <span class="date">Sun 17 Aug</span>
+      </div>
+
+      <div class="odo-wrap">
+        <div class="odo-cap"><b>ODOMETER</b><span>km at start</span></div>
+        <div class="odo">
+          <div class="wheel"><div class="col"><b>9</b><b>0</b><b>1</b></div></div>
+          <div class="wheel"><div class="col"><b>3</b><b>4</b><b>5</b></div></div>
+          <div class="wheel"><div class="col"><b>7</b><b>8</b><b>9</b></div></div>
+          <div class="wheel"><div class="col"><b>3</b><b>4</b><b>5</b></div></div>
+          <div class="wheel"><div class="col"><b>5</b><b>6</b><b>7</b></div></div>
+          <div class="wheel mid"><div class="col"><b>7</b><b>8</b><b>9</b><b>0</b></div></div>
+        </div>
+        <div class="odo-hint">
+          <span>drag the last drum to correct</span>
+          <span class="updown"><i class="ch u s"></i><i class="ch d s"></i></span>
+        </div>
+      </div>
+
+      <div class="caro">
+        <div class="caro-cap"><b>CAR</b><span>swipe</span></div>
+        <div class="lane" style="margin-left:-96px">
+          <div class="car-card"><h3>Dad&rsquo;s Hilux</h3><div class="sub">Toyota Hilux &middot; diesel &middot; man.</div><span class="rego">YJH 60K</span></div>
+          <div class="car-card active"><h3>Mum&rsquo;s Corolla</h3><div class="sub">Toyota Corolla &middot; petrol &middot; auto</div><span class="rego">YLC 88F</span></div>
+          <div class="car-card guest"><h3>Guest car</h3><div class="sub">add rego on the fly</div><span class="rego" style="opacity:.4">&mdash; &mdash; &mdash;</span></div>
+        </div>
+        <div class="dots"><i></i><i class="on"></i><i></i></div>
+      </div>
+
+      <div class="caro">
+        <div class="caro-cap"><b>SUPERVISOR</b><span>swipe</span></div>
+        <div class="lane" style="margin-left:-40px;justify-content:flex-start">
+          <div class="sup"><span class="ava" style="background:#6b4632">MW</span><span class="nm">Mark Whitman</span><span class="meta">Full licence &middot; 22 yrs</span></div>
+          <div class="sup active"><span class="ava">SW</span><span class="nm">Sarah Whitman</span><span class="meta">Full licence &middot; 12 yrs</span></div>
+          <div class="sup guest"><span class="ava">+</span><span class="nm">Guest</span><span class="meta">add name + licence</span></div>
+        </div>
+        <div class="dots"><i></i><i class="on"></i><i></i></div>
+      </div>
+
+      <div class="track-zone">
+        <div class="plate-line"><span class="pip"></span>Searching &middot; rear plate found, front pending</div>
+        <div class="track wait">
+          <span class="lbl">Connecting to L-plates&hellip;</span>
+          <span class="thumb"><span class="ring"></span></span>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Plates connecting</strong></div>
+    <div class="slot-note">The track itself is the status light &mdash; amber and locked until both plates answer.</div>
+  </div>
+
+  <!-- ================= FRAME 3 : RECORDING ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">16:17</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+
+      <div class="rec-top">
+        <span class="rec-chip"><span class="pip"></span>RECORDING</span>
+        <span class="rec-plate"><span class="pip"></span>plates flipped &middot; L showing</span>
+      </div>
+
+      <div class="timer-zone">
+        <div class="timer">00:23:45</div>
+        <div class="timer-sub">started <b>15:54</b> &middot; Kambah, ACT</div>
+      </div>
+
+      <div class="odo-wrap rec-odo">
+        <div class="odo-cap"><b>ODOMETER</b><span>live &middot; km</span></div>
+        <div class="odo">
+          <div class="wheel"><div class="col"><b>9</b><b>0</b><b>1</b></div></div>
+          <div class="wheel"><div class="col"><b>3</b><b>4</b><b>5</b></div></div>
+          <div class="wheel"><div class="col"><b>7</b><b>8</b><b>9</b></div></div>
+          <div class="wheel"><div class="col"><b>3</b><b>4</b><b>5</b></div></div>
+          <div class="wheel"><div class="col"><b>6</b><b>7</b><b>8</b></div></div>
+          <div class="wheel mid"><div class="col"><b>1</b><b>2</b><b>3</b><b>4</b></div></div>
+        </div>
+      </div>
+
+      <div class="rec-facts">
+        <div class="fact"><b>14.6</b><span>km this drive</span></div>
+        <div class="fact"><b>61</b><span>km/h now</span></div>
+        <div class="fact"><b>87:40</b><span>hrs total</span></div>
+      </div>
+
+      <div class="rec-who">
+        <span class="ava">SW</span>
+        <span><b>Sarah Whitman</b> supervising &middot; <b>Mum&rsquo;s Corolla</b></span>
+      </div>
+
+      <div class="track-zone">
+        <div class="track-note">sliding back ends the drive and flips the plates blank</div>
+        <div class="track stop">
+          <span class="lbl">Slide to stop</span>
+          <span class="thumb"><i class="ch l"></i><i class="ch l"></i><i class="ch l"></i></span>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Recording</strong></div>
+    <div class="slot-note">The slider reverses: red, mirrored, and it pulls the other way to stop.</div>
+  </div>
+
+  <!-- ================= FRAME 4 : REJECTED HANDBRAKE ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">9:41</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2>New drive</h2></span>
+        <span class="date">Sun 17 Aug</span>
+      </div>
+
+      <div class="hb-body">
+        <div class="hb-left">
+          <div class="hb-panel">
+            <b>ODOMETER</b>
+            <div class="v" style="font-family:ui-monospace,'SF Mono',Menlo,monospace">048468 km</div>
+            <div class="s">tap a digit to roll it</div>
+          </div>
+          <div class="hb-panel">
+            <b>CAR</b>
+            <div class="v">Mum&rsquo;s Corolla</div>
+            <div class="s">YLC 88F &middot; swipe for Hilux</div>
+          </div>
+          <div class="hb-panel">
+            <b>SUPERVISOR</b>
+            <div class="v">Sarah Whitman</div>
+            <div class="s">Full licence &middot; 12 yrs</div>
+          </div>
+          <div class="hb-warn">
+            Field note: 4 of 5 testers scrolled the page instead of releasing the
+            handbrake &mdash; the vertical pull is the same gesture the list already owns.
+          </div>
+        </div>
+        <div class="hb-rail-wrap">
+          <div class="hb-rail">
+            <div class="hb-handle">
+              <span class="grip"></span><span class="grip"></span>
+              <i class="ch d s" style="margin-top:2px"></i>
+            </div>
+            <span class="vlabel">RELEASE TO START</span>
+            <span class="down-chs"><i class="ch d"></i><i class="ch d"></i><i class="ch d"></i></span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label rej"><strong>Rejected variant</strong> &mdash; handbrake pull</div>
+    <div class="slot-note">Lost because a vertical pull collides with scroll &mdash; the page pans before the handle ever engages.</div>
+  </div>
+
+</div>
+
+<div class="eval">
+  <div class="g"><h4>Strengths</h4>
+    <p>The slide gesture makes starting a drive feel deliberate and prevents pocket-starts; plate state lives in the track colour, so one glance answers &ldquo;can I go?&rdquo;. The drum odometer invites correction instead of demanding typed input, and carousels make the common car/supervisor pair a zero-tap default.</p></div>
+  <div class="b"><h4>Weaknesses</h4>
+    <p>Drag targets are hostile to switch-access and screen-reader users without a parallel tap path. The drum is slow when the real odometer differs by hundreds of km, and hidden carousel items make a fourth car easy to miss.</p></div>
+  <div class="w"><h4>When this design wins</h4>
+    <p>One-handed use in a parked car, where accidental starts are costly and the same two people share every drive.</p></div>
+</div>

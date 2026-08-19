@@ -1,0 +1,464 @@
+<meta charset="utf-8">
+<style>
+:root{
+  --lp-red:#b90413; --lp-yellow:#c5bf10; --lp-green:#36a225;
+  --lp-dark:#1d1d1d; --lp-blue:#4232b4; --light:#f4f4f4; --grey:#8b8b8b;
+  --canvas:#141414; --phone:#0e0e0e; --panel:#1d1d1d; --line:#2c2c2c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--canvas);color:var(--light);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding:28px 40px 34px}
+/* ---------- page header ---------- */
+.page-head{display:flex;align-items:baseline;gap:18px;margin-bottom:22px}
+.page-head .no{font-size:13px;letter-spacing:.22em;color:var(--grey)}
+.page-head h1{font-size:24px;font-weight:700;letter-spacing:-.01em}
+.page-head p{font-size:13px;color:var(--grey)}
+/* ---------- frame row ---------- */
+.row{display:flex;gap:34px;align-items:flex-start}
+.slot{width:390px;flex:none}
+.slot-label{margin-top:12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--grey);text-align:center}
+.slot-label strong{color:var(--light);font-weight:600;letter-spacing:.14em}
+.slot-label.rej strong{color:var(--lp-red)}
+.slot-note{margin-top:5px;font-size:11.5px;color:var(--grey);text-align:center;line-height:1.45}
+/* ---------- phone ---------- */
+.phone{width:390px;height:844px;background:var(--phone);border-radius:48px;
+  border:1px solid #333;box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 0 0 8px #000;
+  overflow:hidden;position:relative;display:flex;flex-direction:column;padding:8px}
+.screen{flex:1;display:flex;flex-direction:column;border-radius:40px;overflow:hidden;
+  background:linear-gradient(180deg,#111 0%,#0d0d0d 100%)}
+/* status bar */
+.sbar{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 30px 0}
+.sbar .time{font-size:15px;font-weight:600;letter-spacing:.01em}
+.sicons{display:flex;align-items:flex-end;gap:7px}
+.cell{display:flex;align-items:flex-end;gap:1.5px}
+.cell i{width:3px;background:var(--light);border-radius:1px;display:block}
+.cell i:nth-child(1){height:4px}.cell i:nth-child(2){height:6px}
+.cell i:nth-child(3){height:8px}.cell i:nth-child(4){height:10px}
+.wifi{width:15px;height:11px;position:relative;overflow:hidden}
+.wifi i{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);
+  border:2px solid var(--light);border-radius:50%;background:transparent}
+.wifi i:nth-child(1){width:20px;height:20px;border-color:var(--light) transparent transparent}
+.wifi i:nth-child(2){width:12px;height:12px;border-color:var(--light) transparent transparent}
+.wifi i:nth-child(3){width:4px;height:4px;background:var(--light);border:none;bottom:0}
+.batt{width:24px;height:11px;border:1px solid rgba(244,244,244,.5);border-radius:3px;
+  padding:1.5px;position:relative}
+.batt::after{content:"";position:absolute;right:-4px;top:3px;width:2px;height:4px;
+  background:rgba(244,244,244,.5);border-radius:0 1px 1px 0}
+.batt i{display:block;height:100%;width:78%;background:var(--light);border-radius:1.5px}
+/* app header */
+.ahead{flex:none;padding:12px 26px 2px;display:flex;justify-content:space-between;align-items:baseline}
+.ahead .brand{display:flex;align-items:center;gap:9px}
+.lplate{width:26px;height:26px;background:#fff;border-radius:5px;display:flex;
+  align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--lp-yellow);
+  font-family:Georgia,serif}
+.ahead h2{font-size:18px;font-weight:700;letter-spacing:.01em}
+.ahead .date{font-size:12px;color:var(--grey)}
+/* chevrons (pure css) */
+.ch{width:8px;height:8px;border-top:2.5px solid currentColor;border-right:2.5px solid currentColor;
+  display:inline-block;flex:none}
+.ch.u{transform:rotate(-45deg)} .ch.d{transform:rotate(135deg)}
+.ch.s{width:5px;height:5px;border-width:1.6px}
+/* ================= switch panel ================= */
+.panel-grid{flex:none;margin:12px 26px 0;display:flex;flex-direction:column;gap:10px}
+.sw-row2{display:flex;gap:10px}
+.sw-cell{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:11px 13px 12px;position:relative}
+.sw-cell.small{flex:1;min-width:0}
+.sw-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.sw-lbl{font-size:10px;letter-spacing:.19em;color:var(--grey);font-weight:700}
+.sw-unit{font-size:9.5px;color:#5c5c5c}
+.sw-body{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sw-info{min-width:0}
+.sw-val{font-size:13px;font-weight:600;line-height:1.22}
+.sw-sub{font-size:10px;color:var(--grey);margin-top:3px;line-height:1.3}
+.sw-note{margin-top:8px;padding-top:7px;border-top:1px dashed #333;font-size:8.6px;
+  letter-spacing:.09em;color:#5c5c5c;text-transform:uppercase}
+/* physical toggle */
+.tgl{width:34px;height:66px;flex:none;background:linear-gradient(180deg,#0b0b0b,#1c1c1c);
+  border-radius:9px;border:1px solid #050505;position:relative;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.85),inset 0 -1px 2px rgba(255,255,255,.04)}
+.paddle{position:absolute;left:3px;width:26px;height:26px;border-radius:6px;
+  background:linear-gradient(180deg,#f4f4f4,#c7c7c7);
+  box-shadow:0 3px 6px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.7);
+  display:flex;align-items:center;justify-content:center}
+.paddle i{width:12px;height:2px;background:#999;border-radius:1px}
+.tgl.up .paddle{top:3px}
+.tgl.down .paddle{bottom:3px}
+.tgl.mid .paddle{top:50%;transform:translateY(-50%);
+  background:linear-gradient(180deg,var(--lp-yellow),#8f8a0a);
+  box-shadow:0 0 9px rgba(197,191,16,.7),0 3px 6px rgba(0,0,0,.5)}
+.tgl.mid .paddle i{background:#3a3a1a}
+.tgl.up{box-shadow:inset 0 2px 6px rgba(0,0,0,.85),0 0 0 1px rgba(54,162,37,.5)}
+/* status lamp */
+.lamp{width:11px;height:11px;border-radius:50%;background:#333;flex:none;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+.lamp.green{background:radial-gradient(circle at 35% 30%,#a9ec9b,var(--lp-green));
+  box-shadow:0 0 8px rgba(54,162,37,.9),inset 0 1px 1px rgba(255,255,255,.6)}
+.lamp.amber{background:radial-gradient(circle at 35% 30%,#efe58f,var(--lp-yellow));
+  box-shadow:0 0 8px rgba(197,191,16,.9),inset 0 1px 1px rgba(255,255,255,.6)}
+.lamp.red{background:radial-gradient(circle at 35% 30%,#ff9aa2,var(--lp-red));
+  box-shadow:0 0 9px rgba(185,4,19,.9),inset 0 1px 1px rgba(255,255,255,.6)}
+/* odometer click-stepper */
+.stepper{display:flex;align-items:center;gap:7px}
+.digits{display:flex;gap:2px;background:#000;border-radius:6px;padding:6px 7px;
+  border:1px solid #333;box-shadow:inset 0 2px 6px rgba(0,0,0,.85)}
+.digits b{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:17px;font-weight:700;
+  color:var(--lp-green);width:11px;text-align:center;text-shadow:0 0 6px rgba(54,162,37,.55)}
+.digits b.last{color:#fff;position:relative;text-shadow:0 0 6px rgba(255,255,255,.4)}
+.digits b.last::after{content:'';position:absolute;left:-2px;right:-2px;top:-3px;bottom:-3px;
+  border:1px solid var(--lp-yellow);border-radius:3px}
+.stepbtns{display:flex;flex-direction:column;gap:3px}
+.stepbtn{width:15px;height:13px;background:#2a2a2a;border:1px solid #3d3d3d;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;color:#8b8b8b}
+/* ================= guard + master switch ================= */
+.guard-zone{margin-top:auto;flex:none;padding:16px 26px 22px;display:flex;
+  flex-direction:column;align-items:center;gap:9px}
+.guard-cap{font-size:10.5px;letter-spacing:.16em;color:var(--grey);text-transform:uppercase;text-align:center}
+.guard-housing{width:194px;height:140px;position:relative}
+.master-track{position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:180px;height:100px;background:linear-gradient(180deg,#2a1013,#1d1d1d);
+  border-radius:14px;border:1px solid #3d1216;box-shadow:inset 0 3px 12px rgba(0,0,0,.85)}
+.master-paddle{position:absolute;left:9px;right:9px;height:58px;border-radius:10px;
+  background:linear-gradient(180deg,#3d3d3d,#212121);border:1px solid #0e0e0e;
+  box-shadow:0 4px 10px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--grey)}
+.master-track.off .master-paddle{bottom:9px}
+.master-track.on .master-paddle{top:9px}
+.master-paddle.hot{background:linear-gradient(180deg,#e0313f,var(--lp-red));color:#fff;
+  box-shadow:0 0 24px rgba(185,4,19,.8),0 4px 10px rgba(0,0,0,.6)}
+.flap{position:absolute;left:50%;transform:translateX(-50%);width:196px;
+  background:repeating-linear-gradient(45deg,var(--lp-red) 0 9px,#1a1a1a 9px 18px);
+  border:1px solid #3d1216;box-shadow:0 6px 14px rgba(0,0,0,.5)}
+.flap.closed{bottom:0;height:100px;border-radius:14px;display:flex;align-items:flex-end;
+  justify-content:center;padding-bottom:11px;z-index:2}
+.flap.closed span{font-size:10px;letter-spacing:.2em;font-weight:700;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.7);background:rgba(0,0,0,.35);padding:3px 8px;border-radius:5px}
+.flap.open{top:0;height:26px;border-radius:8px 8px 3px 3px;transform:translateX(-50%) rotate(-2deg)}
+.rivet{position:absolute;top:6px;width:5px;height:5px;border-radius:50%;
+  background:#000;box-shadow:inset 0 0 0 1px #3a3a3a}
+.rivet.l{left:12px}.rivet.r{right:12px}
+/* ================= recording annunciator ================= */
+.ann-strip{flex:none;margin:14px 26px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between}
+.ann-item{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.ann-item span{font-size:8.6px;letter-spacing:.13em;color:var(--grey)}
+.rec-zone{flex:none;text-align:center;margin-top:22px}
+.rec-lamp-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.rec-lamp-row b{font-size:12px;font-weight:700;letter-spacing:.2em;color:#ff8f97}
+.rec-lamp{width:14px;height:14px}
+.timer{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:56px;font-weight:700;
+  letter-spacing:.01em;line-height:1;color:#ff6b74;text-shadow:0 0 18px rgba(185,4,19,.55)}
+.timer-sub{margin-top:10px;font-size:12.5px;color:var(--grey)}
+.timer-sub b{color:var(--light);font-weight:600}
+.rec-odo-row{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:26px}
+.rec-odo-row .digits b{color:var(--lp-green)}
+.rec-odo-cap{font-size:9.5px;letter-spacing:.15em;color:var(--grey);margin-top:6px}
+.rec-facts{display:flex;justify-content:center;gap:28px;margin-top:22px}
+.fact{text-align:center}
+.fact b{display:block;font-size:19px;font-weight:700;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.fact span{font-size:10px;letter-spacing:.13em;color:var(--grey);text-transform:uppercase}
+.rec-who{margin-top:26px;display:flex;justify-content:center;align-items:center;gap:9px;
+  font-size:12px;color:var(--grey)}
+.rec-who .ava{width:28px;height:28px;border-radius:50%;background:var(--lp-blue);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;flex:none}
+.rec-who b{color:var(--light);font-weight:600}
+/* ================= rejected: countdown ================= */
+.countdown-zone{margin-top:auto;flex:none;padding:16px 26px 22px;display:flex;
+  flex-direction:column;align-items:center;gap:11px}
+.ring{width:92px;height:92px;border-radius:50%;border:5px solid #2a2a2a;
+  border-top-color:var(--lp-yellow);display:flex;align-items:center;justify-content:center;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:38px;font-weight:700;
+  color:var(--lp-yellow);text-shadow:0 0 10px rgba(197,191,16,.5)}
+.ring-cap{font-size:11.5px;color:var(--grey);text-align:center}
+.ring-cap b{color:var(--light)}
+.warn{margin:12px 26px 0;background:rgba(185,4,19,.12);border:1px solid rgba(185,4,19,.45);
+  border-radius:12px;padding:10px 13px;font-size:11px;line-height:1.5;color:#ff9aa2}
+/* ---------- self-evaluation ---------- */
+.eval{margin-top:30px;background:#191919;border:1px solid var(--line);border-radius:14px;
+  padding:18px 24px;display:flex;gap:34px}
+.eval h4{font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:7px}
+.eval .g h4{color:var(--lp-green)} .eval .b h4{color:var(--lp-red)} .eval .w h4{color:var(--lp-yellow)}
+.eval p{font-size:12.5px;line-height:1.6;color:#c9c9c9}
+.eval>div{flex:1}
+</style>
+
+<div class="page-head">
+  <span class="no">EXPLORATION 08</span>
+  <h1>Pre-flight Switch Panel</h1>
+  <p>Starting a drive is arming a system: four chunky preconditions, then a guarded master switch. There is no start button.</p>
+</div>
+
+<div class="row">
+
+  <!-- ================= FRAME 1 : READY / ARMED ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">9:41</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2>Pre-flight</h2></span>
+        <span class="date">Sun 17 Aug</span>
+      </div>
+
+      <div class="panel-grid">
+        <div class="sw-row2">
+          <div class="sw-cell small">
+            <div class="sw-top"><b class="sw-lbl">CAR</b></div>
+            <div class="sw-body">
+              <div class="sw-info"><div class="sw-val">Mum&rsquo;s Corolla</div><div class="sw-sub">YLC 88F</div></div>
+              <div class="tgl up"><span class="paddle"><i></i></span></div>
+            </div>
+          </div>
+          <div class="sw-cell small">
+            <div class="sw-top"><b class="sw-lbl">SUPERVISOR</b></div>
+            <div class="sw-body">
+              <div class="sw-info"><div class="sw-val">Sarah Whitman</div><div class="sw-sub">Full licence &middot; 12 yrs</div></div>
+              <div class="tgl up"><span class="paddle"><i></i></span></div>
+            </div>
+            <div class="sw-note">guest &rarr; name + licence</div>
+          </div>
+        </div>
+
+        <div class="sw-cell">
+          <div class="sw-top"><b class="sw-lbl">ODOMETER</b><span class="sw-unit">km at start</span></div>
+          <div class="sw-body">
+            <div class="stepper">
+              <div class="digits"><b>0</b><b>4</b><b>8</b><b>4</b><b>6</b><b class="last">8</b></div>
+              <div class="stepbtns"><span class="stepbtn"><i class="ch u s"></i></span><span class="stepbtn"><i class="ch d s"></i></span></div>
+            </div>
+            <div class="tgl up"><span class="paddle"><i></i></span></div>
+          </div>
+        </div>
+
+        <div class="sw-cell">
+          <div class="sw-top"><b class="sw-lbl">PLATES</b><span class="lamp green"></span></div>
+          <div class="sw-body">
+            <div class="sw-info"><div class="sw-val">Front + rear linked</div><div class="sw-sub">connected &middot; steady green</div></div>
+            <div class="tgl up"><span class="paddle"><i></i></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="guard-zone">
+        <span class="guard-cap">4 of 4 armed &middot; guard open</span>
+        <div class="guard-housing">
+          <div class="master-track off"><div class="master-paddle">ARM</div></div>
+          <div class="flap open"><span class="rivet l"></span><span class="rivet r"></span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Armed</strong></div>
+    <div class="slot-note">All four preconditions up releases the guard &mdash; one deliberate throw left.</div>
+  </div>
+
+  <!-- ================= FRAME 2 : PLATES CONNECTING ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">9:41</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2>Pre-flight</h2></span>
+        <span class="date">Sun 17 Aug</span>
+      </div>
+
+      <div class="panel-grid">
+        <div class="sw-row2">
+          <div class="sw-cell small">
+            <div class="sw-top"><b class="sw-lbl">CAR</b></div>
+            <div class="sw-body">
+              <div class="sw-info"><div class="sw-val">Mum&rsquo;s Corolla</div><div class="sw-sub">YLC 88F</div></div>
+              <div class="tgl up"><span class="paddle"><i></i></span></div>
+            </div>
+          </div>
+          <div class="sw-cell small">
+            <div class="sw-top"><b class="sw-lbl">SUPERVISOR</b></div>
+            <div class="sw-body">
+              <div class="sw-info"><div class="sw-val">Sarah Whitman</div><div class="sw-sub">Full licence &middot; 12 yrs</div></div>
+              <div class="tgl up"><span class="paddle"><i></i></span></div>
+            </div>
+            <div class="sw-note">guest &rarr; name + licence</div>
+          </div>
+        </div>
+
+        <div class="sw-cell">
+          <div class="sw-top"><b class="sw-lbl">ODOMETER</b><span class="sw-unit">km at start</span></div>
+          <div class="sw-body">
+            <div class="stepper">
+              <div class="digits"><b>0</b><b>4</b><b>8</b><b>4</b><b>6</b><b class="last">8</b></div>
+              <div class="stepbtns"><span class="stepbtn"><i class="ch u s"></i></span><span class="stepbtn"><i class="ch d s"></i></span></div>
+            </div>
+            <div class="tgl up"><span class="paddle"><i></i></span></div>
+          </div>
+        </div>
+
+        <div class="sw-cell">
+          <div class="sw-top"><b class="sw-lbl">PLATES</b><span class="lamp amber"></span></div>
+          <div class="sw-body">
+            <div class="sw-info"><div class="sw-val">Searching for link&hellip;</div><div class="sw-sub">rear found &middot; front pending</div></div>
+            <div class="tgl mid"><span class="paddle"><i></i></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="guard-zone">
+        <span class="guard-cap">3 of 4 armed &middot; guard locked</span>
+        <div class="guard-housing">
+          <div class="master-track off"><div class="master-paddle">ARM</div></div>
+          <div class="flap closed"><span>GUARDED</span><span class="rivet l"></span><span class="rivet r"></span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Plates connecting</strong></div>
+    <div class="slot-note">The PLATES switch throws itself as the BLE link comes up &mdash; the guard can&rsquo;t open until it lands.</div>
+  </div>
+
+  <!-- ================= FRAME 3 : RECORDING ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">16:17</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2>In flight</h2></span>
+        <span class="date">Sun 17 Aug</span>
+      </div>
+
+      <div class="ann-strip">
+        <div class="ann-item"><span class="lamp green"></span><span>CAR</span></div>
+        <div class="ann-item"><span class="lamp green"></span><span>SUP</span></div>
+        <div class="ann-item"><span class="lamp green"></span><span>ODO</span></div>
+        <div class="ann-item"><span class="lamp green"></span><span>PLATES</span></div>
+      </div>
+
+      <div class="rec-zone">
+        <div class="rec-lamp-row"><span class="lamp red"></span><b>RECORDING</b></div>
+        <div class="timer">00:23:45</div>
+        <div class="timer-sub">started <b>15:54</b> &middot; Kambah, ACT</div>
+      </div>
+
+      <div class="rec-odo-row">
+        <div class="digits"><b>0</b><b>4</b><b>8</b><b>4</b><b>8</b><b class="last">2</b></div>
+      </div>
+      <div class="rec-odo-cap">LIVE ODOMETER &middot; KM</div>
+
+      <div class="rec-facts">
+        <div class="fact"><b>14.6</b><span>km this drive</span></div>
+        <div class="fact"><b>61</b><span>km/h now</span></div>
+        <div class="fact"><b>87:40</b><span>hrs total</span></div>
+      </div>
+
+      <div class="rec-who">
+        <span class="ava">SW</span>
+        <span><b>Sarah Whitman</b> supervising &middot; <b>Mum&rsquo;s Corolla</b></span>
+      </div>
+
+      <div class="guard-zone">
+        <span class="guard-cap">guard open &middot; throw down to stop</span>
+        <div class="guard-housing">
+          <div class="master-track on"><div class="master-paddle hot">STOP</div></div>
+          <div class="flap open"><span class="rivet l"></span><span class="rivet r"></span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="slot-label"><strong>Recording</strong></div>
+    <div class="slot-note">The panel becomes an annunciator strip &mdash; the master switch stays thrown, lit red, until you throw it back.</div>
+  </div>
+
+  <!-- ================= FRAME 4 : REJECTED VARIANT ================= -->
+  <div class="slot">
+    <div class="phone"><div class="screen">
+      <div class="sbar">
+        <span class="time">9:41</span>
+        <span class="sicons">
+          <span class="cell"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi"><i></i><i></i><i></i></span>
+          <span class="batt"><i></i></span>
+        </span>
+      </div>
+      <div class="ahead">
+        <span class="brand"><span class="lplate">L</span><h2>Pre-flight</h2></span>
+        <span class="date">Sun 17 Aug</span>
+      </div>
+
+      <div class="panel-grid">
+        <div class="sw-row2">
+          <div class="sw-cell small">
+            <div class="sw-top"><b class="sw-lbl">CAR</b></div>
+            <div class="sw-body">
+              <div class="sw-info"><div class="sw-val">Mum&rsquo;s Corolla</div><div class="sw-sub">YLC 88F</div></div>
+              <div class="tgl up"><span class="paddle"><i></i></span></div>
+            </div>
+          </div>
+          <div class="sw-cell small">
+            <div class="sw-top"><b class="sw-lbl">SUPERVISOR</b></div>
+            <div class="sw-body">
+              <div class="sw-info"><div class="sw-val">Sarah Whitman</div><div class="sw-sub">Full licence &middot; 12 yrs</div></div>
+              <div class="tgl up"><span class="paddle"><i></i></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sw-cell">
+          <div class="sw-top"><b class="sw-lbl">ODOMETER</b><span class="sw-unit">km at start</span></div>
+          <div class="sw-body">
+            <div class="stepper">
+              <div class="digits"><b>0</b><b>4</b><b>8</b><b>4</b><b>6</b><b class="last">8</b></div>
+              <div class="stepbtns"><span class="stepbtn"><i class="ch u s"></i></span><span class="stepbtn"><i class="ch d s"></i></span></div>
+            </div>
+            <div class="tgl up"><span class="paddle"><i></i></span></div>
+          </div>
+        </div>
+
+        <div class="sw-cell">
+          <div class="sw-top"><b class="sw-lbl">PLATES</b><span class="lamp green"></span></div>
+          <div class="sw-body">
+            <div class="sw-info"><div class="sw-val">Front + rear linked</div><div class="sw-sub">connected &middot; steady green</div></div>
+            <div class="tgl up"><span class="paddle"><i></i></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn">
+        Rejected &mdash; no master switch means no last deliberate &ldquo;no&rdquo;. A pocket
+        bump on the fourth switch silently starts a legal drive record.
+      </div>
+
+      <div class="countdown-zone">
+        <div class="ring">3</div>
+        <div class="ring-cap">Auto-arming in <b>3s</b> &mdash; flip any switch to cancel</div>
+      </div>
+    </div></div>
+    <div class="slot-label rej"><strong>Rejected variant</strong> &mdash; auto-start countdown</div>
+    <div class="slot-note">Lost to the guarded switch: removing the final throw removed the only guaranteed-intentional step.</div>
+  </div>
+
+</div>
+
+<div class="eval">
+  <div class="g"><h4>Strengths</h4>
+    <p>The guard makes the point of no return physically unmissable &mdash; you cannot arm a drive by accident, and the annunciator strip answers &ldquo;is everything set?&rdquo; at a glance without reading text. Aviation framing gives four unrelated preconditions (car, supervisor, odometer, plates) one consistent, learnable gesture.</p></div>
+  <div class="b"><h4>Weaknesses</h4>
+    <p>Four switches plus a guard is more taps than a single button, and first-time users may not guess a switch throws itself for BLE. Toggle affordances are poor for screen readers and low-motor-control users without a parallel control.</p></div>
+  <div class="w"><h4>When this design wins</h4>
+    <p>Supervised early lessons, where the ritual of checking each precondition builds the habit and the guard&rsquo;s friction is a feature, not a cost.</p></div>
+</div>
