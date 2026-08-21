@@ -100,7 +100,7 @@ class PlateLink {
           resolve(id)
         }
       }).catch(() => resolve(''))
-      setTimeout(async () => { await stop(); resolve(id) }, 4000)
+      setTimeout(async () => { await stop(); resolve(id) }, 60000)
     })
   }
 
@@ -114,7 +114,7 @@ class PlateLink {
   // ── Debug helpers (used by the Debug tab's master panel) ────────────────────
 
   // Scan for any L-plate master in range and return what's advertising.
-  async scanMasters(ms = 5000): Promise<{ deviceId: string; name?: string }[]> {
+  async scanMasters(ms = 60000): Promise<{ deviceId: string; name?: string }[]> {
     const { BleClient } = await import('@capacitor-community/bluetooth-le')
     await BleClient.initialize()
     const found: { deviceId: string; name?: string }[] = []

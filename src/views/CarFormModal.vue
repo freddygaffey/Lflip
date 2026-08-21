@@ -55,6 +55,7 @@
     <ion-button expand="block" fill="outline" @click="scan" :disabled="scanning">
       {{ scanning ? 'Scanning…' : 'Scan for Bluetooth devices' }}
     </ion-button>
+    <p v-if="scanning" class="cal-hint">Scanning for up to a minute — the plate can take a while to show up, please wait.</p>
 
     <ion-list v-if="visibleDevices.length">
       <ion-list-header>
@@ -328,7 +329,7 @@ const scan = async () => {
     setTimeout(async () => {
       try { await BleClient.stopLEScan() } catch { /* already stopped */ }
       scanning.value = false
-    }, 5000)
+    }, 60000)
   } catch (e) {
     console.error('BLE scan failed', e)
     scanning.value = false
