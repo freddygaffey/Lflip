@@ -1,0 +1,35 @@
+<title>folio p2</title><style>
+  *{box-sizing:border-box;margin:0}
+  html,body{background:#141416;color:#e8e8ea;font-family:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif}
+  .page{width:210mm;height:297mm;margin:0 auto;background:#141416;padding:9mm 9mm 8mm;display:flex;flex-direction:column;gap:4mm;
+        -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  header{display:flex;gap:12px;align-items:center}
+  .badge{width:38px;height:38px;border-radius:10px;background:#ffd60a;color:#1a1a2e;font-family:Impact,sans-serif;
+         font-size:27px;display:flex;align-items:center;justify-content:center;flex:none}
+  h1{font-size:17px;font-weight:700} header p{color:#9a9aa2;font-size:10px;margin-top:2px;line-height:1.35}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+  .cell h2{font-size:10px;font-weight:700;margin-bottom:1.5mm}
+  .cell h2 span{color:#c5bf10;font-family:"SF Mono",Menlo,monospace;margin-right:6px}
+  .cell img{width:100%;height:auto;border-radius:4px;display:block}
+  .pn{margin-top:auto;text-align:right;color:#5c5c64;font-size:9px;font-family:"SF Mono",Menlo,monospace}
+  table{border-collapse:collapse;width:100%;font-size:8.5px}
+  th,td{border:1px solid #2c2c32;padding:3px 4px;text-align:center;font-variant-numeric:tabular-nums}
+  th{font-size:7.5px;font-weight:700} th i{display:block;font-style:normal;font-weight:400;color:#9a9aa2;font-size:6.8px}
+  td:first-child,th:first-child{text-align:left}
+  td.b{color:#36a225;font-weight:700}
+  tr.t td{border-top:1.5px solid #e8e8ea;font-weight:700}
+  .decide{border:1px solid #2c2c32;border-left:3px solid #36a225;border-radius:8px;padding:8px 10px;font-size:9.5px;line-height:1.45}
+  .decide b{color:#e8e8ea} .decide p{margin-bottom:4px;color:#c9c9cf} .decide p:last-child{margin-bottom:0}
+  .sec{font-size:9px;font-weight:700;color:#9a9aa2;letter-spacing:.08em;text-transform:uppercase}
+</style><div class="page">
+  <header><div class="badge">L</div><div><h1>Log Trip — design explorations (2 of 2): four mechanism studies, scoring, decision</h1>
+  <p>Round one converged on form-plus-button, so round two banned form fields, primary buttons and card grids — the interaction mechanism itself had to differ.</p></div></header>
+  <div class="grid"><div class="cell"><h2><span>07</span>Slide to commit</h2><img src="07_slide_to_start.png" alt="Slide to commit"></div><div class="cell"><h2><span>08</span>Pre-flight switch panel</h2><img src="08_switch_panel.png" alt="Pre-flight switch panel"></div><div class="cell"><h2><span>09</span>Conversation</h2><img src="09_conversation.png" alt="Conversation"></div><div class="cell"><h2><span>10</span>Ignition dial</h2><img src="10_ignition_dial.png" alt="Ignition dial"></div></div>
+  <div><p class="sec" style="margin-bottom:1.5mm">Scoring — 1&ndash;5 against real use: repeat drive, one hand, phone soon cradled, BLE plates slow or absent</p>
+  <table><thead><tr><th>Criterion</th><th>01<i>Big Button + grid</i></th><th>02<i>Dashboard-first</i></th><th>03<i>Wizard flow</i></th><th>04<i>Map-first</i></th><th>05<i>Paper logbook</i></th><th>06<i>Car-dashboard HMI</i></th><th>07<i>Slide to commit</i></th><th>08<i>Pre-flight switch panel</i></th><th>09<i>Conversation</i></th><th>10<i>Ignition dial</i></th></tr></thead><tbody><tr><td>Taps to start (repeat trip)</td><td class="b">5</td><td class="">3</td><td class="">1</td><td class="">4</td><td class="">3</td><td class="b">5</td><td class="">4</td><td class="">2</td><td class="">2</td><td class="">3</td></tr><tr><td>One-handed reach</td><td class="b">5</td><td class="">3</td><td class="">4</td><td class="">3</td><td class="">2</td><td class="b">5</td><td class="">4</td><td class="">3</td><td class="">3</td><td class="">3</td></tr><tr><td>Glanceability in the car</td><td class="b">5</td><td class="">3</td><td class="">2</td><td class="">4</td><td class="">1</td><td class="b">5</td><td class="">4</td><td class="">4</td><td class="">2</td><td class="">4</td></tr><tr><td>Error-proofing (odo / guest)</td><td class="">3</td><td class="">3</td><td class="b">5</td><td class="">2</td><td class="">3</td><td class="">3</td><td class="">4</td><td class="b">5</td><td class="">4</td><td class="">3</td></tr><tr><td>Plate status visibility</td><td class="">4</td><td class="">4</td><td class="">4</td><td class="">3</td><td class="">2</td><td class="b">5</td><td class="b">5</td><td class="b">5</td><td class="">4</td><td class="">4</td></tr><tr><td>Build cost in Ionic (5 = cheapest)</td><td class="b">5</td><td class="">4</td><td class="">2</td><td class="">1</td><td class="">3</td><td class="">3</td><td class="">2</td><td class="">1</td><td class="">2</td><td class="">1</td></tr><tr class="t"><td>Total / 30</td><td class="b">27</td><td class="">20</td><td class="">18</td><td class="">17</td><td class="">14</td><td class="">26</td><td class="">23</td><td class="">20</td><td class="">17</td><td class="">18</td></tr></tbody></table></div>
+  <div class="decide">
+    <p><b>Decision: Big Button + grid (27/30).</b> Ties the Car HMI (26/30) on every in-car criterion but stays comfortable off the cradle, and is the cheapest to reach from the existing Ionic screen.</p>
+    <p><b>What the losers changed:</b> slide-track and switch-panel put status <b>inside the control</b> &mdash; adopted: the start button doubles as the plate status light (amber connecting, green ready). Wizard and switch-panel back the can&rsquo;t-start-until-valid gating and the &ldquo;plates not connected &mdash; start anyway / wait&rdquo; fail-safe. HMI&rsquo;s tiles are the grid; ledger shapes history; map lives in trip detail; the chat&rsquo;s transcript shapes trip evidence.</p>
+    <p><b>Open:</b> start-button colour &mdash; exploration favoured green (red reserved for Stop); the red build is preserved as evidence if overruled.</p>
+  </div>
+  <div class="pn">design explorations &#183; 2 / 2</div></div>
